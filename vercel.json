@@ -1,12 +1,16 @@
 {
     "rewrites": [
         {
-            "source": "/",
+            "source": "/viewer",
             "destination": "/viewer.html"
         },
         {
+            "source": "/",
+            "destination": "/index.html"
+        },
+        {
             "source": "/(.*)",
-            "destination": "/viewer.html"
+            "destination": "/index.html"
         }
     ]
 }

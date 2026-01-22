@@ -9,7 +9,8 @@ export default defineConfig({
     assetsDir: '', // Output assets to the root of dist (flatten structure)
     rollupOptions: {
       input: {
-        main: 'viewer.html'
+        main: 'index.html',
+        viewer: 'viewer.html'
       },
       output: {
         entryFileNames: '[name]-[hash].js', // Remove assets/ prefix
