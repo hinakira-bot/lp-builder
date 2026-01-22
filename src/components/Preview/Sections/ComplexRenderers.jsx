@@ -149,7 +149,7 @@ export const PostCardRenderer = ({ section }) => (
 );
 
 export const ColumnsRenderer = ({ section }) => {
-    const gridClass = section.columnCount === 3 ? 'md:grid-cols-3' : (section.columnCount === 2 ? 'md:grid-cols-2' : 'grid-cols-1');
+    const gridClass = section.columnCount === 4 ? 'md:grid-cols-4' : (section.columnCount === 3 ? 'md:grid-cols-3' : (section.columnCount === 2 ? 'md:grid-cols-2' : 'grid-cols-1'));
 
     return (
         <div className={`grid grid-cols-1 ${gridClass} gap-8 md:gap-8`}>

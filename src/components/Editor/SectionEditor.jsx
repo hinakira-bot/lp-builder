@@ -368,9 +368,9 @@ export const SectionEditor = ({ section, onChange }) => {
                 <>
                     <div className="flex items-center gap-2 mb-2">
                         <span className="text-xs text-gray-500">数:</span>
-                        {[1, 2, 3].map(num => (
+                        {[1, 2, 3, 4].map(num => (
                             <button key={num} onClick={() => update('columnCount', num)} className={`px-2 py-0.5 rounded text-xs border ${section.columnCount === num ? 'bg-blue-600 border-blue-600 text-white' : 'border-gray-600 text-gray-400'}`}>{num}</button>
-                        ))}
+                        ))},
                     </div>
                     <div className="flex items-center gap-2 mb-2">
                         <span className="text-xs text-gray-500">タイプ:</span>
@@ -536,6 +536,42 @@ export const SectionEditor = ({ section, onChange }) => {
                         >
                             <Plus size={14} /> 項目を追加
                         </Button>
+                    </div>
+                </div>
+            )}
+
+            {section.type === 'speech_bubble' && (
+                <div className="space-y-4">
+                    <div className="grid grid-cols-2 gap-2">
+                        <div>
+                            <label className="text-[10px] text-gray-500 mb-1 block">キャラクター</label>
+                            <div className="space-y-1">
+                                <TextInput value={section.characterImage} onChange={(val) => update('characterImage', val)} placeholder="画像URL" />
+                                <AIGeneratorButton onGenerate={(url) => update('characterImage', url)} initialPrompt="Cute mascot character face" />
+                            </div>
+                        </div>
+                        <div>
+                            <label className="text-[10px] text-gray-500 mb-1 block">名前</label>
+                            <TextInput value={section.characterName} onChange={(val) => update('characterName', val)} placeholder="名前 (任意)" />
+                        </div>
+                    </div>
+
+                    <TextArea value={section.text} onChange={(val) => update('text', val)} placeholder="会話テキスト" rows={4} />
+
+                    <div className="flex justify-between items-center border-t border-gray-700 pt-2">
+                        <div className="flex gap-2">
+                            <div className="flex flex-col">
+                                <label className="text-[9px] text-gray-500">位置</label>
+                                <div className="flex bg-gray-900 p-0.5 rounded border border-gray-700">
+                                    <button onClick={() => update('align', 'right')} className={`px-2 py-1 text-[10px] rounded ${section.align !== 'left' ? 'bg-blue-600 text-white' : 'text-gray-400'}`}>右キャラ</button>
+                                    <button onClick={() => update('align', 'left')} className={`px-2 py-1 text-[10px] rounded ${section.align === 'left' ? 'bg-blue-600 text-white' : 'text-gray-400'}`}>左キャラ</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div className="flex flex-col w-20">
+                            <label className="text-[9px] text-gray-500">色</label>
+                            <ColorPicker value={section.bubbleColor || '#ffffff'} onChange={(val) => update('bubbleColor', val)} />
+                        </div>
                     </div>
                 </div>
             )}

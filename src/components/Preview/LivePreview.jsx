@@ -3,7 +3,7 @@ import { clsx } from 'clsx';
 import { HeroSection } from './HeroSection';
 import { SectionWrapper, TextRenderer, ImageRenderer, HeadingRenderer, VideoRenderer, ButtonRenderer } from './Sections/Renderers';
 import { SocialRenderer, AccordionRenderer, PostCardRenderer, ColumnsRenderer, LinksRenderer, BoxRenderer } from './Sections/ComplexRenderers';
-import { ConversionPanel, PointList, ProblemChecklist } from './Sections/BusinessRenderers';
+import { ConversionPanel, PointList, ProblemChecklist, SpeechBubbleRenderer } from './Sections/BusinessRenderers';
 
 export const LivePreview = ({ data, viewMode, activeSectionId }) => {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -72,8 +72,13 @@ export const LivePreview = ({ data, viewMode, activeSectionId }) => {
         box: BoxRenderer,
         conversion_panel: ConversionPanel,
         point_list: PointList,
-        problem_checklist: ProblemChecklist
+        problem_checklist: ProblemChecklist,
+        speech_bubble: SpeechBubbleRenderer
     };
+
+    // Filter out sticky sections to render them separately
+    const contentSections = data.sections.filter(s => !s.isSticky);
+    const stickySections = data.sections.filter(s => s.type === 'conversion_panel' && s.isSticky);
 
     return (
         <div
@@ -136,7 +141,7 @@ export const LivePreview = ({ data, viewMode, activeSectionId }) => {
                     <HeroSection data={data} viewMode={viewMode} />
 
                     <div className="relative z-10 flex-1 flex flex-col w-full pb-0">
-                        {data.sections.map((section) => {
+                        {contentSections.map((section) => {
                             const Renderer = renderers[section.type] || (() => <div className="text-red-500">Unknown Section Type: {section.type}</div>);
 
                             // Responsive Font Scaling
@@ -160,11 +165,20 @@ export const LivePreview = ({ data, viewMode, activeSectionId }) => {
                     </footer>
 
                     {/* Spacer for Floating CTA */}
-                    {data.floatingCta?.enabled && <div className="h-24 md:hidden"></div>}
+                    {(data.floatingCta?.enabled || stickySections.length > 0) && <div className="h-24"></div>}
                 </div>
             </div>
 
-            {/* Floating CTA (Docked) */}
+            {/* STICKY SECTIONS (CTA) - Rendered OUTSIDE the scrollable area but INSIDE the frame */}
+            {stickySections.map((section) => (
+                <div key={section.id} className="absolute bottom-0 left-0 w-full z-50 pointer-events-none">
+                    <div className="pointer-events-auto">
+                        <ConversionPanel section={section} />
+                    </div>
+                </div>
+            ))}
+
+            {/* Floating CTA (Docked) - Legacy support if 'floatingCta' is used instead of section */}
             {data.floatingCta?.enabled && (
                 <div className={`absolute bottom-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-md border-t border-gray-200 p-4 pb-6 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] transition-transform duration-500 ease-in-out ${viewMode === 'mobile' ? '' : 'md:hidden'} ${showCta ? 'translate-y-0' : 'translate-y-[120%]'}`}>
                     <a

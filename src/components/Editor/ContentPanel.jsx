@@ -1,5 +1,5 @@
 import React from 'react';
-import { Type, Layout, Plus, Trash2, ArrowUp, ArrowDown, AlignLeft, ImageIcon, MousePointerClick, Heading, PlayCircle, Share2, ListPlus, BoxSelect, FileText, Columns, Link as LinkIcon, Menu, X } from 'lucide-react';
+import { Type, Layout, Plus, Trash2, ArrowUp, ArrowDown, AlignLeft, ImageIcon, MousePointerClick, Heading, PlayCircle, Share2, ListPlus, BoxSelect, FileText, Columns, Link as LinkIcon, Menu, X, MessageCircle } from 'lucide-react';
 import { InputGroup, TextInput, TextArea } from '../UI/Input';
 import { SectionEditor } from './SectionEditor';
 import { Button } from '../UI/Button';
@@ -91,6 +91,14 @@ export const ContentPanel = ({ data, setData, setActiveSectionId }) => {
                 { text: '自分に合う化粧品が見つからない' }
             ]
         };
+        if (type === 'speech_bubble') newSection = {
+            ...newSection,
+            characterImage: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?q=80&w=2070&auto=format&fit=crop',
+            characterName: '案内人',
+            text: 'ここにメッセージを入力してください。\n改行も反映されます。',
+            align: 'left', // Default: Bubble Left, Char Right (as per request "Left to fukidashi, right to character")
+            bubbleColor: '#ffffff'
+        };
 
         setData(prev => ({
             ...prev,
@@ -171,6 +179,7 @@ export const ContentPanel = ({ data, setData, setActiveSectionId }) => {
                     <button onClick={() => addSection('conversion_panel')} className="flex flex-col items-center justify-center p-3 bg-gray-800 hover:bg-gray-700 rounded-lg border border-gray-700 transition-all col-span-2 border-orange-500/30 bg-orange-500/10"><MousePointerClick size={20} className="mb-1 text-orange-400" /><span className="text-[10px] font-bold text-orange-200">CVパネル (強力)</span></button>
                     <button onClick={() => addSection('point_list')} className="flex flex-col items-center justify-center p-3 bg-gray-800 hover:bg-gray-700 rounded-lg border border-gray-700 transition-all border-yellow-500/30"><ListPlus size={20} className="mb-1 text-yellow-400" /><span className="text-[10px]">特徴リスト</span></button>
                     <button onClick={() => addSection('problem_checklist')} className="flex flex-col items-center justify-center p-3 bg-gray-800 hover:bg-gray-700 rounded-lg border border-gray-700 transition-all border-red-500/30"><BoxSelect size={20} className="mb-1 text-red-400" /><span className="text-[10px]">悩みリスト</span></button>
+                    <button onClick={() => addSection('speech_bubble')} className="flex flex-col items-center justify-center p-3 bg-gray-800 hover:bg-gray-700 rounded-lg border border-gray-700 transition-all"><MessageCircle size={20} className="mb-1 text-green-400" /><span className="text-[10px]">ふきだし</span></button>
                     <button onClick={() => addSection('text')} className="flex flex-col items-center justify-center p-3 bg-gray-800 hover:bg-gray-700 rounded-lg border border-gray-700 transition-all"><AlignLeft size={20} className="mb-1 text-blue-400" /><span className="text-[10px]">テキスト</span></button>
                     <button onClick={() => addSection('image')} className="flex flex-col items-center justify-center p-3 bg-gray-800 hover:bg-gray-700 rounded-lg border border-gray-700 transition-all"><ImageIcon size={20} className="mb-1 text-green-400" /><span className="text-[10px]">画像</span></button>
                     <button onClick={() => addSection('image_text')} className="flex flex-col items-center justify-center p-3 bg-gray-800 hover:bg-gray-700 rounded-lg border border-gray-700 transition-all"><Layout size={20} className="mb-1 text-orange-400" /><span className="text-[10px]">画＆文</span></button>

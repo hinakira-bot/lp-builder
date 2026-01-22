@@ -142,6 +142,15 @@ export const DEFAULT_DATA = {
             bgValue: '#ffffff'
         },
         {
+            id: 85,
+            type: 'speech_bubble',
+            characterImage: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?q=80&w=2070&auto=format&fit=crop',
+            characterName: '店長',
+            text: '店長の鈴木です！\nこの商品は本当にこだわって作りました。\nぜひ手にとってみてください！',
+            align: 'left',
+            bubbleColor: '#f3f4f6'
+        },
+        {
             id: 9,
             type: 'problem_checklist',
             title: 'こんなお悩みありませんか？',

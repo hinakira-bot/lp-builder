@@ -139,3 +139,74 @@ export const ProblemChecklist = ({ section, viewMode }) => {
         </div>
     );
 };
+
+export const SpeechBubbleRenderer = ({ section, viewMode }) => {
+    const isMobile = viewMode === 'mobile';
+    // User requested "Left bubble, Right character".
+    // So Flex container: [Bubble] [Character]
+    // Default (align='left' or undefined) logic:
+    // We want the Bubble on the LEFT of the Character? Or the Bubble on the Left Side of the screen?
+    // Usually "Right Character" means the character is positioned on the right side.
+    // So the layout is [Bubble (Flexible)] ... [Character (Fixed)]
+
+    // Let's support swapping via 'align'.
+    // align='right' (Default in user request context? "Right to character"): Character on Right.
+    // align='left': Character on Left.
+
+    const isCharRight = section.align !== 'left'; // Default to Right for Character as per request.
+
+    const bubbleColor = section.bubbleColor || '#ffffff';
+    const textColor = section.textColor || '#333333';
+
+    return (
+        <div className={`flex items-start gap-4 ${isMobile ? 'px-2' : 'max-w-3xl mx-auto px-6'} ${isCharRight ? 'justify-end' : 'justify-start'}`}>
+
+            {/* Character (If Left) */}
+            {!isCharRight && (
+                <div className="flex-shrink-0 flex flex-col items-center gap-1">
+                    <div className="w-16 h-16 md:w-20 md:h-20 rounded-full overflow-hidden border-2 border-white shadow-md bg-gray-200">
+                        {section.characterImage ? (
+                            <img src={section.characterImage} alt="Speaker" className="w-full h-full object-cover" />
+                        ) : (
+                            <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs">No Img</div>
+                        )}
+                    </div>
+                    {section.characterName && <p className="text-[10px] text-center text-gray-500 font-bold">{section.characterName}</p>}
+                </div>
+            )}
+
+            {/* Speech Bubble */}
+            <div className="relative max-w-[70%]">
+                <div
+                    className="p-4 md:p-6 rounded-2xl shadow-sm text-sm md:text-base leading-relaxed whitespace-pre-wrap border border-gray-100"
+                    style={{ backgroundColor: bubbleColor, color: textColor }}
+                >
+                    {section.text}
+                </div>
+
+                {/* Tail */}
+                <div
+                    className={`absolute top-6 w-3 h-3 rotate-45 border-b border-r ${isCharRight ? '-right-1.5' : '-left-1.5'} border-gray-100`}
+                    style={{ backgroundColor: bubbleColor, borderColor: 'transparent ' + (isCharRight ? 'transparent #f3f4f6 #f3f4f6' : '#f3f4f6 #f3f4f6 transparent transparent') }} // Simplified tail color logic via simple bg
+                ></div>
+                {/* Better CSS Triangle Tail */}
+                <div className={`absolute top-6 w-0 h-0 border-8 border-transparent ${isCharRight ? '-right-4 border-l-white' : '-left-4 border-r-white'}`}
+                    style={isCharRight ? { borderLeftColor: bubbleColor } : { borderRightColor: bubbleColor }}></div>
+            </div>
+
+            {/* Character (If Right) - Default */}
+            {isCharRight && (
+                <div className="flex-shrink-0 flex flex-col items-center gap-1">
+                    <div className="w-16 h-16 md:w-20 md:h-20 rounded-full overflow-hidden border-2 border-white shadow-md bg-gray-200">
+                        {section.characterImage ? (
+                            <img src={section.characterImage} alt="Speaker" className="w-full h-full object-cover" />
+                        ) : (
+                            <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs">No Img</div>
+                        )}
+                    </div>
+                    {section.characterName && <p className="text-[10px] text-center text-gray-500 font-bold">{section.characterName}</p>}
+                </div>
+            )}
+        </div>
+    );
+};
