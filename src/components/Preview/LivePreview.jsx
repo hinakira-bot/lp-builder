@@ -114,13 +114,14 @@ export const LivePreview = ({ data, viewMode, activeSectionId }) => {
             </div>
 
             {/* STICKY SECTIONS (CTA) - Rendered OUTSIDE the scrollable area but INSIDE the frame */}
-            {stickySections.map((section) => (
-                <div key={section.id} className="absolute bottom-0 left-0 w-full z-50 pointer-events-none">
-                    <div className="pointer-events-auto">
+            {/* User Request: Don't show on PC, Don't show from beginning */}
+            <div className={`absolute bottom-0 left-0 w-full z-50 transition-transform duration-500 ease-in-out pointer-events-none ${viewMode === 'mobile' ? '' : 'hidden'} ${showCta ? 'translate-y-0' : 'translate-y-full'}`}>
+                {stickySections.map((section) => (
+                    <div key={section.id} className="pointer-events-auto">
                         <ConversionPanel section={section} />
                     </div>
-                </div>
-            ))}
+                ))}
+            </div>
 
             {/* Floating CTA (Docked) - Legacy support if 'floatingCta' is used instead of section */}
             {data.floatingCta?.enabled && (

@@ -67,7 +67,7 @@ export const ContentPanel = ({ data, setData, setActiveSectionId }) => {
             ...newSection,
             title: '今だけ限定価格',
             microCopy: '※キャンペーンは予告なく終了する場合があります',
-            isSticky: true,
+            isSticky: false,
             buttons: [
                 { label: 'Amazonで購入', url: '#', color: 'orange', icon: 'cart' },
                 { label: '楽天市場で購入', url: '#', color: 'red', icon: 'cart' }
