@@ -1,6 +1,6 @@
 /* eslint-disable */
 import React from 'react';
-import { AlignLeft, AlignCenter, AlignRight, Plus, Trash2 } from 'lucide-react';
+import { AlignLeft, AlignCenter, AlignRight, Plus, Trash2, Crown, Star, Medal, Award, Sparkles } from 'lucide-react';
 import { TextInput, TextArea } from '../UI/Input';
 import { Slider, ColorPicker } from '../UI/Input';
 import { Button } from '../UI/Button';
@@ -648,6 +648,55 @@ export const SectionEditor = ({ section, onChange }) => {
                                 <div className="grid grid-cols-2 gap-2">
                                     <TextInput value={plan.name} onChange={(val) => { const n = [...section.plans]; n[i] = { ...plan, name: val }; update('plans', n); }} placeholder="プラン名" />
                                     <TextInput value={plan.buttonText} onChange={(val) => { const n = [...section.plans]; n[i] = { ...plan, buttonText: val }; update('plans', n); }} placeholder="ボタン文字" />
+                                </div>
+
+                                <div className="space-y-2">
+                                    <label className="text-[9px] text-gray-500 block">アイコン & 表記</label>
+                                    <div className="flex gap-2 items-center">
+                                        <div className="flex bg-gray-900 p-1 rounded border border-gray-700">
+                                            {[
+                                                { id: 'sparkle', Icon: Sparkles },
+                                                { id: 'crown', Icon: Crown },
+                                                { id: 'star', Icon: Star },
+                                                { id: 'medal', Icon: Medal },
+                                                { id: 'award', Icon: Award }
+                                            ].map(({ id, Icon }) => (
+                                                <button
+                                                    key={id}
+                                                    onClick={() => { const n = [...section.plans]; n[i] = { ...plan, icon: id }; update('plans', n); }}
+                                                    className={`p-1.5 rounded transition-colors ${plan.icon === id ? 'bg-blue-600' : 'hover:bg-gray-700'}`}
+                                                >
+                                                    <Icon size={12} className={plan.icon === id ? 'text-white' : 'text-gray-400'} />
+                                                </button>
+                                            ))}
+                                        </div>
+                                        <TextInput
+                                            value={plan.badgeText}
+                                            onChange={(val) => { const n = [...section.plans]; n[i] = { ...plan, badgeText: val }; update('plans', n); }}
+                                            placeholder="バッジ文言"
+                                            className="flex-1 py-1 text-[10px]"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="space-y-1">
+                                        <label className="text-[9px] text-gray-500 block">価格サイズ</label>
+                                        <Slider
+                                            value={plan.priceSize || 2.5}
+                                            min={1.5}
+                                            max={4}
+                                            step={0.1}
+                                            onChange={(val) => { const n = [...section.plans]; n[i] = { ...plan, priceSize: val }; update('plans', n); }}
+                                        />
+                                    </div>
+                                    <div className="space-y-1">
+                                        <label className="text-[9px] text-gray-500 block">アクセント色</label>
+                                        <ColorPicker
+                                            value={plan.color || '#3b82f6'}
+                                            onChange={(val) => { const n = [...section.plans]; n[i] = { ...plan, color: val }; update('plans', n); }}
+                                        />
+                                    </div>
                                 </div>
 
                                 <div className="flex gap-2">

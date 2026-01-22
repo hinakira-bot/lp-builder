@@ -1,7 +1,7 @@
 /* eslint-disable */
 import React from 'react';
 import { clsx } from 'clsx';
-import { ShoppingCart, MessageCircle, ExternalLink, Check, Sparkles } from 'lucide-react';
+import { ShoppingCart, MessageCircle, ExternalLink, Check, Sparkles, Crown, Star, Medal, Award } from 'lucide-react';
 
 export const ConversionPanel = ({ section }) => {
     // Default buttons if none provided
@@ -212,15 +212,21 @@ export const SpeechBubbleRenderer = ({ section, viewMode }) => {
     );
 };
 
-export const PricingRenderer = ({ section, viewMode }) => {
+export const PricingRenderer = ({ section, viewMode, fontSize }) => {
     const isMobile = viewMode === 'mobile';
-    const plans = section.plans || [
-        { id: 1, name: 'Basic', price: '¥9,800', period: '/月', features: ['独自ドメイン', '基本テンプレート', '月1回更新'], buttonText: '申し込む', isFeatured: false },
-        { id: 2, name: 'Standard', price: '¥19,800', period: '/月', features: ['独自ドメイン', 'フルカスタマイズ', '週1回更新', 'SEO対策'], buttonText: '一番人気', isFeatured: true },
-        { id: 3, name: 'Premium', price: '¥49,800', period: '/月', features: ['独自ドメイン', 'フルカスタマイズ', '毎日更新', '広告運用代行'], buttonText: 'お問い合わせ', isFeatured: false }
-    ];
+    const plans = section.plans || [];
 
-    const designPattern = section.design || 'standard'; // standard, featured, horizontal
+    const getPlanIcon = (iconName) => {
+        switch (iconName) {
+            case 'crown': return <Crown size={16} className="text-yellow-500" />;
+            case 'star': return <Star size={16} className="text-yellow-400" />;
+            case 'medal': return <Medal size={16} className="text-blue-400" />;
+            case 'award': return <Award size={16} className="text-orange-400" />;
+            default: return <Sparkles size={16} className="text-blue-500" />;
+        }
+    };
+
+    const designPattern = section.design || 'standard';
 
     if (designPattern === 'horizontal') {
         return (
@@ -264,58 +270,75 @@ export const PricingRenderer = ({ section, viewMode }) => {
     return (
         <div className={clsx(
             "grid gap-8 max-w-7xl mx-auto px-6 py-12",
-            isMobile ? "grid-cols-1" : "md:grid-cols-3"
+            isMobile ? "grid-cols-1" : (plans.length === 2 ? "md:grid-cols-2 max-w-4xl" : "md:grid-cols-3")
         )}>
-            {plans.map((plan) => (
-                <div
-                    key={plan.id}
-                    className={clsx(
-                        "relative flex flex-col p-8 rounded-[2rem] transition-all duration-500",
-                        plan.isFeatured
-                            ? "bg-white shadow-[0_20px_50px_rgba(0,0,0,0.1)] border-2 border-blue-500 scale-105 z-10"
-                            : "bg-white/50 border border-gray-100 shadow-sm hover:shadow-xl"
-                    )}
-                >
-                    {plan.isFeatured && (
-                        <div className="absolute -top-5 left-1/2 -translate-x-1/2 bg-blue-600 text-white px-6 py-1.5 rounded-full text-xs font-bold tracking-widest flex items-center gap-2 shadow-lg">
-                            <Sparkles size={14} /> RECOMMENDED
-                        </div>
-                    )}
+            {plans.map((plan) => {
+                const accentColor = plan.color || '#3b82f6';
+                const textColor = plan.textColor || '#ffffff';
+                const priceSize = plan.priceSize || 2.5;
 
-                    <div className="mb-8">
-                        <h4 className="text-sm font-bold text-gray-500 uppercase tracking-[0.2em] mb-4">{plan.name}</h4>
-                        <div className="flex items-baseline mb-2">
-                            <span className="text-4xl font-black text-gray-900 tracking-tight">{plan.price}</span>
-                            <span className="text-sm text-gray-500 ml-1 font-medium">{plan.period}</span>
+                return (
+                    <div
+                        key={plan.id}
+                        className={clsx(
+                            "relative flex flex-col p-8 rounded-[2.5rem] transition-all duration-700 group",
+                            plan.isFeatured
+                                ? "bg-white shadow-[0_30px_60px_-15px_rgba(0,0,0,0.15)] ring-2 scale-105 z-10"
+                                : "bg-white/60 border border-gray-100 shadow-sm hover:shadow-2xl hover:-translate-y-1"
+                        )}
+                        style={plan.isFeatured ? { ringColor: accentColor + '20', borderColor: accentColor } : {}}
+                    >
+                        {plan.isFeatured && (
+                            <div
+                                className="absolute -top-5 left-1/2 -translate-x-1/2 text-white px-8 py-2 rounded-full text-[10px] font-black tracking-[0.2em] flex items-center gap-2 shadow-xl whitespace-nowrap animate-bounce-subtle"
+                                style={{ backgroundColor: accentColor }}
+                            >
+                                {getPlanIcon(plan.icon || 'sparkle')} {plan.badgeText || 'RECOMMENDED'}
+                            </div>
+                        )}
+
+                        <div className="mb-10">
+                            <h4 className="text-[11px] font-black text-gray-400 uppercase tracking-[0.3em] mb-4 flex items-center gap-2">
+                                {!plan.isFeatured && plan.icon && getPlanIcon(plan.icon)}
+                                {plan.name}
+                            </h4>
+                            <div className="flex items-baseline mb-2">
+                                <span className="font-black text-gray-900 tracking-tighter" style={{ fontSize: `${priceSize}rem` }}>
+                                    {plan.price}
+                                </span>
+                                <span className="text-sm text-gray-400 ml-1 font-bold">{plan.period}</span>
+                            </div>
+                            {plan.subText && <p className="text-[10px] text-gray-400 font-medium">{plan.subText}</p>}
                         </div>
-                        <p className="text-xs text-gray-400">※すべて税込価格です</p>
+
+                        <ul className="flex-1 space-y-5 mb-10">
+                            {(plan.features || []).map((feature, i) => (
+                                <li key={i} className="flex items-start gap-4 group/item">
+                                    <div
+                                        className="p-1 rounded-full mt-0.5 transition-colors"
+                                        style={{ backgroundColor: accentColor + '10', color: accentColor }}
+                                    >
+                                        <Check size={12} strokeWidth={4} />
+                                    </div>
+                                    <span className="text-sm text-gray-600 font-medium leading-snug group-hover/item:text-gray-900 transition-colors">
+                                        {feature}
+                                    </span>
+                                </li>
+                            ))}
+                        </ul>
+
+                        <button
+                            className="w-full py-4.5 rounded-2xl font-black text-sm tracking-widest transition-all transform active:scale-95 shadow-lg flex items-center justify-center gap-2"
+                            style={{
+                                backgroundColor: plan.isFeatured ? accentColor : '#f9fafb',
+                                color: plan.isFeatured ? textColor : '#374151'
+                            }}
+                        >
+                            {plan.buttonText}
+                        </button>
                     </div>
-
-                    <ul className="flex-1 space-y-4 mb-8">
-                        {plan.features.map((feature, i) => (
-                            <li key={i} className="flex items-start gap-3">
-                                <div className="p-1 rounded-full bg-blue-50 text-blue-500 mt-0.5">
-                                    <Check size={12} strokeWidth={4} />
-                                </div>
-                                <span className="text-sm text-gray-600 leading-tight">{feature}</span>
-                            </li>
-                        ))}
-                    </ul>
-
-                    <button className={clsx(
-                        "w-full py-4 rounded-2xl font-bold transition-all transform active:scale-95 shadow-md",
-                        plan.isFeatured
-                            ? "bg-blue-600 text-white hover:bg-blue-500 shadow-blue-200"
-                            : "bg-gray-100 text-gray-800 hover:bg-gray-200"
-                    )}>
-                        {plan.buttonText}
-                    </button>
-
-                    {plan.subText && (
-                        <p className="text-center text-[10px] text-gray-400 mt-4">{plan.subText}</p>
-                    )}
-                </div>
-            ))}
+                );
+            })}
         </div>
     );
 };
