@@ -84,7 +84,7 @@ export const ViewerApp = () => {
                 {debugInfo && <div className="fixed top-0 left-0 bg-yellow-50 text-yellow-800 text-[10px] p-1 z-50 opacity-50 hover:opacity-100 pointer-events-none">{debugInfo}</div>}
 
                 {/* viewMode="desktop" allows full responsiveness (LivePreview logic) */}
-                <LivePreview data={data} viewMode="desktop" activeSectionId={null} />
+                <LivePreview data={data} viewMode="desktop" activeSectionId={null} isPublished={true} />
             </div>
         </ErrorBoundary>
     );

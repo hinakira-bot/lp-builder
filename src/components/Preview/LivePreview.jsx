@@ -5,48 +5,56 @@ import { HeroSection } from './HeroSection';
 import { SectionDispatcher } from './SectionDispatcher';
 import { ConversionPanel } from './Sections/BusinessRenderers';
 
-export const LivePreview = ({ data, viewMode, activeSectionId }) => {
+export const LivePreview = ({ data, viewMode, activeSectionId, isPublished = false }) => {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [showCta, setShowCta] = useState(false);
 
-    // Auto Scroll Logic
+    // Window Scroll Handling for Published Page
     React.useEffect(() => {
-        if (activeSectionId) {
-            const element = document.getElementById(`section-${activeSectionId}`);
-            if (element) {
-                element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            }
+        if (isPublished) {
+            const handleWindowScroll = () => {
+                const scrollTop = window.scrollY;
+                if (scrollTop > 100) {
+                    setShowCta(true);
+                } else {
+                    setShowCta(false);
+                }
+            };
+            window.addEventListener('scroll', handleWindowScroll);
+            return () => window.removeEventListener('scroll', handleWindowScroll);
         }
-    }, [activeSectionId]);
+    }, [isPublished]);
 
-    // Scroll Handler for CTA
+    // Internal Scroll Handling (Editor Mode)
     const handleScroll = (e) => {
+        if (isPublished) return; // Ignore internal scroll if published (window scroll handles it)
+
         const scrollTop = e.currentTarget.scrollTop;
-        if (scrollTop > 100) { // Show after 100px (scroll a bit)
+        if (scrollTop > 100) {
             setShowCta(true);
         } else {
             setShowCta(false);
         }
     };
 
-    // Filter out sticky sections to render them separately -> DISABLE sticky section logic, render all as content.
-    // User wants ONLY Global CTA (Settings) to be floating.
-    const contentSections = data.sections; // Render all sections normally in flow
-    // const stickySections = data.sections.filter(s => s.type === 'conversion_panel' && s.isSticky); // Ignored
+    // Auto Scroll Logic
+    React.useEffect(() => {
+        if (activeSectionId && !isPublished) { // Auto scroll only in editor
+            const element = document.getElementById(`section-${activeSectionId}`);
+            if (element) {
+                element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        }
+    }, [activeSectionId, isPublished]);
 
-    // Responsive Font Scaling
-    const fontSize = viewMode === 'mobile' ? {
-        heroTitle: data.fontSize.heroTitle * 0.6,
-        heroSubtitle: data.fontSize.heroSubtitle * 0.8,
-        sectionTitle: data.fontSize.sectionTitle * 0.7,
-        body: data.fontSize.body * 0.85
-    } : data.fontSize;
+    // ... (rest of logic) ...
 
     return (
         <div
             className={clsx(
                 "relative shadow-2xl overflow-hidden transition-all duration-500 ease-in-out border border-gray-800/20 transform flex flex-col",
-                viewMode === 'mobile' ? 'w-[390px] h-[800px] rounded-[3rem] border-8 border-gray-900' : 'w-full h-full rounded-md'
+                viewMode === 'mobile' ? 'w-[390px] h-[800px] rounded-[3rem] border-8 border-gray-900' : 'w-full h-full rounded-md',
+                isPublished ? 'shadow-none border-none rounded-none' : ''
             )}
             style={{
                 color: data.textColor,
@@ -57,7 +65,13 @@ export const LivePreview = ({ data, viewMode, activeSectionId }) => {
             }}
         >
             {/* Scrollable Content */}
-            <div className="flex-1 w-full overflow-y-auto scrollbar-hide relative" onScroll={handleScroll}>
+            <div
+                className={clsx(
+                    "flex-1 w-full relative",
+                    isPublished ? "" : "overflow-y-auto scrollbar-hide"
+                )}
+                onScroll={handleScroll}
+            >
                 <div className={`relative min-h-full flex flex-col ${data.fontFamily === 'serif' ? 'font-serif' : 'font-sans'}`}>
 
                     {/* Header */}
