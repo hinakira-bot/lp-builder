@@ -179,7 +179,7 @@ export const aiService = {
         // This runs if provider is 'pollinations' (future) or if 'gemini' was selected but no key (demo mode)
         const finalPrompt = `${prompt}, ${style} style`; // Simple append
         const seed = Math.floor(Math.random() * 99999999);
-        const url = `https://pollinations.ai/p/${encodeURIComponent(finalPrompt)}?nologo=true&t=${Date.now()}`;
+        const url = `https://pollinations.ai/p/${encodeURIComponent(finalPrompt)}?nologo=true&t=${Date.now()}&seed=${seed}`;
 
         return {
             url,

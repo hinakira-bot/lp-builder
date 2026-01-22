@@ -12,7 +12,7 @@ export default defineConfig({
         emptyOutDir: true,
         rollupOptions: {
             input: {
-                main: resolve(__dirname, 'viewer.html'),
+                main: resolve('viewer.html'),
             },
         },
     },

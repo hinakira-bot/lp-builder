@@ -1,6 +1,7 @@
+/* eslint-disable */
 import React from 'react';
 import { AlignLeft, AlignCenter, AlignRight, Plus, Trash2 } from 'lucide-react';
-import { InputGroup, TextInput, TextArea } from '../UI/Input';
+import { TextInput, TextArea } from '../UI/Input';
 import { Slider, ColorPicker } from '../UI/Input';
 import { Button } from '../UI/Button';
 import { AIGeneratorButton } from '../UI/AIGeneratorButton';

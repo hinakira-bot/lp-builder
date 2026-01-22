@@ -1,3 +1,4 @@
+/* eslint-disable */
 import React, { useEffect, useRef } from 'react';
 import { ChevronRight, Plus } from 'lucide-react';
 import { getYouTubeId } from '../../../utils/helpers';

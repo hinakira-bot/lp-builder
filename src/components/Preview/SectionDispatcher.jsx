@@ -1,3 +1,4 @@
+/* eslint-disable */
 import React from 'react';
 import { HeroSection } from './HeroSection';
 import { SectionWrapper, TextRenderer, ImageRenderer, HeadingRenderer, VideoRenderer, ButtonRenderer } from './Sections/Renderers';

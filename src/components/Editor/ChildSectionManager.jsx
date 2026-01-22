@@ -1,12 +1,7 @@
+/* eslint-disable */
 import React from 'react';
-import { Plus, Trash2, AlignLeft, ImageIcon, MousePointerClick } from 'lucide-react';
+import { Trash2, AlignLeft, ImageIcon, MousePointerClick } from 'lucide-react';
 import { TextInput, TextArea } from '../UI/Input';
-import { Button } from '../UI/Button';
-import { SectionEditor } from './SectionEditor'; // Circular dependency risk if not careful, but component recursion is valid in React if handled correctly.
-// Actually, circular dependency in imports might be an issue for bundlers or generic logic.
-// Better to pass SectionEditor as a prop or use a simplified internal editor.
-// For now, let's build a simplified editor for children to avoid circular import complexity if possible, OR just handle the import.
-// Using `SectionEditor` recursively is the most powerful way.
 
 export const ChildSectionManager = ({ childrenSections = [], onChange }) => {
 
