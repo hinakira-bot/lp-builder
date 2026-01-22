@@ -63,9 +63,7 @@ export const HeroSection = ({ data, viewMode }) => {
                 </p>
             </div>
 
-            <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 text-white/50 animate-bounce">
-                <div className="w-[1px] h-8 bg-white/50 mx-auto"></div>
-            </div>
+
         </div>
     );
 };
