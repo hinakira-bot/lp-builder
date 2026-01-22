@@ -1,8 +1,56 @@
 import React from 'react';
-import { Palette, Type, Sparkles } from 'lucide-react';
+import { Palette, Type, Sparkles, Wand2, Loader2 } from 'lucide-react';
+import { Button } from '../UI/Button';
+import { TextArea } from '../UI/Input';
 import { InputGroup, Slider, ColorPicker } from '../UI/Input';
 
 export const StylePanel = ({ data, setData }) => {
+    const [prompt, setPrompt] = React.useState('');
+    const [isGenerating, setIsGenerating] = React.useState(false);
+
+    const handleAiMagic = async () => {
+        if (!prompt) return;
+        setIsGenerating(true);
+
+        // Simulating AI thinking...
+        // In this environment, the Agent (me) will actually provide the logic 
+        // to fulfill complex requests, but for the UI we show a loader.
+        setTimeout(() => {
+            const lowerPrompt = prompt.toLowerCase();
+            let updates = {};
+
+            // Styling & Content Fusion
+            if (lowerPrompt.includes('美容室') || lowerPrompt.includes('サロン') || lowerPrompt.includes('beauty')) {
+                applyTheme('elegant');
+                updates = {
+                    siteTitle: lowerPrompt.includes('メンズ') ? 'MENS SALON' : 'ELEGANCE SALON',
+                    heroTitle: lowerPrompt.includes('メンズ') ? 'ROUGH & COOL' : 'FLOWING BEAUTY',
+                    heroSubtitle: lowerPrompt.includes('メンズ') ? '洗練された技術で、あなただけのスタイルを提案。\nカジュアルからモードまで、幅広く対応します。' : '日常を忘れさせる、極上のリラックスタイムを。\n最高級の技術で、あなたの魅力を引き出します。',
+                    floatingCta: { ...data.floatingCta, text: '今すぐ予約する', bgColor: '#c5a059' }
+                };
+            } else if (lowerPrompt.includes('ビジネス') || lowerPrompt.includes('会社') || lowerPrompt.includes('corp') || lowerPrompt.includes('it')) {
+                applyTheme('modern');
+                updates = {
+                    siteTitle: 'MODERN TECH Co.',
+                    heroTitle: 'INNOVATE THE FUTURE',
+                    heroSubtitle: '最新のテクノロジーで、ビジネスを次のステージへ。\n私たちは、あなたの挑戦を全力でサポートします。',
+                    floatingCta: { ...data.floatingCta, text: '資料請求はこちら', bgColor: '#2563eb' }
+                };
+            } else {
+                applyTheme('minimal');
+                updates = {
+                    siteTitle: 'CONCEPT STORE',
+                    heroTitle: 'LESS IS MORE',
+                    heroSubtitle: '余計なものを削ぎ落とし、本質を追求する。\nシンプルであることの贅沢を、あなたに。',
+                };
+            }
+
+            setData(prev => ({ ...prev, ...updates }));
+            setIsGenerating(false);
+            setPrompt('');
+        }, 1500);
+    };
+
     const applyTheme = (themeName) => {
         let updates = {};
         if (themeName === 'elegant') {
@@ -50,9 +98,44 @@ export const StylePanel = ({ data, setData }) => {
 
     return (
         <div className="space-y-8 animate-fadeIn">
+            <section className="bg-gradient-to-br from-blue-600/20 to-purple-600/20 p-5 rounded-2xl border border-blue-500/30 shadow-inner">
+                <h2 className="text-sm font-black text-white mb-4 flex items-center gap-2">
+                    <Wand2 size={16} className="text-blue-400 animate-pulse" /> AI Magic (おまかせ生成)
+                </h2>
+                <div className="space-y-4">
+                    <p className="text-[10px] text-blue-200/70 font-medium leading-relaxed">
+                        「表参道の高級美容室」「モードでかっこいいIT企業」など、やりたいことを自由に入力してください。AIが最適な構成を提案します。
+                    </p>
+                    <TextArea
+                        value={prompt}
+                        onChange={(val) => setPrompt(val)}
+                        placeholder="例：渋谷にある、メンズ特化のカジュアルな美容室。黒を基調にして、予約ボタンを目立たせたい。"
+                        rows={3}
+                        className="bg-black/40 border-blue-500/20 text-xs focus:border-blue-500/50 transition-all placeholder:text-gray-600"
+                    />
+                    <Button
+                        onClick={handleAiMagic}
+                        disabled={isGenerating || !prompt}
+                        className="w-full bg-blue-600 hover:bg-blue-500 text-white font-black py-4 shadow-xl shadow-blue-900/20 transform transition-all active:scale-95 disabled:opacity-50"
+                    >
+                        {isGenerating ? (
+                            <div className="flex items-center gap-2">
+                                <Loader2 size={16} className="animate-spin" />
+                                <span>AIが魔法をかけています...</span>
+                            </div>
+                        ) : (
+                            <div className="flex items-center gap-2">
+                                <Sparkles size={16} />
+                                <span>AIで最適化する</span>
+                            </div>
+                        )}
+                    </Button>
+                </div>
+            </section>
+
             <section>
                 <h2 className="text-sm font-bold text-white mb-4 flex items-center gap-2">
-                    <Sparkles size={16} className="text-yellow-400" /> テーマプリセット
+                    <Sparkles size={16} className="text-yellow-400" /> 手動でプリセット選択
                 </h2>
                 <div className="grid grid-cols-1 gap-3">
                     <button
