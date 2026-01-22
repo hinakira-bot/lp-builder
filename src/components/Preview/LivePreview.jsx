@@ -22,7 +22,7 @@ export const LivePreview = ({ data, viewMode, activeSectionId }) => {
     // Scroll Handler for CTA
     const handleScroll = (e) => {
         const scrollTop = e.currentTarget.scrollTop;
-        if (scrollTop > 400) { // Show after 400px (approx after Hero)
+        if (scrollTop > 100) { // Show after 100px (scroll a bit)
             setShowCta(true);
         } else {
             setShowCta(false);
@@ -128,7 +128,7 @@ export const LivePreview = ({ data, viewMode, activeSectionId }) => {
 
             {/* Floating CTA (Docked) - Settings Tab CTA */}
             {data.floatingCta?.enabled && (
-                <div className={`absolute bottom-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-md border-t border-gray-200 p-4 pb-6 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] transition-transform duration-500 ease-in-out ${viewMode === 'mobile' ? '' : 'md:hidden'} ${showCta ? 'translate-y-0' : 'translate-y-[120%]'}`}>
+                <div className={`absolute bottom-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-md border-t border-gray-200 p-4 pb-6 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] transition-transform duration-500 ease-in-out ${viewMode === 'mobile' ? '' : 'md:hidden'} ${showCta ? 'translate-y-0' : 'translate-y-full opacity-0 pointer-events-none'}`}>
                     <a
                         href={data.floatingCta.url}
                         className="block w-full py-3.5 rounded-full shadow-lg text-center font-bold text-sm tracking-widest transition-transform active:scale-95"
