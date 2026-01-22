@@ -100,6 +100,15 @@ export const ContentPanel = ({ data, setData, setActiveSectionId }) => {
             align: 'left', // Default: Bubble Left, Char Right (as per request "Left to fukidashi, right to character")
             bubbleColor: '#ffffff'
         };
+        if (type === 'pricing') newSection = {
+            ...newSection,
+            design: 'standard',
+            plans: [
+                { id: 1, name: 'ベーシック', price: '¥9,800', period: '/月', features: ['独自ドメイン', '基本テンプレート', '月1回更新'], buttonText: '申し込む', isFeatured: false },
+                { id: 2, name: 'スタンダード', price: '¥19,800', period: '/月', features: ['独自ドメイン', 'フルカスタマイズ', '週1回更新', 'SEO対策'], buttonText: '一番人気', isFeatured: true },
+                { id: 3, name: 'プレミアム', price: '¥49,800', period: '/月', features: ['独自ドメイン', 'フルカスタマイズ', '毎日更新', '広告運用代行'], buttonText: 'お問い合わせ', isFeatured: false }
+            ]
+        };
         if (type === 'full_width') newSection = {
             ...newSection,
             children: []
@@ -182,6 +191,7 @@ export const ContentPanel = ({ data, setData, setActiveSectionId }) => {
                 {/* Add Section Buttons */}
                 <div className="grid grid-cols-4 gap-2 mt-6">
                     <button onClick={() => addSection('conversion_panel')} className="flex flex-col items-center justify-center p-3 bg-gray-800 hover:bg-gray-700 rounded-lg border border-gray-700 transition-all col-span-2 border-orange-500/30 bg-orange-500/10"><MousePointerClick size={20} className="mb-1 text-orange-400" /><span className="text-[10px] font-bold text-orange-200">CVパネル (強力)</span></button>
+                    <button onClick={() => addSection('pricing')} className="flex flex-col items-center justify-center p-3 bg-gray-800 hover:bg-gray-700 rounded-lg border border-gray-700 transition-all col-span-2 border-blue-500/30 bg-blue-500/10"><ListPlus size={20} className="mb-1 text-blue-400" /><span className="text-[10px] font-bold text-blue-200">料金プラン</span></button>
                     <button onClick={() => addSection('point_list')} className="flex flex-col items-center justify-center p-3 bg-gray-800 hover:bg-gray-700 rounded-lg border border-gray-700 transition-all border-yellow-500/30"><ListPlus size={20} className="mb-1 text-yellow-400" /><span className="text-[10px]">特徴リスト</span></button>
                     <button onClick={() => addSection('problem_checklist')} className="flex flex-col items-center justify-center p-3 bg-gray-800 hover:bg-gray-700 rounded-lg border border-gray-700 transition-all border-red-500/30"><BoxSelect size={20} className="mb-1 text-red-400" /><span className="text-[10px]">悩みリスト</span></button>
                     <button onClick={() => addSection('speech_bubble')} className="flex flex-col items-center justify-center p-3 bg-gray-800 hover:bg-gray-700 rounded-lg border border-gray-700 transition-all"><MessageCircle size={20} className="mb-1 text-green-400" /><span className="text-[10px]">ふきだし</span></button>

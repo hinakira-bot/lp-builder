@@ -174,6 +174,20 @@ export const DEFAULT_DATA = {
         },
         {
             id: 11,
+            type: 'pricing',
+            design: 'featured',
+            plans: [
+                { id: 1, name: 'ベーシック', price: '¥9,800', period: '/月', features: ['独自ドメイン', '基本テンプレート', '月1回更新'], buttonText: '申し込む', isFeatured: false },
+                { id: 2, name: 'スタンダード', price: '¥19,800', period: '/月', features: ['独自ドメイン', 'フルカスタマイズ', '週1回更新', 'SEO対策'], buttonText: '一番人気', isFeatured: true },
+                { id: 3, name: 'プレミアム', price: '¥49,800', period: '/月', features: ['独自ドメイン', 'フルカスタマイズ', '毎日更新', '広告運用代行'], buttonText: 'お問い合わせ', isFeatured: false }
+            ],
+            pt: 'pt-24',
+            pb: 'pb-24',
+            bgType: 'color',
+            bgValue: '#f8fafc'
+        },
+        {
+            id: 12,
             type: 'conversion_panel',
             title: '＼ 今ならこの価格 ／',
             isSticky: true,

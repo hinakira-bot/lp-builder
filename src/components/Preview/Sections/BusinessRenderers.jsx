@@ -1,7 +1,7 @@
 /* eslint-disable */
 import React from 'react';
 import { clsx } from 'clsx';
-import { ShoppingCart, MessageCircle, ExternalLink } from 'lucide-react';
+import { ShoppingCart, MessageCircle, ExternalLink, Check, Sparkles } from 'lucide-react';
 
 export const ConversionPanel = ({ section }) => {
     // Default buttons if none provided
@@ -208,6 +208,114 @@ export const SpeechBubbleRenderer = ({ section, viewMode }) => {
                     {section.characterName && <p className="text-[10px] text-center text-gray-500 font-bold">{section.characterName}</p>}
                 </div>
             )}
+        </div>
+    );
+};
+
+export const PricingRenderer = ({ section, viewMode }) => {
+    const isMobile = viewMode === 'mobile';
+    const plans = section.plans || [
+        { id: 1, name: 'Basic', price: '¥9,800', period: '/月', features: ['独自ドメイン', '基本テンプレート', '月1回更新'], buttonText: '申し込む', isFeatured: false },
+        { id: 2, name: 'Standard', price: '¥19,800', period: '/月', features: ['独自ドメイン', 'フルカスタマイズ', '週1回更新', 'SEO対策'], buttonText: '一番人気', isFeatured: true },
+        { id: 3, name: 'Premium', price: '¥49,800', period: '/月', features: ['独自ドメイン', 'フルカスタマイズ', '毎日更新', '広告運用代行'], buttonText: 'お問い合わせ', isFeatured: false }
+    ];
+
+    const designPattern = section.design || 'standard'; // standard, featured, horizontal
+
+    if (designPattern === 'horizontal') {
+        return (
+            <div className="max-w-4xl mx-auto px-6 py-12 space-y-6">
+                {plans.map((plan) => (
+                    <div key={plan.id} className={clsx(
+                        "flex flex-col md:flex-row items-center justify-between p-6 rounded-2xl border transition-all",
+                        plan.isFeatured ? "bg-white shadow-xl border-blue-200 ring-2 ring-blue-500/10" : "bg-white border-gray-100 shadow-sm"
+                    )}>
+                        <div className="flex-1 text-center md:text-left mb-4 md:mb-0">
+                            <h4 className="text-xl font-bold text-gray-800">{plan.name}</h4>
+                            <div className="flex items-baseline justify-center md:justify-start mt-2">
+                                <span className="text-3xl font-black text-gray-900">{plan.price}</span>
+                                <span className="text-sm text-gray-500 ml-1">{plan.period}</span>
+                            </div>
+                        </div>
+                        <div className="flex-1 mb-6 md:mb-0">
+                            <ul className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                                {plan.features.map((f, i) => (
+                                    <li key={i} className="flex items-center gap-2 text-sm text-gray-600">
+                                        <Check size={14} className="text-blue-500 flex-shrink-0" />
+                                        <span>{f}</span>
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+                        <div className="flex-shrink-0 w-full md:w-auto">
+                            <button className={clsx(
+                                "w-full md:px-8 py-3 rounded-xl font-bold transition-all transform active:scale-95",
+                                plan.isFeatured ? "bg-blue-600 text-white shadow-lg hover:bg-blue-500" : "bg-gray-100 text-gray-800 hover:bg-gray-200"
+                            )}>
+                                {plan.buttonText}
+                            </button>
+                        </div>
+                    </div>
+                ))}
+            </div>
+        );
+    }
+
+    return (
+        <div className={clsx(
+            "grid gap-8 max-w-7xl mx-auto px-6 py-12",
+            isMobile ? "grid-cols-1" : "md:grid-cols-3"
+        )}>
+            {plans.map((plan) => (
+                <div
+                    key={plan.id}
+                    className={clsx(
+                        "relative flex flex-col p-8 rounded-[2rem] transition-all duration-500",
+                        plan.isFeatured
+                            ? "bg-white shadow-[0_20px_50px_rgba(0,0,0,0.1)] border-2 border-blue-500 scale-105 z-10"
+                            : "bg-white/50 border border-gray-100 shadow-sm hover:shadow-xl"
+                    )}
+                >
+                    {plan.isFeatured && (
+                        <div className="absolute -top-5 left-1/2 -translate-x-1/2 bg-blue-600 text-white px-6 py-1.5 rounded-full text-xs font-bold tracking-widest flex items-center gap-2 shadow-lg">
+                            <Sparkles size={14} /> RECOMMENDED
+                        </div>
+                    )}
+
+                    <div className="mb-8">
+                        <h4 className="text-sm font-bold text-gray-500 uppercase tracking-[0.2em] mb-4">{plan.name}</h4>
+                        <div className="flex items-baseline mb-2">
+                            <span className="text-4xl font-black text-gray-900 tracking-tight">{plan.price}</span>
+                            <span className="text-sm text-gray-500 ml-1 font-medium">{plan.period}</span>
+                        </div>
+                        <p className="text-xs text-gray-400">※すべて税込価格です</p>
+                    </div>
+
+                    <ul className="flex-1 space-y-4 mb-8">
+                        {plan.features.map((feature, i) => (
+                            <li key={i} className="flex items-start gap-3">
+                                <div className="p-1 rounded-full bg-blue-50 text-blue-500 mt-0.5">
+                                    <Check size={12} strokeWidth={4} />
+                                </div>
+                                <span className="text-sm text-gray-600 leading-tight">{feature}</span>
+                            </li>
+                        ))}
+                    </ul>
+
+                    <button className={clsx(
+                        "w-full py-4 rounded-2xl font-bold transition-all transform active:scale-95 shadow-md",
+                        plan.isFeatured
+                            ? "bg-blue-600 text-white hover:bg-blue-500 shadow-blue-200"
+                            : "bg-gray-100 text-gray-800 hover:bg-gray-200"
+                    )}>
+                        {plan.buttonText}
+                    </button>
+
+                    {plan.subText && (
+                        <p className="text-center text-[10px] text-gray-400 mt-4">{plan.subText}</p>
+                    )}
+                </div>
+            ))}
         </div>
     );
 };

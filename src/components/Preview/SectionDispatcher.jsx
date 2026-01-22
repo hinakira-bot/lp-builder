@@ -3,7 +3,7 @@ import React from 'react';
 import { HeroSection } from './HeroSection';
 import { SectionWrapper, TextRenderer, ImageRenderer, HeadingRenderer, VideoRenderer, ButtonRenderer } from './Sections/Renderers';
 import { SocialRenderer, AccordionRenderer, PostCardRenderer, ColumnsRenderer, LinksRenderer, BoxRenderer, FullWidthRenderer } from './Sections/ComplexRenderers';
-import { ConversionPanel, PointList, ProblemChecklist, SpeechBubbleRenderer } from './Sections/BusinessRenderers';
+import { ConversionPanel, PointList, ProblemChecklist, SpeechBubbleRenderer, PricingRenderer } from './Sections/BusinessRenderers';
 
 // Map of all available renderers
 export const renderers = {
@@ -50,6 +50,7 @@ export const renderers = {
     point_list: PointList,
     problem_checklist: ProblemChecklist,
     speech_bubble: SpeechBubbleRenderer,
+    pricing: PricingRenderer,
     full_width: FullWidthRenderer
 };
 

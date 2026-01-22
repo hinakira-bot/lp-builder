@@ -607,6 +607,79 @@ export const SectionEditor = ({ section, onChange }) => {
                     </div>
                 </div>
             )}
+            {section.type === 'pricing' && (
+                <div className="space-y-4">
+                    <div>
+                        <label className="text-[10px] text-gray-500 mb-1 block">デザインパターン</label>
+                        <div className="flex gap-2">
+                            {['standard', 'featured', 'horizontal'].map(d => (
+                                <button
+                                    key={d}
+                                    onClick={() => update('design', d)}
+                                    className={`flex-1 py-1.5 text-[10px] rounded border capitalize transition-colors ${(section.design || 'standard') === d ? 'bg-blue-600 border-blue-600 text-white' : 'border-gray-700 text-gray-400'}`}
+                                >
+                                    {d === 'standard' ? '標準' : d === 'featured' ? 'おすすめ強調' : '横並び'}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+
+                    <div className="space-y-3">
+                        <label className="text-xs text-gray-500">プラン管理</label>
+                        {(section.plans || []).map((plan, i) => (
+                            <div key={plan.id} className="bg-gray-900/50 p-3 rounded border border-gray-700 relative space-y-3">
+                                <div className="flex justify-between items-center">
+                                    <div className="flex gap-2">
+                                        <button
+                                            onClick={() => { const n = [...section.plans]; n[i] = { ...plan, isFeatured: !plan.isFeatured }; update('plans', n); }}
+                                            className={`px-2 py-0.5 rounded text-[10px] font-bold ${plan.isFeatured ? 'bg-blue-600 text-white' : 'bg-gray-700 text-gray-400'}`}
+                                        >
+                                            おすすめ設定
+                                        </button>
+                                    </div>
+                                    <button
+                                        onClick={() => { const n = section.plans.filter((_, idx) => idx !== i); update('plans', n); }}
+                                        className="text-red-400 hover:text-red-300"
+                                    >
+                                        <Trash2 size={14} />
+                                    </button>
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-2">
+                                    <TextInput value={plan.name} onChange={(val) => { const n = [...section.plans]; n[i] = { ...plan, name: val }; update('plans', n); }} placeholder="プラン名" />
+                                    <TextInput value={plan.buttonText} onChange={(val) => { const n = [...section.plans]; n[i] = { ...plan, buttonText: val }; update('plans', n); }} placeholder="ボタン文字" />
+                                </div>
+
+                                <div className="flex gap-2">
+                                    <TextInput value={plan.price} onChange={(val) => { const n = [...section.plans]; n[i] = { ...plan, price: val }; update('plans', n); }} placeholder="価格 (例: ¥9,800)" className="flex-1" />
+                                    <TextInput value={plan.period} onChange={(val) => { const n = [...section.plans]; n[i] = { ...plan, period: val }; update('plans', n); }} placeholder="単位 (例: /月)" className="w-16" />
+                                </div>
+
+                                <div className="space-y-1">
+                                    <label className="text-[9px] text-gray-500">特徴リスト (カンマ区切り)</label>
+                                    <TextArea
+                                        value={plan.features.join(',')}
+                                        onChange={(val) => {
+                                            const n = [...section.plans];
+                                            n[i] = { ...plan, features: val.split(',').map(s => s.trim()) };
+                                            update('plans', n);
+                                        }}
+                                        placeholder="機能1, 機能2, ..."
+                                        rows={2}
+                                    />
+                                </div>
+                            </div>
+                        ))}
+                        <Button
+                            onClick={() => update('plans', [...(section.plans || []), { id: Math.random(), name: 'New Plan', price: '¥0', period: '/月', features: ['初期費用0円'], buttonText: '開始する', isFeatured: false }])}
+                            variant="outline"
+                            className="w-full py-2 text-xs"
+                        >
+                            <Plus size={14} /> プランを追加
+                        </Button>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

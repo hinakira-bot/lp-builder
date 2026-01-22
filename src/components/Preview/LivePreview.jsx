@@ -6,37 +6,9 @@ import { SectionDispatcher } from './SectionDispatcher';
 
 export const LivePreview = ({ data, viewMode, activeSectionId, isPublished = false }) => {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-    const [showCta, setShowCta] = useState(false);
 
     // Initial check to avoid crashing if data is missing
     if (!data) return <div className="p-10 text-gray-400">Loading Preview Data...</div>;
-
-    // Window Scroll Handling for Published Page
-    useEffect(() => {
-        if (isPublished) {
-            const handleWindowScroll = () => {
-                const scrollTop = window.scrollY;
-                if (scrollTop > 100) {
-                    setShowCta(true);
-                } else {
-                    setShowCta(false);
-                }
-            };
-            window.addEventListener('scroll', handleWindowScroll);
-            return () => window.removeEventListener('scroll', handleWindowScroll);
-        }
-    }, [isPublished]);
-
-    // Internal Scroll Handling (Editor Mode)
-    const handleInternalScroll = (e) => {
-        if (isPublished) return;
-        const scrollTop = e.currentTarget.scrollTop;
-        if (scrollTop > 100) {
-            setShowCta(true);
-        } else {
-            setShowCta(false);
-        }
-    };
 
     // Auto Scroll Logic (Editor only)
     useEffect(() => {
@@ -79,7 +51,6 @@ export const LivePreview = ({ data, viewMode, activeSectionId, isPublished = fal
                     "flex-1 w-full relative",
                     isPublished ? "" : "overflow-y-auto scrollbar-hide"
                 )}
-                onScroll={handleInternalScroll}
             >
                 <div className={`relative min-h-full flex flex-col ${data.fontFamily === 'serif' ? 'font-serif' : 'font-sans'}`}>
 
@@ -132,29 +103,8 @@ export const LivePreview = ({ data, viewMode, activeSectionId, isPublished = fal
                     <footer className="py-8 text-center border-t border-current/10 opacity-60 mt-auto">
                         <p className="text-[10px] uppercase tracking-widest">&copy; {new Date().getFullYear()} {data.siteTitle}. All Rights Reserved.</p>
                     </footer>
-
-                    {/* Spacer for Floating CTA */}
-                    {data.floatingCta?.enabled && <div className="h-24"></div>}
                 </div>
             </div>
-
-            {/* Floating CTA (Docked) */}
-            {data.floatingCta?.enabled && (
-                <div className={clsx(
-                    isPublished ? "fixed" : "absolute",
-                    "bottom-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-md border-t border-gray-200 p-4 pb-6 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] transition-all duration-500 ease-in-out",
-                    viewMode === 'mobile' ? '' : 'md:hidden',
-                    showCta ? 'translate-y-0 opacity-100' : 'translate-y-full opacity-0 pointer-events-none'
-                )}>
-                    <a
-                        href={data.floatingCta.url}
-                        className="block w-full py-3.5 rounded-full shadow-lg text-center font-bold text-sm tracking-widest transition-transform active:scale-95"
-                        style={{ backgroundColor: data.floatingCta.bgColor, color: data.floatingCta.textColor }}
-                    >
-                        {data.floatingCta.text}
-                    </a>
-                </div>
-            )}
         </div>
     );
 };
