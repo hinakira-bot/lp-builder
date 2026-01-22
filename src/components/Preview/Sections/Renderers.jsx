@@ -42,7 +42,7 @@ export const SectionWrapper = ({ section, children, fontSize }) => {
     };
 
     // Box Styles
-    const innerMaxWidth = section.boxStyle && section.boxStyle !== 'none' ? 'w-full' : 'w-full max-w-5xl mx-auto px-6';
+    const innerMaxWidth = (section.boxStyle && section.boxStyle !== 'none') || section.type === 'full_width' ? 'w-full' : 'w-full max-w-5xl mx-auto px-6';
     const boxClasses = section.boxStyle === 'shadow' ? 'bg-white shadow-xl text-gray-800'
         : section.boxStyle === 'border' ? 'border border-current/20'
             : section.boxStyle === 'fill' ? 'bg-gray-100/50'

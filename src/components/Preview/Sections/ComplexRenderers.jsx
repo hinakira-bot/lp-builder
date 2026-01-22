@@ -148,11 +148,75 @@ export const PostCardRenderer = ({ section }) => (
     </div>
 );
 
-export const ColumnsRenderer = ({ section }) => {
-    const gridClass = section.columnCount === 4 ? 'md:grid-cols-4' : (section.columnCount === 3 ? 'md:grid-cols-3' : (section.columnCount === 2 ? 'md:grid-cols-2' : 'grid-cols-1'));
+// Full Width Renderer - spans full width of parent (which is usually constrained by SectionWrapper, but we'll handle that)
+export const FullWidthRenderer = ({ section, children }) => {
+    return (
+        <div className="w-full">
+            {children ? (
+                <div className="space-y-8">
+                    {children}
+                </div>
+            ) : (
+                <div className="text-center p-10 border-2 border-dashed border-gray-600 rounded-lg opacity-50">
+                    Full Width Content Area
+                </div>
+            )}
+        </div>
+    );
+};
+
+export const BoxRenderer = ({ section, children }) => {
+    const design = section.design || 'simple'; // simple, sticky, ribbon, shadow
+
+    // Base Styles
+    let containerClass = "text-center relative transition-all duration-300";
+    let titleClass = "font-bold text-lg mb-4";
+    let contentClass = "leading-loose whitespace-pre-wrap font-light";
+
+    // Design Variants (applied to the inner content rendering if needed, 
+    // but mostly SectionWrapper handles the outer box. 
+    // However, if we want specific styling *inside* or overriding wrapper...)
+    // Actually, 'boxStyle' in SectionWrapper does most of the heavy lifting.
+    // 'design' here adds specific flair like "Tape" or "Ribbon".
 
     return (
-        <div className={`grid grid-cols-1 ${gridClass} gap-8 md:gap-8`}>
+        <div className={containerClass}>
+            {/* Sticky Tape Decor */}
+            {design === 'sticky' && (
+                <div className="absolute -top-6 left-1/2 transform -translate-x-1/2 w-32 h-8 bg-yellow-200/80 rotate-[-2deg] shadow-sm backdrop-blur-sm z-20"></div>
+            )}
+
+            {/* Ribbon Decor */}
+            {design === 'ribbon' && section.title && (
+                <div className="absolute -top-10 left-1/2 transform -translate-x-1/2 bg-red-600 text-white px-8 py-2 shadow-lg z-20">
+                    <h4 className="font-bold tracking-widest text-sm uppercase">{section.title}</h4>
+                    <div className="absolute top-0 right-full border-[16px] border-transparent border-r-red-600 border-b-red-800"></div>
+                    <div className="absolute top-0 left-full border-[16px] border-transparent border-l-red-600 border-b-red-800"></div>
+                </div>
+            )}
+
+            {/* Content or Children */}
+            {children ? (
+                <div className={`space-y-6 ${design === 'ribbon' ? 'pt-6' : ''}`}>
+                    {children}
+                </div>
+            ) : (
+                <>
+                    {design !== 'ribbon' && section.title && <h4 className={titleClass}>{section.title}</h4>}
+                    <p className={contentClass}>{section.content}</p>
+                </>
+            )}
+        </div>
+    );
+};
+
+export const ColumnsRenderer = ({ section }) => {
+    const gridClass = section.columnCount === 4 ? 'md:grid-cols-4' : (section.columnCount === 3 ? 'md:grid-cols-3' : (section.columnCount === 2 ? 'md:grid-cols-2' : 'grid-cols-1'));
+    // Use user-defined gap or default to 32px (2rem) which corresponds to gap-8
+    const gapStyle = { gap: `${section.gap !== undefined ? section.gap : 32}px` };
+
+    return (
+        <div className={`grid grid-cols-1 ${gridClass}`} style={gapStyle}>
             {section.items.map(item => (
                 <div key={item.id} className="flex flex-col space-y-4">
                     {section.colType === 'card' && (
@@ -196,29 +260,3 @@ export const ColumnsRenderer = ({ section }) => {
         </div>
     );
 };
-
-export const LinksRenderer = ({ section }) => (
-    <div className="grid grid-cols-1 gap-4 max-w-md mx-auto">
-        {section.links.map(link => (
-            <a key={link.id} href={link.url} target="_blank" rel="noopener noreferrer" className="group relative overflow-hidden bg-white/5 backdrop-blur-sm border border-current/10 rounded-lg p-5 transition-all duration-300 hover:shadow-lg hover:-translate-y-1 block text-left">
-                <div className="flex justify-between items-center relative z-10">
-                    <div>
-                        <div className="text-base md:text-lg font-medium tracking-wide mb-1">{link.label}</div>
-                        {link.subtext && <div className="text-xs opacity-60 font-light">{link.subtext}</div>}
-                    </div>
-                    <div className="w-8 h-8 rounded-full border border-current/20 flex items-center justify-center group-hover:bg-current group-hover:text-white group-hover:border-transparent transition-all">
-                        <ChevronRight size={14} />
-                    </div>
-                </div>
-                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 transform -translate-x-full group-hover:translate-x-full"></div>
-            </a>
-        ))}
-    </div>
-);
-
-export const BoxRenderer = ({ section }) => (
-    <div className="text-center">
-        {section.title && <h4 className="font-bold text-lg mb-4">{section.title}</h4>}
-        <p className="leading-loose whitespace-pre-wrap font-light">{section.content}</p>
-    </div>
-);

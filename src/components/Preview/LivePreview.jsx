@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
 import { clsx } from 'clsx';
 import { HeroSection } from './HeroSection';
-import { SectionWrapper, TextRenderer, ImageRenderer, HeadingRenderer, VideoRenderer, ButtonRenderer } from './Sections/Renderers';
-import { SocialRenderer, AccordionRenderer, PostCardRenderer, ColumnsRenderer, LinksRenderer, BoxRenderer } from './Sections/ComplexRenderers';
-import { ConversionPanel, PointList, ProblemChecklist, SpeechBubbleRenderer } from './Sections/BusinessRenderers';
+import { SectionDispatcher } from './SectionDispatcher';
+import { ConversionPanel } from './Sections/BusinessRenderers';
 
 export const LivePreview = ({ data, viewMode, activeSectionId }) => {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -29,56 +28,17 @@ export const LivePreview = ({ data, viewMode, activeSectionId }) => {
         }
     };
 
-    // Map section types to renderers
-    const renderers = {
-        text: TextRenderer,
-        image: ImageRenderer,
-        image_text: ({ section, fontSize }) => {
-            const isRight = section.imagePosition === 'right';
-            const isMobile = viewMode === 'mobile';
-
-            // Text Styles Logic
-            let textClasses = "";
-            if (section.textShadow === 'soft') textClasses += " drop-shadow-md";
-            if (section.textShadow === 'strong') textClasses += " drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)]";
-
-            let containerClasses = "";
-            if (section.textBackdrop === 'blur') containerClasses += " backdrop-blur-md bg-white/10 p-6 rounded-xl border border-white/20 shadow-lg";
-            if (section.textBackdrop === 'white') containerClasses += " bg-white/90 backdrop-blur text-gray-800 p-6 rounded-xl shadow-lg";
-            if (section.textBackdrop === 'black') containerClasses += " bg-black/70 backdrop-blur text-white p-6 rounded-xl shadow-lg";
-
-            return (
-                <div className={`flex flex-col ${isMobile ? '' : 'md:flex-row'} gap-10 items-center`}>
-                    <div className={`w-full ${isMobile ? '' : 'md:w-1/2'} ${!isMobile && isRight ? 'md:order-2' : ''}`}>
-                        <img src={section.image} alt={section.title} className="w-full h-auto rounded-lg shadow-lg object-cover aspect-[4/3]" />
-                    </div>
-                    <div className={`w-full ${isMobile ? '' : 'md:w-1/2'} ${!isMobile && isRight ? 'md:order-1 md:pr-10' : (isMobile ? '' : 'md:pl-10')}`}>
-                        <div className={containerClasses}>
-                            <h3 className={`font-medium tracking-widest mb-6 leading-tight ${textClasses}`} style={{ fontSize: `${fontSize.sectionTitle}rem` }}>{section.title}</h3>
-                            <p className={`leading-loose whitespace-pre-wrap font-light ${textClasses}`} style={{ fontSize: `${fontSize.body}rem` }}>{section.content}</p>
-                        </div>
-                    </div>
-                </div>
-            );
-        },
-        heading: HeadingRenderer,
-        video: VideoRenderer,
-        button: ButtonRenderer,
-        social: SocialRenderer,
-        accordion: AccordionRenderer,
-        post_card: PostCardRenderer,
-        columns: ColumnsRenderer,
-        links: LinksRenderer,
-        box: BoxRenderer,
-        conversion_panel: ConversionPanel,
-        point_list: PointList,
-        problem_checklist: ProblemChecklist,
-        speech_bubble: SpeechBubbleRenderer
-    };
-
     // Filter out sticky sections to render them separately
     const contentSections = data.sections.filter(s => !s.isSticky);
     const stickySections = data.sections.filter(s => s.type === 'conversion_panel' && s.isSticky);
+
+    // Responsive Font Scaling
+    const fontSize = viewMode === 'mobile' ? {
+        heroTitle: data.fontSize.heroTitle * 0.6,
+        heroSubtitle: data.fontSize.heroSubtitle * 0.8,
+        sectionTitle: data.fontSize.sectionTitle * 0.7,
+        body: data.fontSize.body * 0.85
+    } : data.fontSize;
 
     return (
         <div
@@ -141,23 +101,7 @@ export const LivePreview = ({ data, viewMode, activeSectionId }) => {
                     <HeroSection data={data} viewMode={viewMode} />
 
                     <div className="relative z-10 flex-1 flex flex-col w-full pb-0">
-                        {contentSections.map((section) => {
-                            const Renderer = renderers[section.type] || (() => <div className="text-red-500">Unknown Section Type: {section.type}</div>);
-
-                            // Responsive Font Scaling
-                            const responsiveFontSize = viewMode === 'mobile' ? {
-                                heroTitle: data.fontSize.heroTitle * 0.6,
-                                heroSubtitle: data.fontSize.heroSubtitle * 0.8,
-                                sectionTitle: data.fontSize.sectionTitle * 0.7,
-                                body: data.fontSize.body * 0.85
-                            } : data.fontSize;
-
-                            return (
-                                <SectionWrapper key={section.id} section={section} fontSize={responsiveFontSize}>
-                                    <Renderer section={section} fontSize={responsiveFontSize} viewMode={viewMode} />
-                                </SectionWrapper>
-                            );
-                        })}
+                        <SectionDispatcher sections={contentSections} viewMode={viewMode} fontSize={fontSize} />
                     </div>
 
                     <footer className="py-8 text-center border-t border-current/10 opacity-60 mt-auto">

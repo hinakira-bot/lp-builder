@@ -4,6 +4,7 @@ import { InputGroup, TextInput, TextArea } from '../UI/Input';
 import { Slider, ColorPicker } from '../UI/Input';
 import { Button } from '../UI/Button';
 import { AIGeneratorButton } from '../UI/AIGeneratorButton';
+import { ChildSectionManager } from './ChildSectionManager';
 
 // Internal Link Editor for inside sections (like 'links' type)
 const LinkEditor = ({ link, onChange, onDelete }) => (
@@ -366,11 +367,17 @@ export const SectionEditor = ({ section, onChange }) => {
             {/* Columns (Complex!) */}
             {section.type === 'columns' && (
                 <>
-                    <div className="flex items-center gap-2 mb-2">
-                        <span className="text-xs text-gray-500">数:</span>
-                        {[1, 2, 3, 4].map(num => (
-                            <button key={num} onClick={() => update('columnCount', num)} className={`px-2 py-0.5 rounded text-xs border ${section.columnCount === num ? 'bg-blue-600 border-blue-600 text-white' : 'border-gray-600 text-gray-400'}`}>{num}</button>
-                        ))},
+                    <div className="flex justify-between items-center mb-2">
+                        <div className="flex items-center gap-2">
+                            <span className="text-xs text-gray-500">数:</span>
+                            {[1, 2, 3, 4].map(num => (
+                                <button key={num} onClick={() => update('columnCount', num)} className={`px-2 py-0.5 rounded text-xs border ${section.columnCount === num ? 'bg-blue-600 border-blue-600 text-white' : 'border-gray-600 text-gray-400'}`}>{num}</button>
+                            ))}
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <span className="text-xs text-gray-500">間隔:</span>
+                            <Slider value={section.gap || 32} min={0} max={100} step={4} onChange={(val) => update('gap', val)} />
+                        </div>
                     </div>
                     <div className="flex items-center gap-2 mb-2">
                         <span className="text-xs text-gray-500">タイプ:</span>
@@ -386,7 +393,10 @@ export const SectionEditor = ({ section, onChange }) => {
                     <div className="space-y-4 pl-2 border-l-2 border-gray-700">
                         {section.items.map((item, i) => (
                             <div key={item.id} className="space-y-2 pt-2 border-t border-gray-800 first:border-0 relative">
-                                <div className="text-xs text-gray-500 font-bold mb-1">Item {i + 1}</div>
+                                <div className="flex justify-between items-center">
+                                    <div className="text-xs text-gray-500 font-bold mb-1">Item {i + 1}</div>
+                                    <button onClick={() => { const n = section.items.filter((_, idx) => idx !== i); update('items', n); }} className="text-gray-500 hover:text-red-400"><Trash2 size={12} /></button>
+                                </div>
 
                                 {(section.colType === 'card' || section.colType === 'text') && <><TextInput value={item.title} onChange={(val) => { const n = [...section.items]; n[i] = { ...item, title: val }; update('items', n); }} placeholder="タイトル" /><TextInput value={item.text} onChange={(val) => { const n = [...section.items]; n[i] = { ...item, text: val }; update('items', n); }} placeholder="テキスト" /></>}
 
@@ -402,14 +412,35 @@ export const SectionEditor = ({ section, onChange }) => {
                                 {section.colType === 'social' && <div className="flex gap-2"><button onClick={() => { const n = [...section.items]; n[i] = { ...item, platform: 'twitter' }; update('items', n); }} className={`px-2 py-1 text-[10px] rounded ${item.platform === 'twitter' ? 'bg-blue-600' : 'bg-gray-700'}`}>Tw</button><button onClick={() => { const n = [...section.items]; n[i] = { ...item, platform: 'instagram' }; update('items', n); }} className={`px-2 py-1 text-[10px] rounded ${item.platform === 'instagram' ? 'bg-pink-600' : 'bg-gray-700'}`}>Ig</button></div>}
                             </div>
                         ))}
+                        <Button onClick={() => update('items', [...section.items, { id: Math.random(), title: 'New Item', text: 'Content', image: 'https://placehold.co/600x400' }])} variant="outline" className="w-full py-1 text-xs"><Plus size={14} /> 追加</Button>
                     </div>
                 </>
             )}
 
             {section.type === 'box' && (
                 <>
+                    <div className="mb-4">
+                        <label className="text-[10px] text-gray-500 mb-1 block">デザイン</label>
+                        <div className="flex gap-2">
+                            {['simple', 'sticky', 'ribbon'].map(d => (
+                                <button key={d} onClick={() => update('design', d)} className={`flex-1 py-1 text-xs rounded border capitalize ${(section.design || 'simple') === d ? 'bg-blue-600 border-blue-600 text-white' : 'border-gray-600 text-gray-400'}`}>{d}</button>
+                            ))}
+                        </div>
+                    </div>
+
                     <TextInput value={section.title} onChange={(val) => update('title', val)} placeholder="タイトル" />
-                    <TextArea value={section.content} onChange={(val) => update('content', val)} placeholder="内容" />
+                    {!section.children && <TextArea value={section.content} onChange={(val) => update('content', val)} placeholder="内容" />}
+
+                    <ChildSectionManager childrenSections={section.children || []} onChange={(newChildren) => update('children', newChildren)} />
+                </>
+            )}
+
+            {section.type === 'full_width' && (
+                <>
+                    <div className="p-2 bg-blue-500/10 border border-blue-500/30 rounded text-center text-xs text-blue-200 mb-4">
+                        画面幅いっぱいに広がるセクションです
+                    </div>
+                    <ChildSectionManager childrenSections={section.children || []} onChange={(newChildren) => update('children', newChildren)} />
                 </>
             )}
 

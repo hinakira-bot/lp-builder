@@ -99,6 +99,10 @@ export const ContentPanel = ({ data, setData, setActiveSectionId }) => {
             align: 'left', // Default: Bubble Left, Char Right (as per request "Left to fukidashi, right to character")
             bubbleColor: '#ffffff'
         };
+        if (type === 'full_width') newSection = {
+            ...newSection,
+            children: []
+        };
 
         setData(prev => ({
             ...prev,
@@ -192,6 +196,7 @@ export const ContentPanel = ({ data, setData, setActiveSectionId }) => {
                     <button onClick={() => addSection('post_card')} className="flex flex-col items-center justify-center p-3 bg-gray-800 hover:bg-gray-700 rounded-lg border border-gray-700 transition-all"><FileText size={20} className="mb-1 text-cyan-400" /><span className="text-[10px]">記事</span></button>
                     <button onClick={() => addSection('columns')} className="flex flex-col items-center justify-center p-3 bg-gray-800 hover:bg-gray-700 rounded-lg border border-gray-700 transition-all"><Columns size={20} className="mb-1 text-purple-400" /><span className="text-[10px]">カラム</span></button>
                     <button onClick={() => addSection('links')} className="flex flex-col items-center justify-center p-3 bg-gray-800 hover:bg-gray-700 rounded-lg border border-gray-700 transition-all"><LinkIcon size={20} className="mb-1 text-yellow-400" /><span className="text-[10px]">リンク集</span></button>
+                    <button onClick={() => addSection('full_width')} className="flex flex-col items-center justify-center p-3 bg-gray-800 hover:bg-gray-700 rounded-lg border border-gray-700 transition-all col-span-2"><Layout size={20} className="mb-1 text-purple-200" /><span className="text-[10px]">フルワイド (全幅)</span></button>
                 </div>
             </section>
         </div>
