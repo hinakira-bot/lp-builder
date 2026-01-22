@@ -183,5 +183,12 @@ export const DEFAULT_DATA = {
                 { label: 'LINEで相談する', url: '#', color: 'green', icon: 'line' }
             ]
         }
-    ]
+    ],
+    floatingCta: {
+        enabled: true,
+        text: '無料相談はこちら',
+        url: '#contact',
+        bgColor: '#ef4444',
+        textColor: '#ffffff'
+    }
 };
