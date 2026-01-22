@@ -7,48 +7,94 @@ import { InputGroup, Slider, ColorPicker } from '../UI/Input';
 export const StylePanel = ({ data, setData }) => {
     const [prompt, setPrompt] = React.useState('');
     const [isGenerating, setIsGenerating] = React.useState(false);
+    const [statusMsg, setStatusMsg] = React.useState('AIが魔法をかけています...');
 
     const handleAiMagic = async () => {
         if (!prompt) return;
         setIsGenerating(true);
+        setStatusMsg('コンセプトを分析中...');
 
-        // Simulating AI thinking...
-        // In this environment, the Agent (me) will actually provide the logic 
-        // to fulfill complex requests, but for the UI we show a loader.
+        setTimeout(() => setStatusMsg('ブランドカラーを選定中...'), 1000);
+        setTimeout(() => setStatusMsg('最適な構成を組み立て中...'), 2000);
+        setTimeout(() => setStatusMsg('キャッチコピーを執筆中...'), 3500);
+
         setTimeout(() => {
             const lowerPrompt = prompt.toLowerCase();
             let updates = {};
 
-            // Styling & Content Fusion
             if (lowerPrompt.includes('美容室') || lowerPrompt.includes('サロン') || lowerPrompt.includes('beauty')) {
                 applyTheme('elegant');
+                const isMens = lowerPrompt.includes('メンズ');
                 updates = {
-                    siteTitle: lowerPrompt.includes('メンズ') ? 'MENS SALON' : 'ELEGANCE SALON',
-                    heroTitle: lowerPrompt.includes('メンズ') ? 'ROUGH & COOL' : 'FLOWING BEAUTY',
-                    heroSubtitle: lowerPrompt.includes('メンズ') ? '洗練された技術で、あなただけのスタイルを提案。\nカジュアルからモードまで、幅広く対応します。' : '日常を忘れさせる、極上のリラックスタイムを。\n最高級の技術で、あなたの魅力を引き出します。',
-                    floatingCta: { ...data.floatingCta, text: '今すぐ予約する', bgColor: '#c5a059' }
+                    siteTitle: isMens ? 'AOYAMA MENS SALON' : 'ELEGANCE AOYAMA',
+                    heroTitle: isMens ? 'ROUGH & COOL STYLE' : 'PREMIUM BEAUTY',
+                    heroSubtitle: isMens ? '渋谷の路地裏に佇む、大人の男のための隠れ家サロン。\nミリ単位にこだわったカットで、最高の自分へ。' : '表参道駅から徒歩1分。洗練された技術と空間で、\nあなた史上最高の美しさを引き出します。',
+                    floatingCta: { ...data.floatingCta, text: '今すぐ予約する', bgColor: isMens ? '#1a1a1a' : '#c5a059' },
+                    sections: [
+                        { id: 1, type: 'point_list', items: [{ title: '技術力', desc: 'コンテスト受賞歴のあるスタイリストが在籍。', image: '' }, { title: 'こだわり空間', desc: '全席半個室で、周りを気にせずリラックス。', image: '' }], pt: 'pt-20', pb: 'pt-20' },
+                        { id: 2, type: 'pricing', design: 'featured', plans: [{ name: 'Cut', price: '¥8,800', features: ['Blow incl.'], color: '#c5a059' }, { name: 'Full', price: '¥18,000', features: ['Cut, Color, Tr.'], isFeatured: true, color: '#c5a059' }], pt: 'pt-20', pb: 'pt-20' },
+                        { id: 3, type: 'speech_bubble', text: '心を込めて施術いたします。', align: 'left', bubbleColor: '#ffffff' }
+                    ]
+                };
+            } else if (lowerPrompt.includes('ジム') || lowerPrompt.includes('フィットネス') || lowerPrompt.includes('gym') || lowerPrompt.includes('トレーニング')) {
+                updates = {
+                    fontFamily: 'sans',
+                    textColor: '#ffffff',
+                    pageBgValue: '#0f172a',
+                    siteTitle: 'HARDCORE GYM',
+                    heroTitle: 'PUSH YOUR LIMITS',
+                    heroSubtitle: '理想の体は、自分への挑戦から始まる。\n24時間いつでも、最高の環境で自分を追い込め。',
+                    fontSize: { heroTitle: 5.5, heroSubtitle: 1.1, sectionTitle: 2.8, body: 1.0 },
+                    header: { ...data.header, style: 'solid', bgValue: '#0f172a', textColor: '#ffffff' },
+                    floatingCta: { ...data.floatingCta, text: '無料体験はこちら', bgColor: '#ef4444' },
+                    sections: [
+                        { id: 1, type: 'problem_checklist', title: 'こんな悩みありませんか？', items: [{ text: '最近、体力が落ちてきた' }, { text: 'ジムに通っても続かない' }], pt: 'pt-20', pb: 'pt-20' },
+                        { id: 2, type: 'point_list', items: [{ title: '24時間営業', desc: 'あなたのライフスタイルに合わせて。' }, { title: 'プロトレーナー', desc: 'マンツーマンで徹底サポート。' }], pt: 'pt-20', pb: 'pt-20' },
+                        { id: 3, type: 'pricing', plans: [{ name: 'Monthly', price: '¥9,800', features: ['All access'], color: '#ef4444' }], pt: 'pt-20', pb: 'pt-20' }
+                    ]
+                };
+            } else if (lowerPrompt.includes('カフェ') || lowerPrompt.includes('レストラン') || lowerPrompt.includes('cafe')) {
+                updates = {
+                    fontFamily: 'serif',
+                    textColor: '#5d4037',
+                    pageBgValue: '#fffaf0',
+                    siteTitle: 'CAFE DE MOMENT',
+                    heroTitle: 'SLOW TIME, FINE COFFEE',
+                    heroSubtitle: '喧騒を忘れ、一杯のコーヒーに癒される時間を。\n自家焙煎の香りと共に、心地よいひとときを。',
+                    fontSize: { heroTitle: 4.0, heroSubtitle: 0.85, sectionTitle: 2.0, body: 0.9 },
+                    header: { ...data.header, style: 'overlay', textColor: '#5d4037' },
+                    floatingCta: { ...data.floatingCta, text: 'メニューをみる', bgColor: '#8d6e63' },
+                    sections: [
+                        { id: 1, type: 'image_text', title: '自慢のコーヒー', content: '世界中から厳選した豆を、丁寧にハンドドリップ。', image: '', imagePosition: 'left', pt: 'pt-20', pb: 'pt-20' },
+                        { id: 2, type: 'accordion', items: [{ title: 'テイクアウトはできますか？', content: 'はい、全メニュー可能です。' }], pt: 'pt-20', pb: 'pt-20' }
+                    ]
                 };
             } else if (lowerPrompt.includes('ビジネス') || lowerPrompt.includes('会社') || lowerPrompt.includes('corp') || lowerPrompt.includes('it')) {
                 applyTheme('modern');
                 updates = {
-                    siteTitle: 'MODERN TECH Co.',
-                    heroTitle: 'INNOVATE THE FUTURE',
-                    heroSubtitle: '最新のテクノロジーで、ビジネスを次のステージへ。\n私たちは、あなたの挑戦を全力でサポートします。',
-                    floatingCta: { ...data.floatingCta, text: '資料請求はこちら', bgColor: '#2563eb' }
+                    siteTitle: 'NEO TECH SOLUTIONS',
+                    heroTitle: 'ACCELERATE INNOVATION',
+                    heroSubtitle: 'テクノロジーの力で、世界の可能性を広げる。\n私たちは、あなたの挑戦を全力でサポートします。',
+                    floatingCta: { ...data.floatingCta, text: 'お問い合わせ', bgColor: '#2563eb' },
+                    sections: [
+                        { id: 1, type: 'heading', text: 'Our Services', subText: '事業内容', style: 'center', pt: 'pt-20', pb: 'pt-10' },
+                        { id: 2, type: 'columns', columnCount: 3, items: [{ title: 'DX推進' }, { title: 'AI開発' }, { title: 'クラウド導入' }], pt: 'pt-10', pb: 'pt-20' }
+                    ]
                 };
             } else {
                 applyTheme('minimal');
                 updates = {
-                    siteTitle: 'CONCEPT STORE',
-                    heroTitle: 'LESS IS MORE',
-                    heroSubtitle: '余計なものを削ぎ落とし、本質を追求する。\nシンプルであることの贅沢を、あなたに。',
+                    siteTitle: 'THE ARCHIVE',
+                    heroTitle: 'ESSENTIAL DESIGN',
+                    heroSubtitle: '時代に流されない、普遍的な価値を提案する。\nミニマリズムが生み出す、真の豊かさ。',
+                    sections: []
                 };
             }
 
             setData(prev => ({ ...prev, ...updates }));
             setIsGenerating(false);
             setPrompt('');
-        }, 1500);
+        }, 5000);
     };
 
     const applyTheme = (themeName) => {
@@ -120,8 +166,8 @@ export const StylePanel = ({ data, setData }) => {
                     >
                         {isGenerating ? (
                             <div className="flex items-center gap-2">
-                                <Loader2 size={16} className="animate-spin" />
-                                <span>AIが魔法をかけています...</span>
+                                <Loader2 size={16} className="animate-spin text-blue-400" />
+                                <span className="animate-pulse">{statusMsg}</span>
                             </div>
                         ) : (
                             <div className="flex items-center gap-2">
