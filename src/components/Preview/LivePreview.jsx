@@ -29,9 +29,10 @@ export const LivePreview = ({ data, viewMode, activeSectionId }) => {
         }
     };
 
-    // Filter out sticky sections to render them separately
-    const contentSections = data.sections.filter(s => !s.isSticky);
-    const stickySections = data.sections.filter(s => s.type === 'conversion_panel' && s.isSticky);
+    // Filter out sticky sections to render them separately -> DISABLE sticky section logic, render all as content.
+    // User wants ONLY Global CTA (Settings) to be floating.
+    const contentSections = data.sections; // Render all sections normally in flow
+    // const stickySections = data.sections.filter(s => s.type === 'conversion_panel' && s.isSticky); // Ignored
 
     // Responsive Font Scaling
     const fontSize = viewMode === 'mobile' ? {
@@ -110,21 +111,22 @@ export const LivePreview = ({ data, viewMode, activeSectionId }) => {
                     </footer>
 
                     {/* Spacer for Floating CTA */}
-                    {(data.floatingCta?.enabled || stickySections.length > 0) && <div className="h-24"></div>}
+                    {data.floatingCta?.enabled && <div className="h-24"></div>}
                 </div>
             </div>
 
-            {/* STICKY SECTIONS (CTA) - Rendered OUTSIDE the scrollable area but INSIDE the frame */}
-            {/* User Request: Don't show on PC, Don't show from beginning */}
+            {/* STICKY SECTIONS (CTA) - REMOVED per user request to use Global CTA only */}
+            {/* 
             <div className={`absolute bottom-0 left-0 w-full z-50 transition-transform duration-500 ease-in-out pointer-events-none ${viewMode === 'mobile' ? '' : 'hidden'} ${showCta ? 'translate-y-0' : 'translate-y-full'}`}>
                 {stickySections.map((section) => (
                     <div key={section.id} className="pointer-events-auto">
                         <ConversionPanel section={section} />
                     </div>
                 ))}
-            </div>
+            </div> 
+            */}
 
-            {/* Floating CTA (Docked) - Legacy support if 'floatingCta' is used instead of section */}
+            {/* Floating CTA (Docked) - Settings Tab CTA */}
             {data.floatingCta?.enabled && (
                 <div className={`absolute bottom-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-md border-t border-gray-200 p-4 pb-6 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] transition-transform duration-500 ease-in-out ${viewMode === 'mobile' ? '' : 'md:hidden'} ${showCta ? 'translate-y-0' : 'translate-y-[120%]'}`}>
                     <a
