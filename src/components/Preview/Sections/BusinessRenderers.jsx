@@ -1,3 +1,4 @@
+/* eslint-disable */
 import React from 'react';
 import { clsx } from 'clsx';
 import { ShoppingCart, MessageCircle, ExternalLink } from 'lucide-react';

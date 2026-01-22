@@ -261,3 +261,18 @@ export const ColumnsRenderer = ({ section }) => {
         </div>
     );
 };
+
+export const LinksRenderer = ({ section }) => {
+    return (
+        <div className="max-w-xl mx-auto space-y-3">
+            {section.links.map(link => (
+                <a key={link.id} href={link.url} target="_blank" rel="noopener noreferrer" className="block w-full bg-white/5 backdrop-blur-sm border border-current/10 p-4 rounded-xl flex items-center justify-between hover:bg-white/10 transition-colors group">
+                    <div>
+                        <div className="font-bold">{link.label}</div>
+                        {link.subtext && <div className="text-xs opacity-70 mt-1">{link.subtext}</div>}
+                    </div>
+                </a>
+            ))}
+        </div>
+    );
+};
