@@ -166,40 +166,42 @@ export const aiService = {
         const apiKey = aiService.getApiKey();
         if (!apiKey) throw new Error('API_KEY_MISSING');
 
-        const systemPrompt = `あなたはプロのWebディレクターです。
-ユーザーの要望とチューニング指示に基づき、LPの「設計図（構成とデザイン）」のみをJSON形式で出力してください。
-まだ文章や画像は不要です。
+        const systemPrompt = `あなたはプロのWebディレクター兼デザイナーです。
+ユーザーの要望に基づき、LPの「設計図（構成とデザイン）」をJSON形式で出力してください。
+特に「高級感」「親しみやすさ」「スタイリッシュ」などのトーンに合わせて、最適なコンポーネント配置と装飾（セクション間の区切りなど）を選定してください。
 
-【チューニング指示】
-Tone: ${tuning.tone}
-Focus: ${tuning.focus}
+【デザイン・ガイドライン】
+- 高級/エレガント: 白・黒・ゴールド(#D4AF37)を基調。serifフォント。
+- 可愛らしい: パステルカラー。丸みを帯びた(rounded-xl)。セクション区切りに "curve" や "wave" を多用。
+- クール: 濃い背景色、鮮やかなアクセント。余白を広めに取り、タイポグラフィを強調。
 
-【重要：使用可能なセクション (COMPONENT_CATALOG)】
-以下に定義された "type" 以外は絶対に使用しないでください。
-${JSON.stringify(ALLOWED_SECTION_TYPES, null, 2)}
-各タイプの詳細:
-${JSON.stringify(SECTION_REGISTRY, null, 2)}
+【重要：セクション装飾のプロパティ】
+各セクションの「直下（id等と同階層）」に以下のプロパティを必ず含めてオシャレにしてください：
+- design: "underline", "simple", "card", "bubble", "modern", "featured", "timeline", "minimal" （各コンポーネントに最適なのを選択）
+- dividerTop / dividerBottom: "curve", "wave", "slant", "tilt", "triangle", "none" (背景色が変わる境界で使うとオシャレ)
+- dividerTopColor / dividerBottomColor: 隣接するセクションや背景と同じ色を指定
+- pt / pb: "pt-24", "pt-32", "pb-24" など（余白をたっぷり取るのがオシャレのコツ）
 
 【出力スキーマ】
 {
   "siteTitle": "サイト名",
   "design": {
-     "theme": "style name",
-     "colors": { "background": "#hex", "text": "#hex", "accent": "#hex", "sub": "#hex" },
+     "colors": { "background": "#hex", "text": "#hex", "accent": "#hex" },
      "typography": { "fontFamily": "serif/sans" }
   },
   "heroConfig": {
-     "layout": "center/left/right"
+     "heroHeight": 90, 
+     "heroOverlayOpacity": 0.4,
+     "title": "...",
+     "subtitle": "..."
   },
   "sections": [
      { 
-       "id": 1, 
-       "type": "hero", 
-       "goal": "awareness",
-       "style": { "bgTheme": "unspecified" }
+       "id": 1, "type": "heading", "design": "underline", 
+       "pt": "pt-32", "pb": "pb-12",
+       "dividerBottom": "curve", "dividerBottomColor": "#f9f9f9"
      },
-     { "id": 2, "type": "problem_checklist", "goal": "empathy" },
-     ... // 最低6セクション (必ず6つ以上提案すること)
+     ...
   ]
 }
 `;
@@ -219,9 +221,10 @@ Tone: ${tuning.tone} (このトーンで執筆すること！)
 Focus: ${tuning.focus}
 
 【ルール】
-1. 受け取ったJSONの構造(id, type)は絶対に変えないでください。
-2. 各セクションに "title", "content" (または "items", "plans"), "buttons" などのコンテンツフィールドを追加してください。
-3. 文体は「${tuning.tone}」を厳守してください。
+1. 受け取ったJSONの構造(id, type, design, style, pt, pb, dividerTop/Bottom等)は絶対に変えないでください。
+2. もともとあったデザイン関連のフィールド(design, pt, pb, divider等)を消さずに、そのまま全フィールド保持してください。
+3. 各セクションに "title", "content" (または "items", "plans"), "buttons" などのコンテンツフィールドを追加してください。
+4. 文体は「${tuning.tone}」を厳守してください。
 `;
         return await aiService._callGemini(apiKey, systemPrompt, `Original Request: ${originalPrompt}\n\nStructure JSON:\n${structureStr}`);
     },
@@ -257,9 +260,11 @@ LPの各セクション(Hero含む)に必要な「画像」を選定してくだ
 
 【出力ルール】
 各セクション、および "heroConfig" に "imageConfig" を追加して返してください。
+1. 受け取ったJSONの「すべての既存フィールド（id, type, design, style, pt, pb, divider等）」を絶対に保持してください。
+2. 追加した画像情報以外のデザイン設定を変更しないでください。
 
 "sections": [
-  { "id": 1, "type": "post_card", "imageConfig": { ... } }
+  { "id": 1, "type": "post_card", "imageConfig": { ... }, "pt": "pt-24", ... }
 ],
 "heroConfig": {
   ...,
@@ -358,13 +363,19 @@ LPの各セクション(Hero含む)に必要な「画像」を選定してくだ
                 return { ...s, type: TYPE_ALIASES[s.type] };
             }
 
-            // 3. Fallback (Unknown type)
-            console.warn(`[AI Repair] Unknown type '${s.type}' detected. Attempting fallback.`);
+            // 3. Fallback & Auto-Styling (Ensure it looks good even if AI forgot)
+            console.warn(`[AI Repair] Applying design defaults to section ${s.id}`);
 
-            if (s.items && Array.isArray(s.items)) return { ...s, type: 'point_list' };
-            if (s.image) return { ...s, type: 'image_text' };
+            const repaired = {
+                ...s,
+                type: s.type || 'text',
+                pt: s.pt || 'pt-24', // Default to generous padding
+                pb: s.pb || 'pb-24',
+                design: s.design || (s.type === 'pricing' ? 'modern' : s.type === 'review' ? 'bubble' : 'simple')
+            };
 
-            return { ...s, type: 'text', content: s.content || s.text || "Content not renderable" };
+            if (ALLOWED_SECTION_TYPES.includes(repaired.type)) return repaired;
+            return { ...repaired, type: 'text', content: s.content || "Content Error" };
         }).filter(s => s); // Filter out nulls
     },
 
@@ -472,14 +483,18 @@ LPの各セクション(Hero含む)に必要な「画像」を選定してくだ
         // Normalize for App
         return {
             siteTitle: s3.siteTitle,
-            pageBgValue: s3.design.colors.background,
-            textColor: s3.design.colors.text,
-            accentColor: s3.design.colors.accent,
-            fontFamily: s3.design.typography.fontFamily,
-            heroTitle: s3.heroConfig?.title || s3.siteTitle, // Fallback if lost
+            pageBgType: 'color',
+            pageBgValue: s3.design?.colors?.background || '#ffffff',
+            textColor: s3.design?.colors?.text || '#2d2d2d',
+            accentColor: s3.design?.colors?.accent || '#3b82f6',
+            fontFamily: s3.design?.typography?.fontFamily || 'sans',
+            heroTitle: s3.heroConfig?.title || s3.siteTitle,
             heroSubtitle: s3.heroConfig?.subtitle || '',
+            heroHeight: s3.heroConfig?.heroHeight || 90,
+            heroWidth: s3.heroConfig?.heroWidth || 100,
+            heroOverlayOpacity: s3.heroConfig?.heroOverlayOpacity || 0.4,
             heroImageFallback: s3.heroImageFallback,
-            sections: s3.sections
+            sections: aiService._validateAndRepairSections(s3.sections) // Apply design repairs
         };
     },
 
