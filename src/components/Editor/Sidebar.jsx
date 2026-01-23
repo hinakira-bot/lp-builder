@@ -44,7 +44,7 @@ export const Sidebar = ({ isOpen, setIsOpen, data, setData, setActiveSectionId }
             <div className="p-4 border-b border-gray-800 flex justify-between items-center bg-[#111]">
                 <h1 className="text-lg font-bold tracking-tight flex items-center gap-2">
                     <Layout className="text-blue-500" size={20} />
-                    LP Builder <span className="text-xs bg-blue-900 text-blue-200 px-2 py-0.5 rounded-full">SWELL Style</span>
+                    LP Builder
                 </h1>
                 <button onClick={() => setIsOpen(false)} className="md:hidden p-2 text-gray-400">
                     <X size={20} />

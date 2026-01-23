@@ -146,17 +146,26 @@ export const SettingsPanel = ({ data, setData }) => {
                             <p>サイドバー下の「index.html DL」で公開用ファイルを保存します。あわせて「保存 (config.json)」も必ずダウンロードしてください。</p>
                         </div>
                         <div>
-                            <p className="font-bold text-gray-200 mb-1">2. 公開（サーバーへ）</p>
-                            <p>レンタルサーバー等に <code>index.html</code> をアップロードするだけで即時公開できます。※config.jsonはサーバーには不要です。</p>
+                            <p className="font-bold text-gray-200 mb-1">2. 公開（好きな方法でOK！）</p>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-2">
+                                <div className="bg-gray-900/50 p-3 rounded border border-gray-700">
+                                    <p className="font-bold text-blue-300 mb-1">【方法A】簡単公開 (Vercel等)</p>
+                                    <p>Vercelのダッシュボードに `index.html` をドラッグ＆ドロップするだけで即座にURLが発行されます。一番手軽です。</p>
+                                </div>
+                                <div className="bg-gray-900/50 p-3 rounded border border-gray-700">
+                                    <p className="font-bold text-green-300 mb-1">【方法B】レンタルサーバー</p>
+                                    <p>エックスサーバー等の <code>public_html</code> フォルダにアップロードします。独自ドメインで運用したい場合に最適です。</p>
+                                </div>
+                            </div>
                         </div>
                         <div>
                             <p className="font-bold text-gray-200 mb-1">3. 再編集したいとき</p>
-                            <p>後日このツールを開き、サイドバー下の「<span className="text-blue-400">読込</span>」ボタンから <code>config.json</code> を選ぶと、いつでも編集を再開できます。</p>
+                            <p>後日このツールを開き、サイドバー下の「読込」ボタンから <code>config.json</code> を選べば、いつでも編集を再開できます。</p>
                         </div>
                         <div className="bg-blue-500/10 p-3 rounded border border-blue-500/20">
                             <p className="text-[10px] text-blue-200 leading-tight">
                                 <span className="font-bold block mb-1">💡 アドバイス</span>
-                                ※ サーバー契約やドメイン設定、アップロード方法はサーバー会社のサポートサイトをご確認ください。
+                                ※ Vercel連携（GitHub経由での自動公開）をご希望の場合は、ダウンロードしたファイルをリポジトリに入れてプッシュしてください。
                             </p>
                         </div>
                     </div>
