@@ -17,27 +17,33 @@ export const StylePanel = ({ data, setData }) => {
         setStatusMsg('プロフェッショナル・ビルドを開始します...');
 
         try {
-            // Stage 1: Strategy
+            console.log("[Pipeline] Phase 1: Strategy - START");
             setStatusMsg('Phase 1: マーケティング戦略を策定中...');
             const strategy = await aiService.generateStrategy(prompt, tuning);
+            console.log("[Pipeline] Phase 1 - DONE", strategy);
 
-            // Stage 2: Sitemap
+            console.log("[Pipeline] Phase 2: Sitemap - START");
             setStatusMsg('Phase 2: 成約率の高い構成を設計中...');
             const sitemap = await aiService.generateSitemap(strategy, prompt);
+            console.log("[Pipeline] Phase 2 - DONE", sitemap);
 
-            // Stage 3: Design
+            console.log("[Pipeline] Phase 3: Design - START");
             setStatusMsg('Phase 3: デザイナー品質の装飾を適用中...');
             const design = await aiService.generateDesignArchitecture(sitemap, strategy);
+            console.log("[Pipeline] Phase 3 - DONE", design);
 
-            // Stage 4: Visuals
+            console.log("[Pipeline] Phase 4: Visuals - START");
             setStatusMsg('Phase 4: 最適なビジュアルを厳選中...');
             const visuals = await aiService.generateVisuals(design, prompt, imageMode);
+            console.log("[Pipeline] Phase 4 - DONE", visuals);
 
-            // Stage 5: Copywriting
+            console.log("[Pipeline] Phase 5: Copywriting - START");
             setStatusMsg('Phase 5: 魂を込めた文章を執筆中...');
             const finalData = await aiService.generateCopywriting(visuals, prompt, strategy);
+            console.log("[Pipeline] Phase 5 - DONE", finalData);
 
             // Normalize for App
+            console.log("[Pipeline] Normalizing data for preview...");
             const normalized = {
                 siteTitle: finalData.siteTitle,
                 pageBgType: 'color',
@@ -54,10 +60,11 @@ export const StylePanel = ({ data, setData }) => {
                 sections: aiService._validateAndRepairSections(finalData.sections)
             };
 
+            console.log("[Pipeline] Setting Data to preview...", normalized);
             setData(prev => ({ ...prev, ...normalized }));
             setStatusMsg('プロフェッショナル生成が完了しました！');
         } catch (error) {
-            console.error(error);
+            console.error("[Pipeline] CRITICAL ERROR:", error);
             setStatusMsg('生成中にエラーが発生しました');
         } finally {
             setIsGenerating(false);

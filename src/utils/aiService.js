@@ -158,128 +158,140 @@ export const aiService = {
     },
 
     // ------------------------------------------------------------------
-    // 3-Phase Generation Pipeline (High Quality)
+    // 5-Phase Professional Generation Pipeline
     // ------------------------------------------------------------------
 
-    // Phase 1: Structure & Design
-    generateStructure: async (prompt, tuning) => {
+    // Phase 1: 戦略考察 (Strategy & Concept)
+    generateStrategy: async (prompt, tuning) => {
         const apiKey = aiService.getApiKey();
         if (!apiKey) throw new Error('API_KEY_MISSING');
 
-        const systemPrompt = `あなたはプロのWebディレクター兼デザイナーです。
-ユーザーの要望に基づき、LPの「設計図（構成とデザイン）」をJSON形式で出力してください。
-特に「高級感」「親しみやすさ」「スタイリッシュ」などのトーンに合わせて、最適なコンポーネント配置と装飾（セクション間の区切りなど）を選定してください。
+        const systemPrompt = `あなたはプロのWebマーケティング戦略家です。
+ユーザーの要望に基づき、LPの「成功戦略」をJSON形式で策定してください。
 
-【デザイン・ガイドライン】
-- 高級/エレガント: 白・黒・ゴールド(#D4AF37)を基調。serifフォント。
-- 可愛らしい: パステルカラー。丸みを帯びた(rounded-xl)。セクション区切りに "curve" や "wave" を多用。
-- クール: 濃い背景色、鮮やかなアクセント。余白を広めに取り、タイポグラフィを強調。
+【ユーザーの指定条件】
+- 希望トーン: ${tuning.tone}
+- 重視するポイント: ${tuning.focus}
 
-【重要：セクション装飾のプロパティ】
-各セクションの「直下（id等と同階層）」に以下のプロパティを必ず含めてオシャレにしてください：
-- design: "underline", "simple", "card", "bubble", "modern", "featured", "timeline", "minimal" （各コンポーネントに最適なのを選択）
-- dividerTop / dividerBottom: "curve", "wave", "slant", "tilt", "triangle", "none" (背景色が変わる境界で使うとオシャレ)
-- dividerTopColor / dividerBottomColor: 隣接するセクションや背景と同じ色を指定
-- pt / pb: "pt-24", "pt-32", "pb-24" など（余白をたっぷり取るのがオシャレのコツ）
+【戦略策定のポイント】
+- ターゲット層（ペルソナ）の深掘り
+- 解決すべき痛みの核心
+- 商品/サービスの核心的なベネフィット
+- 推奨される訴求軸（感情、論理、権威など）
+- デザインの目指すべき方向性
 
 【出力スキーマ】
 {
-  "siteTitle": "サイト名",
-  "design": {
-     "colors": { "background": "#hex", "text": "#hex", "accent": "#hex" },
-     "typography": { "fontFamily": "serif/sans" }
-  },
-  "heroConfig": {
-     "heroHeight": 90, 
-     "heroOverlayOpacity": 0.4,
-     "title": "...",
-     "subtitle": "..."
-  },
-  "sections": [
-     { 
-       "id": 1, "type": "heading", "design": "underline", 
-       "pt": "pt-32", "pb": "pb-12",
-       "dividerBottom": "curve", "dividerBottomColor": "#f9f9f9"
-     },
-     ...
-  ]
+  "strategy": {
+    "target": "...",
+    "problem": "...",
+    "solution": "...",
+    "approach": "「${tuning.tone}」なトーンで「${tuning.focus}」を強調する具体的方針",
+    "toneKeywords": ["...", "..."]
+  }
 }
 `;
         return await aiService._callGemini(apiKey, systemPrompt, prompt);
     },
 
-    // Phase 2: Content Flesh-out
-    generateContent: async (structureData, originalPrompt, tuning) => {
+    // Phase 2: 構成案作成 (Sitemap & Logic)
+    generateSitemap: async (strategyData, originalPrompt) => {
         const apiKey = aiService.getApiKey();
-        const structureStr = JSON.stringify(structureData, null, 2);
+        const strategy = strategyData.strategy;
 
-        const systemPrompt = `あなたはプロのセールスライターです。
-渡された「LPの構成案(JSON)」の各セクションに対して、成約率の高い日本語のキャッチコピーと本文を肉付けしてください。
+        const systemPrompt = `あなたはプロのWebディレクターです。
+以下の「成功戦略」に基づき、成約を最大化するLPの「セクション構成」のみをJSON形式で出力してください。
 
-【チューニング指示】
-Tone: ${tuning.tone} (このトーンで執筆すること！)
-Focus: ${tuning.focus}
+【成功戦略】
+Target: ${strategy.target}
+Approach: ${strategy.approach}
 
 【ルール】
-1. 受け取ったJSONの構造(id, type, design, style, pt, pb, dividerTop/Bottom等)は絶対に変えないでください。
-2. もともとあったデザイン関連のフィールド(design, pt, pb, divider等)を消さずに、そのまま全フィールド保持してください。
-3. 各セクションに "title", "content" (または "items", "plans"), "buttons" などのコンテンツフィールドを追加してください。
-4. 文体は「${tuning.tone}」を厳守してください。
-`;
-        return await aiService._callGemini(apiKey, systemPrompt, `Original Request: ${originalPrompt}\n\nStructure JSON:\n${structureStr}`);
-    },
+- 戦略に基づき、適切な「ストーリー構成（QUEST、AIDMA等）」を構築してください。
+- 各セクションの "goal"（このセクションで何を読者に思わせたいか）を定義してください。
+- セクションタイプは以下から選択：
+${JSON.stringify(ALLOWED_SECTION_TYPES)}
 
-    // Phase 3: Visuals & Image Queries
-    generateVisuals: async (contentData, originalPrompt, imageMode = 'library') => {
-        const apiKey = aiService.getApiKey();
-        const contentStr = JSON.stringify(contentData, null, 2);
-
-        const modeInstruction = imageMode === 'ai'
-            ? `"mode": "generate", // ユーザーがAI生成を選択しました`
-            : `"mode": "library", // 基本はこれ`;
-
-        const systemPrompt = `あなたはプロのアートディレクターです。
-LPの各セクション(Hero含む)に必要な「画像」を選定してください。
-
-【画像が必須のセクション】
-以下のtypeを持つセクションには、必ず "imageConfig" を付与してください。
-- hero (メインビジュアル)
-- image (画像単体)
-- image_text (画＆文)
-- post_card (記事カード)
-- columns (3カラム画像)
-- full_width (全幅背景)
-- speech_bubble (吹き出し/人物)
-
-【利用可能な画像カテゴリ (UNSPLASH_LIBRARY)】
-- salon (美容室、エステ)
-- business (オフィス、会議)
-- gym (フィットネス)
-- cafe (飲食、カフェ)
-- default (その他)
-
-【出力ルール】
-各セクション、および "heroConfig" に "imageConfig" を追加して返してください。
-1. 受け取ったJSONの「すべての既存フィールド（id, type, design, style, pt, pb, divider等）」を絶対に保持してください。
-2. 追加した画像情報以外のデザイン設定を変更しないでください。
-
-"sections": [
-  { "id": 1, "type": "post_card", "imageConfig": { ... }, "pt": "pt-24", ... }
-],
-"heroConfig": {
-  ...,
-  "imageConfig": {
-     ${modeInstruction}
-     "category": "salon",
-     "keywords": "english keywords"
-  }
+【出力スキーマ】
+{
+  "siteTitle": "サイト名",
+  "sections": [
+     { "id": 1, "type": "hero", "goal": "注意を惹きつける" },
+     ... // 最低6セクション
+  ]
 }
 `;
-        const resultWithQueries = await aiService._callGemini(apiKey, systemPrompt, `LP Content:\n${contentStr}`);
-
-        // Final normalization and image fetching simulation
-        return await aiService._finalizeImages(resultWithQueries, imageMode); // Pass selection mode down
+        return await aiService._callGemini(apiKey, systemPrompt, `Original Request: ${originalPrompt}\n\nStrategy:\n${JSON.stringify(strategyData)}`);
     },
+
+    // Phase 3: パーツ選定 & デザイン詳細 (Design Architecture)
+    generateDesignArchitecture: async (sitemapData, strategyData) => {
+        const apiKey = aiService.getApiKey();
+        const strategy = strategyData.strategy;
+
+        const systemPrompt = `あなたは世界最高峰のWebデザイナーです。
+構成案に基づき、各パーツの「バリアント」と「装飾（余白・境界線）」を決定し、デザイン品質を極限まで高めてください。
+
+【プロのデザイナーの鉄則（Design Playbook）】
+1. 余白の美学: すべてのセクションに広め（pt-24以上）の余白を設定してください。
+2. 色のリズム: 背景色は交互（White / LightGray #f9f9f9）に切り替えてリズムを作ってください。
+3. 境界の装飾: 背景色が変わる境界線（dividerBottom）には "curve" や "wave" を指定し、なめらかにつないでください。
+4. パーツバリアント: Pricingなら "modern"、Reviewなら "bubble" など、最適な design 属性を選んでください。
+
+【出力スキーマ】
+{
+  "design": {
+     "colors": { "background": "#ffffff", "text": "#2d2d2d", "accent": "#hex" },
+     "typography": { "fontFamily": "serif/sans" }
+  },
+  "heroConfig": {
+     "heroHeight": 90, 
+     "heroOverlayOpacity": 0.4,
+     "title": "メインタイトル",
+     "subtitle": "サブキャッチコピー"
+  },
+  "sections": [
+     { 
+       "id": 1, "type": "...", "design": "...", 
+       "pt": "pt-32", "pb": "pb-24",
+       "dividerBottom": "curve", "dividerBottomColor": "#hex"
+     },
+     ...
+  ]
+}
+`;
+        return await aiService._callGemini(apiKey, systemPrompt, `Sitemap:\n${JSON.stringify(sitemapData)}\n\nStrategy:\n${JSON.stringify(strategyData)}`);
+    },
+
+    // Phase 4: ビジュアル選定 (Visuals & Assets)
+    generateVisuals: async (designData, originalPrompt, imageMode = 'library') => {
+        const apiKey = aiService.getApiKey();
+        const modeInstruction = imageMode === 'ai' ? `"mode": "generate"` : `"mode": "library"`;
+
+        const systemPrompt = `あなたはプロのアートディレクターです。各セクションに必要な「画像の設定」を提案してください。
+【ルール】既存のデザイン設定（pt, pb, divider等）を絶対に消さずに保持してください。`;
+
+        const resultWithQueries = await aiService._callGemini(apiKey, systemPrompt, `Design Data:\n${JSON.stringify(designData)}`);
+        return await aiService._finalizeImages(resultWithQueries, designData, imageMode);
+    },
+
+    // Phase 5: 戦略的セールスライティング (Copywriting)
+    generateCopywriting: async (visualsData, originalPrompt, strategyData) => {
+        const apiKey = aiService.getApiKey();
+        const strategy = strategyData.strategy;
+
+        const systemPrompt = `あなたは世界最高峰のセールスライターです。
+戦略に基づき、読者の心を動かし、成約へと導く「最強のコピー（日本語）」を執筆してください。
+【戦略】
+Target: ${strategy.target}
+Focus: ${strategy.approach}
+【ルール】構成・画像・デザイン設定をすべて保持し、コンテンツ（title, content）のみを肉付けしてください。`;
+
+        return await aiService._callGemini(apiKey, systemPrompt, `Original Request: ${originalPrompt}\n\nVisuals Data:\n${JSON.stringify(visualsData)}`);
+    },
+
+
+
 
     // Helper: Call Gemini
     _callGemini: async (apiKey, sys, user) => {
@@ -324,23 +336,25 @@ LPの各セクション(Hero含む)に必要な「画像」を選定してくだ
         // Robust JSON Extraction
         try {
             // 1. Try direct parse (JSON mode usually returns clean JSON)
-            return JSON.parse(text);
+            const parsedData = JSON.parse(text);
+            if (parsedData.sections) {
+                parsedData.sections = aiService._validateAndRepairSections(parsedData.sections);
+            }
+            return parsedData;
         } catch (e) {
             // 2. If valid JSON mode failed (or model chatted), extract first/last brace
             const firstBrace = text.indexOf('{');
             const lastBrace = text.lastIndexOf('}');
             if (firstBrace !== -1 && lastBrace !== -1) {
                 const jsonStr = text.substring(firstBrace, lastBrace + 1);
-                return JSON.parse(jsonStr);
+                const parsedData = JSON.parse(jsonStr);
+                if (parsedData.sections) {
+                    parsedData.sections = aiService._validateAndRepairSections(parsedData.sections);
+                }
+                return parsedData;
             }
             throw new Error("Invalid JSON response from AI");
         }
-
-        // Validation Hook
-        if (parsedData.sections) {
-            parsedData.sections = aiService._validateAndRepairSections(parsedData.sections);
-        }
-        return parsedData;
     },
 
     // Helper: Validate & Repair Sections
@@ -379,8 +393,9 @@ LPの各セクション(Hero含む)に必要な「画像」を選定してくだ
         }).filter(s => s); // Filter out nulls
     },
 
-    // Helper: Finalize Images (Mock Fetch)
-    _finalizeImages: async (data, globalImageMode = 'library') => {
+    // Helper: Finalize Images (Distribution & Fallbacks)
+    _finalizeImages: async (visualsResult, designData, globalImageMode = 'library') => {
+        const data = { ...designData, ...visualsResult }; // Merge
         const processImageConfig = async (config) => {
             if (!config) return null;
 
@@ -475,26 +490,38 @@ LPの各セクション(Hero含む)に必要な「画像」を選定してくだ
 
     // Legacy/Wrapper for single call
     generateLP: async (prompt, tuning) => {
-        // Chain the steps
-        const s1 = await aiService.generateStructure(prompt, tuning);
-        const s2 = await aiService.generateContent(s1, prompt, tuning);
-        const s3 = await aiService.generateVisuals(s2, prompt);
+        console.log("[AI Pipeline] Starting 5-Stage Professional Process...");
+
+        // Stage 1: Strategy
+        const strategy = await aiService.generateStrategy(prompt, tuning);
+
+        // Stage 2: Sitemap
+        const sitemap = await aiService.generateSitemap(strategy, prompt);
+
+        // Stage 3: Design Architecture
+        const design = await aiService.generateDesignArchitecture(sitemap, strategy);
+
+        // Stage 4: Visuals
+        const visuals = await aiService.generateVisuals(design, prompt);
+
+        // Stage 5: Copywriting
+        const finalData = await aiService.generateCopywriting(visuals, prompt, strategy);
 
         // Normalize for App
         return {
-            siteTitle: s3.siteTitle,
+            siteTitle: finalData.siteTitle,
             pageBgType: 'color',
-            pageBgValue: s3.design?.colors?.background || '#ffffff',
-            textColor: s3.design?.colors?.text || '#2d2d2d',
-            accentColor: s3.design?.colors?.accent || '#3b82f6',
-            fontFamily: s3.design?.typography?.fontFamily || 'sans',
-            heroTitle: s3.heroConfig?.title || s3.siteTitle,
-            heroSubtitle: s3.heroConfig?.subtitle || '',
-            heroHeight: s3.heroConfig?.heroHeight || 90,
-            heroWidth: s3.heroConfig?.heroWidth || 100,
-            heroOverlayOpacity: s3.heroConfig?.heroOverlayOpacity || 0.4,
-            heroImageFallback: s3.heroImageFallback,
-            sections: aiService._validateAndRepairSections(s3.sections) // Apply design repairs
+            pageBgValue: finalData.design?.colors?.background || '#ffffff',
+            textColor: finalData.design?.colors?.text || '#2d2d2d',
+            accentColor: finalData.design?.colors?.accent || '#3b82f6',
+            fontFamily: finalData.design?.typography?.fontFamily || 'sans',
+            heroTitle: finalData.heroConfig?.title || finalData.siteTitle,
+            heroSubtitle: finalData.heroConfig?.subtitle || '',
+            heroHeight: finalData.heroConfig?.heroHeight || 90,
+            heroWidth: finalData.heroConfig?.heroWidth || 100,
+            heroOverlayOpacity: finalData.heroConfig?.heroOverlayOpacity || 0.4,
+            heroImageFallback: finalData.heroImageFallback,
+            sections: aiService._validateAndRepairSections(finalData.sections)
         };
     },
 
