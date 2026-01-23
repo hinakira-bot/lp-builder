@@ -2,8 +2,8 @@
 import React from 'react';
 import { HeroSection } from './HeroSection';
 import { SectionWrapper, TextRenderer, ImageRenderer, HeadingRenderer, VideoRenderer, ButtonRenderer } from './Sections/Renderers';
-import { SocialRenderer, AccordionRenderer, PostCardRenderer, ColumnsRenderer, LinksRenderer, BoxRenderer, FullWidthRenderer } from './Sections/ComplexRenderers';
-import { ConversionPanel, PointList, ProblemChecklist, SpeechBubbleRenderer, PricingRenderer } from './Sections/BusinessRenderers';
+import { SocialRenderer, AccordionRenderer, PostCardRenderer, ColumnsRenderer, LinksRenderer, BoxRenderer } from './Sections/ComplexRenderers';
+import { ConversionPanel, PointList, ProblemChecklist, SpeechBubbleRenderer, PricingRenderer, ProcessRenderer, StaffRenderer, FAQRenderer, ComparisonRenderer, AccessRenderer, ReviewRenderer } from './Sections/BusinessRenderers';
 
 // Map of all available renderers
 export const renderers = {
@@ -51,10 +51,17 @@ export const renderers = {
     problem_checklist: ProblemChecklist,
     speech_bubble: SpeechBubbleRenderer,
     pricing: PricingRenderer,
-    full_width: FullWidthRenderer
+
+    // New Components
+    process: ProcessRenderer,
+    staff: StaffRenderer,
+    faq: FAQRenderer,
+    comparison: ComparisonRenderer,
+    review: ReviewRenderer,
+    access: AccessRenderer
 };
 
-export const SectionDispatcher = ({ sections, viewMode, fontSize }) => {
+export const SectionDispatcher = ({ sections, viewMode, fontSize, accentColor, globalPadding }) => {
     if (!sections || sections.length === 0) return null;
 
     return (
@@ -73,11 +80,11 @@ export const SectionDispatcher = ({ sections, viewMode, fontSize }) => {
                 // We will render the children HERE and pass them as `children` prop.
 
                 const childrenNodes = section.children && section.children.length > 0 ? (
-                    <SectionDispatcher sections={section.children} viewMode={viewMode} fontSize={fontSize} />
+                    <SectionDispatcher sections={section.children} viewMode={viewMode} fontSize={fontSize} globalPadding={globalPadding} />
                 ) : null;
 
                 return (
-                    <SectionWrapper key={section.id} section={section} fontSize={fontSize}>
+                    <SectionWrapper key={section.id} section={section} fontSize={fontSize} globalPadding={globalPadding}>
                         <Renderer section={section} fontSize={fontSize} viewMode={viewMode}>
                             {childrenNodes}
                         </Renderer>

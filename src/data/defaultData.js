@@ -4,6 +4,7 @@ export const DEFAULT_DATA = {
     pageBgValue: '#fdfbf7',
     textColor: '#4a4a4a',
     fontFamily: 'serif',
+    globalPadding: 24,
     fontSize: {
         heroTitle: 4.2,
         heroSubtitle: 0.9,

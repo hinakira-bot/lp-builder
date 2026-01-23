@@ -12,8 +12,8 @@ const STYLES = [
     { id: 'pastel', label: 'パステル' },
 ];
 
-export const AIGeneratorModal = ({ isOpen, onClose, onGenerate, initialPrompt = '' }) => {
-    const [activeTab, setActiveTab] = useState('ai'); // 'ai' or 'search'
+export const AIGeneratorModal = ({ isOpen, onClose, onGenerate, initialPrompt = '', initialTab = 'ai' }) => {
+    const [activeTab, setActiveTab] = useState(initialTab); // 'ai' or 'search'
 
     // AI State
     const [prompt, setPrompt] = useState(initialPrompt);
@@ -44,13 +44,13 @@ export const AIGeneratorModal = ({ isOpen, onClose, onGenerate, initialPrompt = 
             setLoadError(false);
 
             // Reset Search State
-            setActiveTab('ai');
+            setActiveTab(initialTab);
             setSearchQuery('');
             setSearchResults([]);
             setSearchError(null);
             setPage(1);
         }
-    }, [isOpen, initialPrompt]);
+    }, [isOpen, initialPrompt, initialTab]);
 
     if (!isOpen) return null;
 

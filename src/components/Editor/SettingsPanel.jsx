@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { aiService } from '../../utils/aiService';
 import { unsplashService } from '../../utils/unsplashService';
 import { InputGroup, TextInput, ColorPicker } from '../UI/Input';
-import { Megaphone, Key } from 'lucide-react';
+import { Megaphone, Key, ArrowDownToLine } from 'lucide-react';
 
 export const SettingsPanel = ({ data, setData }) => {
     const [googleKey, setGoogleKey] = useState(aiService.getApiKey() || '');
@@ -11,6 +11,7 @@ export const SettingsPanel = ({ data, setData }) => {
     const [saved, setSaved] = useState(false);
 
     const handleSave = () => {
+        console.log('[DEBUG] Saving Keys:', { google: !!googleKey, openai: !!openaiKey });
         aiService.setApiKey(googleKey);
         aiService.setOpenAIKey(openaiKey);
         unsplashService.setAccessKey(unsplashKey);
@@ -34,46 +35,24 @@ export const SettingsPanel = ({ data, setData }) => {
     return (
         <div className="space-y-8 animate-fadeIn">
 
-            {/* CV Settings */}
+            {/* Footer Settings */}
             <section>
                 <div className="bg-gray-800/30 p-4 rounded-xl border border-gray-700/50 space-y-4">
                     <h2 className="text-sm font-bold text-white mb-2 flex items-center gap-2">
-                        <Megaphone size={16} className="text-orange-400" /> コンバージョン設定
+                        <ArrowDownToLine size={16} className="text-gray-400" /> フッター設定
                     </h2>
-
-                    <div className="flex items-center gap-3 bg-gray-900 p-3 rounded-lg border border-gray-700">
-                        <input
-                            type="checkbox"
-                            id="floatingCta"
-                            checked={ctaData.enabled || false}
-                            onChange={(e) => updateCta('enabled', e.target.checked)}
-                            className="w-4 h-4 rounded border-gray-600 accent-blue-600 cursor-pointer"
+                    <InputGroup label="コピーライト / フッターテキスト">
+                        <TextInput
+                            value={data.footerText || ''}
+                            onChange={(val) => setData({ ...data, footerText: val })}
+                            placeholder={`© ${new Date().getFullYear()} ${data.siteTitle || 'Company'}. All Rights Reserved.`}
                         />
-                        <label htmlFor="floatingCta" className="text-sm font-medium text-gray-200 cursor-pointer select-none">
-                            追従フローティングCTAを有効にする (スマホ用)
-                        </label>
-                    </div>
-
-                    {ctaData.enabled && (
-                        <div className="space-y-4 pt-2 animate-fadeIn">
-                            <InputGroup label="ボタンテキスト">
-                                <TextInput value={ctaData && ctaData.text} onChange={(val) => updateCta('text', val)} placeholder="今すぐ申し込む" />
-                            </InputGroup>
-                            <InputGroup label="リンクURL">
-                                <TextInput value={ctaData && ctaData.url} onChange={(val) => updateCta('url', val)} placeholder="https://..." />
-                            </InputGroup>
-                            <div className="grid grid-cols-2 gap-4">
-                                <InputGroup label="ボタン背景色">
-                                    <ColorPicker value={ctaData && ctaData.bgColor} onChange={(val) => updateCta('bgColor', val)} />
-                                </InputGroup>
-                                <InputGroup label="文字色">
-                                    <ColorPicker value={ctaData && ctaData.textColor} onChange={(val) => updateCta('textColor', val)} />
-                                </InputGroup>
-                            </div>
-                        </div>
-                    )}
+                        <p className="text-[10px] text-gray-500 mt-1">※空欄の場合は自動的にデフォルトの著作権表記が表示されます。</p>
+                    </InputGroup>
                 </div>
             </section>
+
+
 
             {/* API Key Section */}
             <section>
@@ -84,7 +63,7 @@ export const SettingsPanel = ({ data, setData }) => {
                     </div>
 
                     <div className="space-y-4">
-                        <InputGroup label="Google AI Key (Gemini)">
+                        <InputGroup label="Google AI Key (Gemini - Text & Structure)">
                             <div className="space-y-1">
                                 <input
                                     type="password"
@@ -93,11 +72,11 @@ export const SettingsPanel = ({ data, setData }) => {
                                     placeholder="AIza..."
                                     className="w-full bg-gray-900 border border-gray-700 rounded-lg p-3 text-xs text-gray-200 focus:outline-none focus:border-purple-500 transition-colors"
                                 />
-                                <p className="text-[10px] text-gray-500">※テキスト生成・画像生成に使用</p>
+                                <p className="text-[10px] text-gray-500">※LPの構成案・文章作成に使用（無料枠あり）</p>
                             </div>
                         </InputGroup>
 
-                        <InputGroup label="OpenAI API Key (DALL-E 3)">
+                        <InputGroup label="OpenAI API Key (DALL-E 3 - Images)">
                             <div className="space-y-1">
                                 <input
                                     type="password"
@@ -106,7 +85,7 @@ export const SettingsPanel = ({ data, setData }) => {
                                     placeholder="sk-..."
                                     className="w-full bg-gray-900 border border-gray-700 rounded-lg p-3 text-xs text-gray-200 focus:outline-none focus:border-teal-500 transition-colors"
                                 />
-                                <p className="text-[10px] text-gray-500">※DALL-E 3画像生成に使用</p>
+                                <p className="text-[10px] text-gray-500">※高品質な画像生成に使用（従量課金）</p>
                             </div>
                         </InputGroup>
 
@@ -131,6 +110,55 @@ export const SettingsPanel = ({ data, setData }) => {
                         >
                             {saved ? '設定を保存しました' : '設定を保存'}
                         </button>
+                    </div>
+                </div>
+            </section>
+
+            {/* Help & Publishing Guide */}
+            <section className="space-y-4">
+                <div className="bg-blue-900/20 p-5 rounded-xl border border-blue-500/30 space-y-4">
+                    <div className="flex items-center gap-2 mb-2">
+                        <Megaphone size={16} className="text-blue-400" />
+                        <h4 className="text-sm font-bold text-white">【重要】画像の取り扱いについて</h4>
+                    </div>
+                    <div className="space-y-2 text-xs text-blue-100/80 leading-relaxed">
+                        <p>・画像（人物やレビュー写真等）は、すべてインターネット上の<span className="text-blue-300 font-bold">URL</span>で指定する必要があります。</p>
+                        <p>・AIで生成した画像のURL（DALL-Eなど）は、<span className="text-orange-400 font-bold">約1時間で期限切れ</span>になり、表示されなくなります。</p>
+                        <div className="bg-blue-500/10 p-3 rounded border border-blue-500/20 mt-2">
+                            <p className="text-blue-300 font-bold mb-1">推奨される手順：</p>
+                            <ol className="list-decimal list-inside space-y-1">
+                                <li>AI生成した画像やアップした画像は一度ご自身のPCに保存（右クリックで保存）します。</li>
+                                <li>ご自身のサーバーやGoogleドライブ、Gyazoなどの外部ストレージにアップロードします。</li>
+                                <li>発行された「直接リンクURL」を、パーツの設定から再入力してください。</li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="bg-gray-800/30 p-5 rounded-xl border border-gray-700/50 space-y-4">
+                    <div className="flex items-center gap-2 mb-2">
+                        <ArrowDownToLine size={16} className="text-green-400" />
+                        <h4 className="text-sm font-bold text-white">本番公開と再編集の手順</h4>
+                    </div>
+                    <div className="space-y-4 text-xs text-gray-400 leading-relaxed">
+                        <div>
+                            <p className="font-bold text-gray-200 mb-1">1. ファイルをダウンロード</p>
+                            <p>サイドバー下の「index.html DL」で公開用ファイルを保存します。あわせて「保存 (config.json)」も必ずダウンロードしてください。</p>
+                        </div>
+                        <div>
+                            <p className="font-bold text-gray-200 mb-1">2. 公開（サーバーへ）</p>
+                            <p>レンタルサーバー等に <code>index.html</code> をアップロードするだけで即時公開できます。※config.jsonはサーバーには不要です。</p>
+                        </div>
+                        <div>
+                            <p className="font-bold text-gray-200 mb-1">3. 再編集したいとき</p>
+                            <p>後日このツールを開き、サイドバー下の「<span className="text-blue-400">読込</span>」ボタンから <code>config.json</code> を選ぶと、いつでも編集を再開できます。</p>
+                        </div>
+                        <div className="bg-blue-500/10 p-3 rounded border border-blue-500/20">
+                            <p className="text-[10px] text-blue-200 leading-tight">
+                                <span className="font-bold block mb-1">💡 アドバイス</span>
+                                ※ サーバー契約やドメイン設定、アップロード方法はサーバー会社のサポートサイトをご確認ください。
+                            </p>
+                        </div>
                     </div>
                 </div>
             </section>

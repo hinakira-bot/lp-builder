@@ -1,146 +1,231 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Palette, Type, Sparkles, Wand2, Loader2 } from 'lucide-react';
 import { Button } from '../UI/Button';
 import { TextArea } from '../UI/Input';
 import { InputGroup, Slider, ColorPicker } from '../UI/Input';
+import { aiService } from '../../utils/aiService';
 
 export const StylePanel = ({ data, setData }) => {
-    const [prompt, setPrompt] = React.useState('');
-    const [isGenerating, setIsGenerating] = React.useState(false);
-    const [statusMsg, setStatusMsg] = React.useState('AIが魔法をかけています...');
+    const [prompt, setPrompt] = useState('');
+    const [isGenerating, setIsGenerating] = useState(false);
+    const [statusMsg, setStatusMsg] = useState('AIが魔法をかけています...');
+    const [tuning, setTuning] = useState({ tone: 'standard', focus: 'benefit' });
 
-    const handleAiMagic = async () => {
+    const handleStructureContent = async () => {
         if (!prompt) return;
         setIsGenerating(true);
-        setStatusMsg('コンセプトを分析中...');
+        setStatusMsg('構成と文章を生成中...');
 
-        setTimeout(() => setStatusMsg('ブランドカラーを選定中...'), 1000);
-        setTimeout(() => setStatusMsg('最適な構成を組み立て中...'), 2000);
-        setTimeout(() => setStatusMsg('キャッチコピーを執筆中...'), 3500);
-
-        setTimeout(() => {
-            const lowerPrompt = prompt.toLowerCase();
-            let updates = {};
-
-            if (lowerPrompt.includes('美容室') || lowerPrompt.includes('サロン') || lowerPrompt.includes('beauty')) {
-                applyTheme('elegant');
-                const isMens = lowerPrompt.includes('メンズ');
-                updates = {
-                    siteTitle: isMens ? 'AOYAMA MENS SALON' : 'ELEGANCE AOYAMA',
-                    heroTitle: isMens ? 'ROUGH & COOL STYLE' : 'PREMIUM BEAUTY',
-                    heroSubtitle: isMens ? '渋谷の路地裏に佇む、大人の男のための隠れ家サロン。\nミリ単位にこだわったカットで、最高の自分へ。' : '表参道駅から徒歩1分。洗練された技術と空間で、\nあなた史上最高の美しさを引き出します。',
-                    floatingCta: { ...data.floatingCta, text: '今すぐ予約する', bgColor: isMens ? '#1a1a1a' : '#c5a059' },
-                    sections: [
-                        { id: 1, type: 'point_list', items: [{ title: '技術力', desc: 'コンテスト受賞歴のあるスタイリストが在籍。', image: '' }, { title: 'こだわり空間', desc: '全席半個室で、周りを気にせずリラックス。', image: '' }], pt: 'pt-20', pb: 'pt-20' },
-                        { id: 2, type: 'pricing', design: 'featured', plans: [{ name: 'Cut', price: '¥8,800', features: ['Blow incl.'], color: '#c5a059' }, { name: 'Full', price: '¥18,000', features: ['Cut, Color, Tr.'], isFeatured: true, color: '#c5a059' }], pt: 'pt-20', pb: 'pt-20' },
-                        { id: 3, type: 'speech_bubble', text: '心を込めて施術いたします。', align: 'left', bubbleColor: '#ffffff' }
-                    ]
-                };
-            } else if (lowerPrompt.includes('ジム') || lowerPrompt.includes('フィットネス') || lowerPrompt.includes('gym') || lowerPrompt.includes('トレーニング')) {
-                updates = {
-                    fontFamily: 'sans',
-                    textColor: '#ffffff',
-                    pageBgValue: '#0f172a',
-                    siteTitle: 'HARDCORE GYM',
-                    heroTitle: 'PUSH YOUR LIMITS',
-                    heroSubtitle: '理想の体は、自分への挑戦から始まる。\n24時間いつでも、最高の環境で自分を追い込め。',
-                    fontSize: { heroTitle: 5.5, heroSubtitle: 1.1, sectionTitle: 2.8, body: 1.0 },
-                    header: { ...data.header, style: 'solid', bgValue: '#0f172a', textColor: '#ffffff' },
-                    floatingCta: { ...data.floatingCta, text: '無料体験はこちら', bgColor: '#ef4444' },
-                    sections: [
-                        { id: 1, type: 'problem_checklist', title: 'こんな悩みありませんか？', items: [{ text: '最近、体力が落ちてきた' }, { text: 'ジムに通っても続かない' }], pt: 'pt-20', pb: 'pt-20' },
-                        { id: 2, type: 'point_list', items: [{ title: '24時間営業', desc: 'あなたのライフスタイルに合わせて。' }, { title: 'プロトレーナー', desc: 'マンツーマンで徹底サポート。' }], pt: 'pt-20', pb: 'pt-20' },
-                        { id: 3, type: 'pricing', plans: [{ name: 'Monthly', price: '¥9,800', features: ['All access'], color: '#ef4444' }], pt: 'pt-20', pb: 'pt-20' }
-                    ]
-                };
-            } else if (lowerPrompt.includes('カフェ') || lowerPrompt.includes('レストラン') || lowerPrompt.includes('cafe')) {
-                updates = {
-                    fontFamily: 'serif',
-                    textColor: '#5d4037',
-                    pageBgValue: '#fffaf0',
-                    siteTitle: 'CAFE DE MOMENT',
-                    heroTitle: 'SLOW TIME, FINE COFFEE',
-                    heroSubtitle: '喧騒を忘れ、一杯のコーヒーに癒される時間を。\n自家焙煎の香りと共に、心地よいひとときを。',
-                    fontSize: { heroTitle: 4.0, heroSubtitle: 0.85, sectionTitle: 2.0, body: 0.9 },
-                    header: { ...data.header, style: 'overlay', textColor: '#5d4037' },
-                    floatingCta: { ...data.floatingCta, text: 'メニューをみる', bgColor: '#8d6e63' },
-                    sections: [
-                        { id: 1, type: 'image_text', title: '自慢のコーヒー', content: '世界中から厳選した豆を、丁寧にハンドドリップ。', image: '', imagePosition: 'left', pt: 'pt-20', pb: 'pt-20' },
-                        { id: 2, type: 'accordion', items: [{ title: 'テイクアウトはできますか？', content: 'はい、全メニュー可能です。' }], pt: 'pt-20', pb: 'pt-20' }
-                    ]
-                };
-            } else if (lowerPrompt.includes('ビジネス') || lowerPrompt.includes('会社') || lowerPrompt.includes('corp') || lowerPrompt.includes('it')) {
-                applyTheme('modern');
-                updates = {
-                    siteTitle: 'NEO TECH SOLUTIONS',
-                    heroTitle: 'ACCELERATE INNOVATION',
-                    heroSubtitle: 'テクノロジーの力で、世界の可能性を広げる。\n私たちは、あなたの挑戦を全力でサポートします。',
-                    floatingCta: { ...data.floatingCta, text: 'お問い合わせ', bgColor: '#2563eb' },
-                    sections: [
-                        { id: 1, type: 'heading', text: 'Our Services', subText: '事業内容', style: 'center', pt: 'pt-20', pb: 'pt-10' },
-                        { id: 2, type: 'columns', columnCount: 3, items: [{ title: 'DX推進' }, { title: 'AI開発' }, { title: 'クラウド導入' }], pt: 'pt-10', pb: 'pt-20' }
-                    ]
-                };
-            } else {
-                applyTheme('minimal');
-                updates = {
-                    siteTitle: 'THE ARCHIVE',
-                    heroTitle: 'ESSENTIAL DESIGN',
-                    heroSubtitle: '時代に流されない、普遍的な価値を提案する。\nミニマリズムが生み出す、真の豊かさ。',
-                    sections: []
-                };
-            }
-
-            setData(prev => ({ ...prev, ...updates }));
+        const apiKey = aiService.getApiKey();
+        if (!apiKey) {
+            await runLocalFallback();
             setIsGenerating(false);
-            setPrompt('');
-        }, 5000);
+            return;
+        }
+
+        try {
+            // Step A: Structure
+            setStatusMsg('Step 1: 全体の構成とデザインを設計中...');
+            const structure = await aiService.generateStructure(prompt, tuning);
+
+            // Step B: Content
+            setStatusMsg('Step 2: プロのセールスコピーを執筆中...');
+            const content = await aiService.generateContent(structure, prompt, tuning);
+
+            // Merge into state (preserve existing functionality)
+            const aiData = {
+                siteTitle: content.siteTitle || structure.siteTitle,
+                pageBgValue: structure.design.colors.background,
+                textColor: structure.design.colors.text,
+                accentColor: structure.design.colors.accent,
+                fontFamily: structure.design.typography.fontFamily,
+                heroTitle: content.heroConfig?.title || content.siteTitle,
+                heroSubtitle: content.heroConfig?.subtitle || '',
+                sections: content.sections
+                // Images are NULL at this stage
+            };
+
+            setData(prev => ({ ...prev, ...aiData }));
+            setStatusMsg('構成・文章の生成完了！');
+        } catch (error) {
+            console.error(error);
+            setStatusMsg('エラーが発生しました');
+        } finally {
+            setIsGenerating(false);
+        }
+    };
+
+    const handleVisuals = async (mode) => {
+        if (!data.sections || data.sections.length === 0) {
+            setStatusMsg('先に構成を生成してください');
+            return;
+        }
+        setIsGenerating(true);
+        setStatusMsg(mode === 'library' ? 'ライブラリから画像を厳選中...' : 'AI画像を生成中...');
+
+        try {
+            // Need to reconstruct "content" object for context, or just pass sections
+            // ideally we pass the full data we have
+            const currentContent = {
+                siteTitle: data.siteTitle,
+                heroConfig: { title: data.heroTitle, subtitle: data.heroSubtitle },
+                sections: data.sections
+            };
+
+            // Note: We might need to update aiService to accept mode hint
+            const finals = await aiService.generateVisuals(currentContent, prompt, mode);
+
+            // Apply updates
+            const aiData = {
+                heroImageFallback: finals.heroImageFallback,
+                sections: finals.sections
+                // We don't overwrite text/colors here, only images
+            };
+
+            setData(prev => ({
+                ...prev,
+                heroImageFallback: aiData.heroImageFallback,
+                sections: aiData.sections
+            }));
+            setStatusMsg('画像の適用完了！');
+        } catch (error) {
+            console.error(error);
+            setStatusMsg('画像生成エラー');
+        } finally {
+            setIsGenerating(false);
+        }
+    };
+
+    const runLocalFallback = async () => {
+        setStatusMsg('ブランドカラーを選定中...');
+        await new Promise(r => setTimeout(r, 800));
+        setStatusMsg('成約率の高い構成をシミュレーション中...');
+        await new Promise(r => setTimeout(r, 1200));
+
+        const lowerPrompt = prompt.toLowerCase();
+        let updates = {};
+
+        const getThemeConfig = (name) => {
+            if (name === 'elegant') return {
+                fontFamily: 'serif', textColor: '#4a4a4a', pageBgValue: '#fdfbf7',
+                fontSize: { heroTitle: 4.2, heroSubtitle: 0.9, sectionTitle: 2.0, body: 0.95 },
+                header: { ...data.header, style: 'overlay', textColor: '#4a4a4a' }
+            };
+            if (name === 'modern') return {
+                fontFamily: 'sans', textColor: '#1a1a1a', pageBgValue: '#ffffff',
+                fontSize: { heroTitle: 5.0, heroSubtitle: 1.0, sectionTitle: 2.5, body: 1.0 },
+                header: { ...data.header, style: 'solid', bgValue: '#ffffff', textColor: '#1a1a1a' }
+            };
+            return {
+                fontFamily: 'serif', textColor: '#000000', pageBgValue: '#ffffff',
+                fontSize: { heroTitle: 3.5, heroSubtitle: 0.8, sectionTitle: 1.8, body: 0.85 },
+                header: { ...data.header, style: 'overlay', textColor: '#000000' }
+            };
+        };
+
+        if (lowerPrompt.includes('美容室') || lowerPrompt.includes('サロン') || lowerPrompt.includes('beauty')) {
+            const isMens = lowerPrompt.includes('メンズ');
+            const themeColor = isMens ? '#1a1a1a' : '#c5a059';
+            updates = {
+                ...getThemeConfig('elegant'),
+                siteTitle: isMens ? 'AOYAMA MENS SALON' : 'ELEGANCE AOYAMA',
+                heroTitle: isMens ? 'ROUGH & COOL STYLE' : 'PREMIUM BEAUTY',
+                heroSubtitle: isMens ? '渋谷の路地裏に佇む、大人の男のための隠れ家。\nミリ単位にこだわった再現性で、最高の自分へ。' : '表参道駅から徒歩1分。洗練された技術と空間で、\nあなた史上最高の美しさを引き出します。',
+                floatingCta: { ...data.floatingCta, text: '今すぐ予約する', bgColor: themeColor },
+                sections: [
+                    { id: 1, type: 'heading', text: 'Our Philosophy', subText: '想い', style: 'center', pt: 'pt-24', pb: 'pt-8' },
+                    { id: 2, type: 'image_text', title: '洗練された技術と空間', content: '完全予約制のプライベート空間で、一人一人に合わせた丁寧な施術を行います。都会の喧騒を忘れ、安らぎをご体感ください。', image: '', imagePosition: 'left', pt: 'pt-20', pb: 'pt-20' },
+                    { id: 3, type: 'problem_checklist', title: 'こんなお悩みありませんか？', items: [{ text: '自分に似合うスタイルがわからない' }, { text: '美容室ではリラックスしたい' }, { text: '朝のセットを楽にしたい' }], pt: 'pt-20', pb: 'pt-20' },
+                    { id: 4, type: 'point_list', items: [{ title: '受賞スタイリスト', desc: 'コンテスト受賞歴のある実力派が在籍。' }, { title: '厳選薬剤', desc: '髪と肌に優しいオーガニックな薬剤を使用。' }], pt: 'pt-20', pb: 'pt-20' },
+                    { id: 5, type: 'pricing', plans: [{ name: 'Cut', price: '¥8,800', features: ['Blow incl.'] }, { name: 'Full Menu', price: '¥18,000', features: ['Cut, Color, Tr.'], isFeatured: true, color: themeColor }, { name: 'Special', price: '¥25,000', features: ['Full course'] }], pt: 'pt-24', pb: 'pt-24' },
+                    { id: 6, type: 'speech_bubble', text: '「綺麗になりたい」その想いに全力で応えます！', align: 'left', bubbleColor: '#ffffff' },
+                    { id: 7, type: 'conversion_panel', title: '＼ 初回限定 20% OFF ／', microCopy: 'ご予約時にLPを見たと伝えてください', buttons: [{ label: '予約する', url: '#', color: 'orange', icon: 'cart' }] }
+                ]
+            };
+        } else if (lowerPrompt.includes('ジム') || lowerPrompt.includes('フィットネス') || lowerPrompt.includes('gym')) {
+            const themeColor = '#ef4444';
+            updates = {
+                ...getThemeConfig('modern'),
+                fontFamily: 'sans', textColor: '#ffffff', pageBgValue: '#0f172a', siteTitle: 'ULTIMATE FITNESS',
+                heroTitle: 'PUSH YOUR LIMITS', heroSubtitle: '理想の体は、自分への挑戦から始まる。\n24時間最高の環境で自分を追い込め。',
+                floatingCta: { ...data.floatingCta, text: '無料体験はこちら', bgColor: themeColor },
+                sections: [
+                    { id: 1, type: 'problem_checklist', title: 'こんな悩みありませんか？', items: [{ text: '最近、体力が落ちてきた' }, { text: 'ジムに通っても続かない' }], pt: 'pt-24', pb: 'pt-12' },
+                    { id: 2, type: 'point_list', items: [{ title: '24時間営業', desc: '仕事帰りも早朝も。' }, { title: 'プロトレーナー', desc: '徹底サポート。' }], pt: 'pt-10', pb: 'pt-20' },
+                    { id: 3, type: 'pricing', plans: [{ name: 'Trial', price: '¥0', features: ['60min session'] }, { name: 'Standard', price: '¥9,800', features: ['All access'], isFeatured: true, color: themeColor }], pt: 'pt-24', pb: 'pt-24' },
+                    { id: 4, type: 'conversion_panel', title: '＼ 入会金無料 ／', buttons: [{ label: '無料体験に申し込む', url: '#', color: 'orange' }] }
+                ]
+            };
+        } else if (lowerPrompt.includes('カフェ') || lowerPrompt.includes('レストラン') || lowerPrompt.includes('cafe')) {
+            const themeColor = '#8d6e63';
+            updates = {
+                ...getThemeConfig('elegant'),
+                fontFamily: 'serif', textColor: '#5d4037', pageBgValue: '#fffaf0', siteTitle: 'ROAST & COFFEE',
+                heroTitle: 'SLOW TIME, FINE BEANS', heroSubtitle: '喧騒を忘れ、一杯のコーヒーに癒される時間を。',
+                floatingCta: { ...data.floatingCta, text: 'メニューをみる', bgColor: themeColor },
+                sections: [
+                    { id: 1, type: 'image_text', title: '世界中から厳選した豆', content: '丁寧にハンドドリップ。', image: '', imagePosition: 'left', pt: 'pt-20', pb: 'pt-20' },
+                    { id: 2, type: 'point_list', items: [{ title: '自家焙煎', desc: '毎日新鮮な香りを。' }], pt: 'pt-20', pb: 'pt-20' },
+                    { id: 3, type: 'conversion_panel', title: '至福の一杯を、あなたに。', buttons: [{ label: 'メニューをみる', url: '#', color: 'orange' }] }
+                ]
+            };
+        } else if (lowerPrompt.includes('ビジネス') || lowerPrompt.includes('会社') || lowerPrompt.includes('corp') || lowerPrompt.includes('it') || lowerPrompt.includes('制作')) {
+            updates = {
+                ...getThemeConfig('modern'),
+                siteTitle: 'NEO TECH SOLUTIONS', heroTitle: 'ACCELERATE YOUR DX',
+                heroSubtitle: '最新のテクノロジーと戦略で、ビジネスを次のステージへ。',
+                floatingCta: { ...data.floatingCta, text: '資料請求', bgColor: '#2563eb' },
+                sections: [
+                    { id: 1, type: 'heading', text: 'Solutions', subText: '解決できること', style: 'center', pt: 'pt-24', pb: 'pt-10' },
+                    { id: 2, type: 'columns', columnCount: 3, items: [{ title: '戦略コンサル' }, { title: 'システム開発' }, { title: '運用・保守' }], pt: 'pt-10', pb: 'pt-20' },
+                    { id: 3, type: 'conversion_panel', title: 'まずは無料で相談', buttons: [{ label: 'お問い合わせ', url: '#', color: 'blue' }] }
+                ]
+            };
+        } else {
+            updates = {
+                ...getThemeConfig('minimal'),
+                siteTitle: 'DESIGN ARCHIVE', heroTitle: 'ESSENTIAL BEAUTY', heroSubtitle: '無駄を削ぎ落とした、本質のデザイン。',
+                sections: [{ id: 1, type: 'heading', text: 'About Us', style: 'center', pt: 'pt-24', pb: 'pt-24' }]
+            };
+        }
+
+        setData(prev => ({ ...prev, ...updates }));
     };
 
     const applyTheme = (themeName) => {
         let updates = {};
         if (themeName === 'elegant') {
             updates = {
-                fontFamily: 'serif',
-                textColor: '#4a4a4a',
-                pageBgValue: '#fdfbf7',
-                fontSize: {
-                    heroTitle: 4.2,
-                    heroSubtitle: 0.9,
-                    sectionTitle: 2.0,
-                    body: 0.95,
-                },
+                fontFamily: 'serif', textColor: '#4a4a4a', pageBgValue: '#fdfbf7',
+                fontSize: { heroTitle: 4.2, heroSubtitle: 0.9, sectionTitle: 2.0, body: 0.95 },
                 header: { ...data.header, style: 'overlay', textColor: '#4a4a4a' }
             };
         } else if (themeName === 'modern') {
             updates = {
-                fontFamily: 'sans',
-                textColor: '#1a1a1a',
-                pageBgValue: '#ffffff',
-                fontSize: {
-                    heroTitle: 5.0,
-                    heroSubtitle: 1.0,
-                    sectionTitle: 2.5,
-                    body: 1.0,
-                },
+                fontFamily: 'sans', textColor: '#1a1a1a', pageBgValue: '#ffffff',
+                fontSize: { heroTitle: 5.0, heroSubtitle: 1.0, sectionTitle: 2.5, body: 1.0 },
                 header: { ...data.header, style: 'solid', bgValue: '#ffffff', textColor: '#1a1a1a' }
             };
         } else if (themeName === 'minimal') {
             updates = {
-                fontFamily: 'serif',
-                textColor: '#000000',
-                pageBgValue: '#ffffff',
-                fontSize: {
-                    heroTitle: 3.5,
-                    heroSubtitle: 0.8,
-                    sectionTitle: 1.8,
-                    body: 0.85,
-                },
+                fontFamily: 'serif', textColor: '#000000', pageBgValue: '#ffffff',
+                fontSize: { heroTitle: 3.5, heroSubtitle: 0.8, sectionTitle: 1.8, body: 0.85 },
                 header: { ...data.header, style: 'overlay', textColor: '#000000' }
             };
         }
-        setData({ ...data, ...updates });
+        setData(prev => ({ ...prev, ...updates }));
     };
+
+    const globalApiKey = aiService.getApiKey();
+
+    const TuningChip = ({ label, active, onClick }) => (
+        <button
+            onClick={onClick}
+            className={`text-[10px] px-2 py-1 rounded-md transition-all border ${active ? 'bg-blue-500 text-white border-blue-400' : 'bg-black/20 text-blue-200 border-blue-500/20 hover:bg-blue-500/20'}`}
+        >
+            {label}
+        </button>
+    );
 
     return (
         <div className="space-y-8 animate-fadeIn">
@@ -149,9 +234,51 @@ export const StylePanel = ({ data, setData }) => {
                     <Wand2 size={16} className="text-blue-400 animate-pulse" /> AI Magic (おまかせ生成)
                 </h2>
                 <div className="space-y-4">
-                    <p className="text-[10px] text-blue-200/70 font-medium leading-relaxed">
-                        「表参道の高級美容室」「モードでかっこいいIT企業」など、やりたいことを自由に入力してください。AIが最適な構成を提案します。
-                    </p>
+                    <div className="flex items-center justify-between mb-1">
+                        <p className="text-[10px] text-blue-200/70 font-medium leading-relaxed">
+                            やりたいことを入力してください。AIが最適な構成を提案します。
+                        </p>
+                        {globalApiKey ? (
+                            <span className="text-[9px] bg-green-900/50 text-green-400 px-2 py-0.5 rounded-full flex items-center gap-1">
+                                <Sparkles size={10} /> 本格AIモード
+                            </span>
+                        ) : (
+                            <span className="text-[9px] bg-gray-800 text-gray-500 px-2 py-0.5 rounded-full">
+                                デモモード
+                            </span>
+                        )}
+                    </div>
+
+                    {/* AI Tuning Panel */}
+                    <div className="bg-black/20 p-3 rounded-xl border border-white/5 space-y-3">
+                        <div className="flex items-center gap-2">
+                            <span className="text-[10px] text-gray-400 w-12">トーン:</span>
+                            <div className="flex gap-1 flex-wrap">
+                                {['standard', 'luxury', 'friendly', 'energetic'].map(t => (
+                                    <TuningChip
+                                        key={t}
+                                        label={t === 'standard' ? '標準' : t === 'luxury' ? '高級感' : t === 'friendly' ? '親しみ' : '情熱的'}
+                                        active={tuning.tone === t}
+                                        onClick={() => setTuning(prev => ({ ...prev, tone: t }))}
+                                    />
+                                ))}
+                            </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <span className="text-[10px] text-gray-400 w-12">重視:</span>
+                            <div className="flex gap-1 flex-wrap">
+                                {['benefit', 'proof', 'sales'].map(f => (
+                                    <TuningChip
+                                        key={f}
+                                        label={f === 'benefit' ? 'ベネフィット' : f === 'proof' ? '信頼・実績' : 'セールス'}
+                                        active={tuning.focus === f}
+                                        onClick={() => setTuning(prev => ({ ...prev, focus: f }))}
+                                    />
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+
                     <TextArea
                         value={prompt}
                         onChange={(val) => setPrompt(val)}
@@ -159,74 +286,51 @@ export const StylePanel = ({ data, setData }) => {
                         rows={3}
                         className="bg-black/40 border-blue-500/20 text-xs focus:border-blue-500/50 transition-all placeholder:text-gray-600"
                     />
-                    <Button
-                        onClick={handleAiMagic}
-                        disabled={isGenerating || !prompt}
-                        className="w-full bg-blue-600 hover:bg-blue-500 text-white font-black py-4 shadow-xl shadow-blue-900/20 transform transition-all active:scale-95 disabled:opacity-50"
-                    >
-                        {isGenerating ? (
-                            <div className="flex items-center gap-2">
-                                <Loader2 size={16} className="animate-spin text-blue-400" />
-                                <span className="animate-pulse">{statusMsg}</span>
-                            </div>
-                        ) : (
-                            <div className="flex items-center gap-2">
-                                <Sparkles size={16} />
-                                <span>AIで最適化する</span>
-                            </div>
-                        )}
-                    </Button>
+                    <div className="grid grid-cols-1 gap-2">
+                        <Button
+                            onClick={handleStructureContent}
+                            disabled={isGenerating || !prompt}
+                            className="w-full bg-blue-600 hover:bg-blue-500 text-white font-black py-4 shadow-xl shadow-blue-900/20"
+                        >
+                            {isGenerating ? (
+                                <div className="flex items-center gap-2">
+                                    <Loader2 size={16} className="animate-spin text-blue-400" />
+                                    <span className="animate-pulse">{statusMsg}</span>
+                                </div>
+                            ) : (
+                                <div className="flex items-center gap-2">
+                                    <Sparkles size={16} />
+                                    <span>1. 構成・文章を生成</span>
+                                </div>
+                            )}
+                        </Button>
+                        <div className="grid grid-cols-2 gap-2">
+                            <Button
+                                onClick={() => handleVisuals('library')}
+                                disabled={isGenerating || !data.sections}
+                                className="bg-gray-700 hover:bg-gray-600 text-white py-3 text-xs"
+                            >
+                                2. 画像 (ライブラリ)
+                            </Button>
+                            <Button
+                                onClick={() => handleVisuals('ai')}
+                                disabled={isGenerating || !data.sections}
+                                className="bg-gray-700 hover:bg-gray-600 text-white py-3 text-xs"
+                            >
+                                3. 画像 (AI生成)
+                            </Button>
+                        </div>
+                    </div>
+                    {!globalApiKey && (
+                        <p className="text-[9px] text-gray-500 text-center">
+                            ※設定タブでAPIキーを入れると、より精微な生成が可能です
+                        </p>
+                    )}
                 </div>
             </section>
 
-            <section>
-                <h2 className="text-sm font-bold text-white mb-4 flex items-center gap-2">
-                    <Sparkles size={16} className="text-yellow-400" /> 手動でプリセット選択
-                </h2>
-                <div className="grid grid-cols-1 gap-3">
-                    <button
-                        onClick={() => applyTheme('elegant')}
-                        className="flex items-center justify-between p-4 rounded-xl bg-gradient-to-r from-orange-50 to-orange-100 border border-orange-200 hover:border-orange-400 transition-all group"
-                    >
-                        <div className="text-left">
-                            <span className="block text-xs font-black text-orange-900 tracking-widest uppercase">Elegant Beauty</span>
-                            <span className="text-[10px] text-orange-700 font-medium">東京の美容室・サロン風スタイル</span>
-                        </div>
-                        <div className="flex gap-1">
-                            <div className="w-3 h-3 rounded-full bg-[#fdfbf7] border border-orange-200"></div>
-                            <div className="w-3 h-3 rounded-full bg-[#4a4a4a]"></div>
-                        </div>
-                    </button>
 
-                    <button
-                        onClick={() => applyTheme('modern')}
-                        className="flex items-center justify-between p-4 rounded-xl bg-gray-900 border border-gray-700 hover:border-blue-500 transition-all group"
-                    >
-                        <div className="text-left">
-                            <span className="block text-xs font-black text-white tracking-widest uppercase">Modern Business</span>
-                            <span className="text-[10px] text-gray-400 font-medium">信頼感のあるモダンなビジネススタイル</span>
-                        </div>
-                        <div className="flex gap-1">
-                            <div className="w-3 h-3 rounded-full bg-white"></div>
-                            <div className="w-3 h-3 rounded-full bg-blue-600"></div>
-                        </div>
-                    </button>
 
-                    <button
-                        onClick={() => applyTheme('minimal')}
-                        className="flex items-center justify-between p-4 rounded-xl bg-white border border-gray-200 hover:border-black transition-all group"
-                    >
-                        <div className="text-left">
-                            <span className="block text-xs font-black text-black tracking-widest uppercase">Minimal Luxury</span>
-                            <span className="text-[10px] text-gray-400 font-medium">洗練された余白を活かすスタイル</span>
-                        </div>
-                        <div className="flex gap-1">
-                            <div className="w-3 h-3 rounded-full bg-white border border-gray-200"></div>
-                            <div className="w-3 h-3 rounded-full bg-black"></div>
-                        </div>
-                    </button>
-                </div>
-            </section>
             <section>
                 <h2 className="text-sm font-bold text-white mb-4 flex items-center gap-2">
                     <Palette size={16} className="text-blue-400" /> 基本スタイル
@@ -239,6 +343,15 @@ export const StylePanel = ({ data, setData }) => {
                         <button onClick={() => setData({ ...data, fontFamily: 'serif' })} className={`py-2 rounded text-sm transition-all font-serif ${data.fontFamily === 'serif' ? 'bg-gray-700 text-white shadow' : 'text-gray-500 hover:text-white'}`}>明朝体</button>
                         <button onClick={() => setData({ ...data, fontFamily: 'sans' })} className={`py-2 rounded text-sm transition-all font-sans ${data.fontFamily === 'sans' ? 'bg-gray-700 text-white shadow' : 'text-gray-500 hover:text-white'}`}>ゴシック</button>
                     </div>
+                </InputGroup>
+                <InputGroup label={`全体余白 (${data.globalPadding || 0}px)`}>
+                    <Slider
+                        value={data.globalPadding || 0}
+                        onChange={(val) => setData({ ...data, globalPadding: val })}
+                        min={0}
+                        max={128}
+                        step={4}
+                    />
                 </InputGroup>
             </section>
 

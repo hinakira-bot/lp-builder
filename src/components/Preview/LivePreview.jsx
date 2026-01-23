@@ -97,11 +97,13 @@ export const LivePreview = ({ data, viewMode, activeSectionId, isPublished = fal
                     <HeroSection data={data} viewMode={viewMode} />
 
                     <div className="relative z-10 flex-1 flex flex-col w-full pb-0">
-                        <SectionDispatcher sections={sectionsToRender} viewMode={viewMode} fontSize={currentFontSize} />
+                        <SectionDispatcher sections={sectionsToRender} viewMode={viewMode} fontSize={currentFontSize} accentColor={data.accentColor} globalPadding={data.globalPadding} />
                     </div>
 
                     <footer className="py-8 text-center border-t border-current/10 opacity-60 mt-auto">
-                        <p className="text-[10px] uppercase tracking-widest">&copy; {new Date().getFullYear()} {data.siteTitle}. All Rights Reserved.</p>
+                        <p className="text-[10px] uppercase tracking-widest">
+                            {data.footerText || `© ${new Date().getFullYear()} ${data.siteTitle}. All Rights Reserved.`}
+                        </p>
                     </footer>
                 </div>
             </div>

@@ -155,43 +155,187 @@ const generateHTML = (data) => {
         else if (section.type === 'button') {
             const alignClass = section.align === 'center' ? 'text-center' : (section.align === 'right' ? 'text-right' : 'text-left');
             const color = section.color || '#1f2937';
-
-            const btnStyle = section.style === 'fill'
-                ? `background-color: ${color}; color: #ffffff; border-color: transparent;`
-                : `background-color: transparent; color: ${color}; border-color: ${color};`;
-
-            const btnClasses = section.style === 'fill' ? 'hover:brightness-110' : 'hover:bg-gray-500/10';
-
-            // Sizes
+            const btnStyle = section.style === 'fill' ? `background-color: ${color}; color: #ffffff;` : `background-color: transparent; color: ${color}; border-color: ${color};`;
             const size = section.size || 'M';
-            const sizeClass =
-                size === 'S' ? 'px-6 py-2 text-sm' :
-                    size === 'M' ? 'px-10 py-4 text-base' :
-                        size === 'L' ? 'px-14 py-5 text-xl' :
-                            'px-20 py-6 text-2xl font-bold';
+            const sizeClass = size === 'S' ? 'px-6 py-2 text-sm' : size === 'M' ? 'px-10 py-4 text-base' : 'px-14 py-5 text-xl';
+            const widthStyle = section.width && section.width > 0 ? `width: ${section.width}%; display: inline-flex; justify-content: center;` : '';
 
-            // Effects
-            const effect = section.effect || 'none';
-            let effectClass = "";
-            let innerEffect = "";
-
-            if (effect === 'float') effectClass += " animate-bounce-slow shadow-lg hover:shadow-xl hover:-translate-y-1";
-            if (effect === '3d') effectClass += " shadow-[0_5px_0_rgba(0,0,0,0.2),0_15px_20px_-5px_rgba(0,0,0,0.15)] active:shadow-none active:translate-y-[5px]";
-            if (effect === 'sparkle') {
-                effectClass += " relative overflow-hidden group";
-                innerEffect = `<div class="absolute top-0 left-0 w-full h-full animate-shimmer pointer-events-none"><div class="w-1/2 h-full bg-gradient-to-r from-transparent via-white/40 to-transparent transform -skew-x-12"></div></div>`;
-            }
-
-            const widthStyle = section.width && section.width > 0 ? `width: ${section.width}%; max-width: 100%; justify-content: center; display: inline-flex;` : '';
-            const finalBtnStyle = `${btnStyle} ${widthStyle}`;
-
-            contentHtml = `
-            <div class="max-w-4xl mx-auto ${alignClass}">
-               <a href="${section.url}" target="_blank" style="${finalBtnStyle}" class="inline-block border rounded-full transition-all duration-100 ${btnClasses} ${sizeClass} ${effectClass}">
-                 <span class="relative z-10 tracking-widest font-medium">${section.label}</span>
-                 ${innerEffect}
-               </a>
+            contentHtml = `<div class="max-w-4xl mx-auto ${alignClass}">
+                <a href="${section.url}" target="_blank" style="${btnStyle} ${widthStyle}" class="inline-block border rounded-full transition-all ${sizeClass} font-medium tracking-widest">${section.label}</a>
             </div>`;
+        }
+        else if (section.type === 'pricing') {
+            const plans = section.plans || [];
+            const design = section.design || 'standard';
+
+            const plansHtml = plans.map(plan => {
+                const isFeatured = plan.isFeatured;
+                const accentColor = plan.color || '#3b82f6';
+                const priceSize = plan.priceSize || 2.5;
+
+                let cardClass = "relative flex flex-col p-8 transition-all duration-500 ";
+                let cardStyle = "";
+
+                if (design === 'standard') {
+                    cardClass += "rounded-[2rem] bg-white border border-gray-100 shadow-sm ";
+                    if (isFeatured) cardClass += "ring-2 ring-opacity-25 shadow-2xl scale-105 z-10";
+                } else if (design === 'minimal') {
+                    cardClass += "rounded-xl border border-gray-200 bg-white ";
+                    if (isFeatured) cardClass += "ring-1 ring-gray-900 border-gray-900";
+                } else if (design === 'dark') {
+                    cardClass += "rounded-2xl bg-gray-900 text-white border border-gray-800 ";
+                    if (isFeatured) cardClass += "ring-2 ring-blue-500 shadow-xl scale-105 z-10";
+                }
+
+                const featuresHtml = (plan.features || []).map(f => `
+                    <li class="flex items-start gap-3">
+                        <div class="mt-0.5" style="color: ${accentColor};">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                        </div>
+                        <span class="text-sm font-medium leading-snug">${f}</span>
+                    </li>`).join('');
+
+                return `
+                <div class="${cardClass}" style="${isFeatured && design === 'standard' ? `border-color: ${accentColor}; ring-color: ${accentColor}40;` : ''}">
+                    ${isFeatured ? `<div class="absolute left-1/2 -translate-x-1/2 -top-4 text-white px-6 py-1.5 rounded-full text-[10px] font-black tracking-widest uppercase whitespace-nowrap z-20" style="background-color: ${accentColor}">${plan.badgeText || 'RECOMMENDED'}</div>` : ''}
+                    <div class="mb-8">
+                        <h4 class="text-[11px] font-black uppercase tracking-[0.2em] mb-4 text-gray-400">${plan.name}</h4>
+                        <div class="flex items-baseline">
+                            <span class="font-black tracking-tighter" style="font-size: ${priceSize}rem;">${plan.price}</span>
+                            <span class="text-sm text-gray-400 ml-1 font-bold">${plan.period}</span>
+                        </div>
+                    </div>
+                    <ul class="flex-1 space-y-4 mb-8">${featuresHtml}</ul>
+                    <a href="${plan.buttonUrl || '#'}" class="w-full py-4 rounded-xl font-bold text-xs tracking-widest text-center shadow-lg transition-transform hover:scale-105" style="background-color: ${isFeatured ? accentColor : '#f3f4f6'}; color: ${isFeatured ? '#fff' : '#374151'};">
+                        ${plan.buttonText || 'SELECT'}
+                    </a>
+                </div>`;
+            }).join('');
+
+            contentHtml = `<div class="grid gap-8 ${plans.length === 2 ? 'md:grid-cols-2 max-w-4xl' : 'md:grid-cols-3'} max-w-7xl mx-auto">${plansHtml}</div>`;
+        }
+        else if (section.type === 'process') {
+            const steps = section.steps || [];
+            const accentColor = section.accentColor || '#3b82f6';
+            const stepsHtml = steps.map((step, i) => `
+                <div class="flex gap-4 md:gap-6 items-start group">
+                    <div class="flex flex-col items-center pt-2">
+                        <div class="w-10 h-10 md:w-12 md:h-12 rounded-full text-white flex items-center justify-center font-bold text-lg md:text-xl shadow-lg z-10" style="background-color: ${accentColor}">${i + 1}</div>
+                        ${i !== (steps.length - 1) ? `<div class="w-0.5 h-full bg-gray-200 min-h-[40px] my-2"></div>` : ''}
+                    </div>
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex-1 relative">
+                        <div class="absolute top-6 -left-2 w-4 h-4 bg-white transform rotate-45 border-l border-b border-gray-100"></div>
+                        <h4 class="font-bold text-lg mb-2 text-gray-800">${step.title}</h4>
+                        <p class="text-gray-600 text-sm leading-relaxed">${step.desc || step.content}</p>
+                    </div>
+                </div>`).join('');
+            contentHtml = `<div class="max-w-3xl mx-auto space-y-6">${stepsHtml}</div>`;
+        }
+        else if (section.type === 'staff') {
+            const members = section.members || [];
+            const membersHtml = members.map(m => `
+                <div class="flex flex-col items-center text-center">
+                    <div class="w-24 h-24 md:w-32 md:h-32 rounded-full overflow-hidden mb-4 shadow-lg border-4 border-white">
+                        <img src="${m.image}" class="w-full h-full object-cover" />
+                    </div>
+                    <h4 class="font-bold text-gray-800 text-sm md:text-base">${m.name}</h4>
+                    <p class="text-blue-500 text-[10px] md:text-xs font-bold uppercase tracking-wider mb-2">${m.role}</p>
+                    <p class="text-gray-500 text-[10px] md:text-xs leading-relaxed">${m.desc || ''}</p>
+                </div>`).join('');
+            contentHtml = `<div class="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-5xl mx-auto">${membersHtml}</div>`;
+        }
+        else if (section.type === 'faq') {
+            const design = section.design || 'simple';
+            const items = section.items || [];
+            if (design === 'bubble') {
+                contentHtml = `<div class="max-w-3xl mx-auto space-y-8">${items.map(item => `
+                    <div class="space-y-4">
+                        <div class="flex justify-start items-start gap-4 flex-row-reverse">
+                            <div class="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center text-[10px] text-gray-500 font-bold">Q</div>
+                            <div class="bg-blue-100 p-4 rounded-2xl rounded-tr-sm text-gray-800 max-w-[80%]">${item.q}</div>
+                        </div>
+                        <div class="flex justify-start items-start gap-4">
+                            <div class="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center text-[10px] text-red-500 font-bold">A</div>
+                            <div class="bg-white border border-gray-100 p-4 rounded-2xl rounded-tl-sm text-gray-800 max-w-[80%]">${item.a}</div>
+                        </div>
+                    </div>`).join('')}</div>`;
+            } else {
+                contentHtml = `<div class="max-w-3xl mx-auto space-y-4">${items.map(item => `
+                    <details class="group bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                        <summary class="flex items-center justify-between p-6 cursor-pointer list-none bg-gray-50/50">
+                            <h4 class="font-bold text-gray-800 flex items-center gap-3"><span class="text-blue-500 font-black">Q.</span>${item.q}</h4>
+                            <span class="text-gray-400 group-open:rotate-180 transition-transform">▼</span>
+                        </summary>
+                        <div class="p-6 pt-0 text-sm text-gray-600 border-t border-gray-100/50">
+                            <span class="font-bold text-red-400 mr-2">A.</span>${item.a}
+                        </div>
+                    </details>`).join('')}</div>`;
+            }
+        }
+        else if (section.type === 'comparison') {
+            const headers = section.headers || [];
+            const rows = section.rows || [];
+            const headersHtml = headers.map((h, i) => `<th class="p-4 text-center ${i === 1 ? 'bg-blue-600 text-white' : ''}">${h}</th>`).join('');
+            const rowsHtml = rows.map(row => `
+                <tr class="border-b border-gray-100">
+                    ${row.map((cell, i) => {
+                let content = cell;
+                if (cell === '◎') content = '<span class="text-red-500 font-black text-lg">◎</span>';
+                if (cell === '◯') content = '<span class="text-red-500 font-bold text-lg">◯</span>';
+                if (cell === '△') content = '<span class="text-yellow-500 font-bold text-lg">△</span>';
+                if (cell === '×') content = '<span class="text-blue-300 font-bold text-lg">×</span>';
+                return `<td class="p-4 text-center ${i === 1 ? 'bg-blue-50/20' : ''}">${content}</td>`;
+            }).join('')}
+                </tr>`).join('');
+            contentHtml = `<div class="max-w-4xl mx-auto overflow-x-auto"><table class="w-full bg-white rounded-xl overflow-hidden shadow-lg"><thead><tr class="bg-gray-800 text-white">${headersHtml}</tr></thead><tbody>${rowsHtml}</tbody></table></div>`;
+        }
+        else if (section.type === 'access') {
+            const mapUrl = `https://maps.google.com/maps?q=${encodeURIComponent(section.address || '')}&t=&z=15&ie=UTF8&iwloc=&output=embed`;
+            contentHtml = `
+            <div class="max-w-5xl mx-auto flex flex-col md:flex-row gap-8">
+                <div class="w-full md:w-1/2 min-h-[300px] bg-gray-200 rounded-2xl overflow-hidden shadow-lg relative">
+                    <iframe width="100%" height="100%" frameborder="0" src="${mapUrl}" class="absolute inset-0"></iframe>
+                </div>
+                <div class="w-full md:w-1/2 space-y-6 flex flex-col justify-center">
+                    <h3 class="text-2xl font-bold border-l-4 border-blue-600 pl-4">${section.title || "ACCESS"}</h3>
+                    <div class="space-y-4 text-sm text-gray-600">
+                        <p><span class="font-bold mr-4">住所</span>${section.address || ""}</p>
+                        ${section.access ? `<p><span class="font-bold mr-4">アクセス</span>${section.access}</p>` : ''}
+                        ${section.hours ? `<p><span class="font-bold mr-4">営業時間</span>${section.hours}</p>` : ''}
+                        ${section.tel ? `<p><span class="font-bold mr-4">電話番号</span>${section.tel}</p>` : ''}
+                    </div>
+                </div>
+            </div>`;
+        }
+        else if (section.type === 'review') {
+            const items = section.items || [];
+            const design = section.design || 'card';
+            const reviewsHtml = items.map(item => {
+                const starsHtml = Array(5).fill(0).map((_, i) => `
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="${i < item.stars ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2" class="${i < item.stars ? 'text-yellow-400' : 'text-gray-300'}"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                `).join('');
+
+                let blockClass = "p-6 rounded-2xl transition-all ";
+                if (design === 'card') blockClass += "bg-white shadow-sm border border-gray-100";
+                else if (design === 'minimal') blockClass += "border-l-2 border-blue-500 pl-6";
+                else if (design === 'bubble') blockClass += "bg-blue-50";
+
+                return `
+                <div class="flex flex-col h-full ${blockClass}">
+                    <div class="mb-3 flex gap-0.5">${starsHtml}</div>
+                    <p class="text-gray-700 text-sm leading-relaxed flex-1">「${item.content}」</p>
+                    <div class="flex items-center gap-4 mt-6">
+                        <div class="w-12 h-12 rounded-full overflow-hidden bg-gray-200 border-2 border-white shadow-sm">
+                            <img src="${item.image}" class="w-full h-full object-cover" />
+                        </div>
+                        <div>
+                            <h4 class="font-bold text-gray-900 text-sm">${item.name}</h4>
+                            <p class="text-gray-500 text-[10px] uppercase tracking-wider">${item.role}</p>
+                        </div>
+                    </div>
+                </div>`;
+            }).join('');
+            contentHtml = `<div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3 max-w-6xl mx-auto">${reviewsHtml}</div>`;
         }
         else if (section.type === 'accordion') {
             const design = section.design || 'simple';

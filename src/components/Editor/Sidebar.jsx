@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Layout, X, ImageIcon, Type, Palette, Settings as SettingsIcon, Download, FileCode, LayoutTemplate } from 'lucide-react';
+import { Layout, X, ImageIcon, Type, Palette, Settings as SettingsIcon, Download, FileCode, LayoutTemplate, FolderOpen } from 'lucide-react';
 import { Button } from '../UI/Button';
 import { clsx } from 'clsx';
 import { VisualPanel } from './VisualPanel';
@@ -11,6 +11,29 @@ import { exportConfig, exportHTML } from '../../utils/Exporter';
 
 export const Sidebar = ({ isOpen, setIsOpen, data, setData, setActiveSectionId }) => {
     const [activeTab, setActiveTab] = useState('visual');
+
+    const handleImportConfig = (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            try {
+                const importedData = JSON.parse(event.target.result);
+                // Simple validation: check if it has sections
+                if (importedData && importedData.sections) {
+                    setData(importedData);
+                    alert('設定ファイルを読み込みました。');
+                } else {
+                    alert('無効な設定ファイルです。');
+                }
+            } catch (err) {
+                console.error("Import failed", err);
+                alert('ファイルの読み込みに失敗しました。');
+            }
+        };
+        reader.readAsText(file);
+    };
 
     return (
         <div className={clsx(
@@ -73,20 +96,42 @@ export const Sidebar = ({ isOpen, setIsOpen, data, setData, setActiveSectionId }
 
             {/* Footer Actions */}
             <div className="p-4 border-t border-gray-800 bg-[#111] space-y-3">
+                <div className="grid grid-cols-2 gap-2">
+                    <Button
+                        onClick={() => exportConfig(data)}
+                        variant="outline"
+                        className="w-full border-gray-700 text-gray-300 hover:text-white"
+                        icon={Download}
+                    >
+                        保存
+                    </Button>
+                    <label className="cursor-pointer">
+                        <input
+                            type="file"
+                            className="hidden"
+                            accept=".json"
+                            onChange={handleImportConfig}
+                        />
+                        <div className="flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all border border-gray-700 bg-gray-800 text-gray-300 hover:text-white hover:bg-gray-700 w-full h-full">
+                            <FolderOpen size={14} />
+                            読込
+                        </div>
+                    </label>
+                </div>
+
                 <Button
-                    onClick={() => exportConfig(data)}
+                    onClick={() => exportHTML(data)}
                     variant="primary"
                     className="w-full bg-blue-600 hover:bg-blue-500 text-white"
-                    icon={Download}
+                    icon={FileCode}
                 >
-                    設定データ保存 (config.json)
+                    Webサイト公開用ファイル (index.html) DL
                 </Button>
                 <div className="text-center">
                     <p className="text-[10px] text-gray-500 leading-relaxed">
-                        ※ 本番公開手順:<br />
-                        1. <code>npm run build:lp</code> でビルド<br />
-                        2. <code>dist_lp</code>の中身をUP<br />
-                        3. このconfig.jsonを同じ場所にUP
+                        ※ 公開用ファイルの使い道:<br />
+                        DLした<code>index.html</code>をサーバーにUPするだけで公開完了です。<br />
+                        (config.jsonは後で再編集する時に必要になります)
                     </p>
                 </div>
             </div>

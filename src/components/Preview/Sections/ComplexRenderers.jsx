@@ -82,11 +82,27 @@ export const SocialEmbedPreview = ({ platform, url }) => {
     return <div ref={containerRef} className="w-full flex justify-center min-h-[150px] bg-white/5 rounded-lg"></div>;
 };
 
-export const SocialRenderer = ({ section }) => (
-    <div className="max-w-xl mx-auto">
-        <SocialEmbedPreview platform={section.platform} url={section.url} />
-    </div>
-);
+export const SocialRenderer = ({ section, viewMode }) => {
+    const isMobile = viewMode === 'mobile';
+    const colCount = section.columnCount || 1;
+    const gridClass = isMobile ? 'grid-cols-1' : (colCount === 3 ? 'md:grid-cols-3' : (colCount === 2 ? 'md:grid-cols-2' : 'grid-cols-1'));
+    const gapStyle = { gap: `${section.gap !== undefined ? section.gap : 32}px` };
+
+    // Backward compatibility: If no items but has single platform/url
+    const items = section.items || (section.url ? [{ id: 'default', platform: section.platform || 'twitter', url: section.url }] : []);
+
+    return (
+        <div className="max-w-6xl mx-auto px-6">
+            <div className={`grid grid-cols-1 ${gridClass}`} style={gapStyle}>
+                {items.map(item => (
+                    <div key={item.id} className="flex justify-center overflow-hidden w-full">
+                        <SocialEmbedPreview platform={item.platform} url={item.url} />
+                    </div>
+                ))}
+            </div>
+        </div>
+    );
+};
 
 export const AccordionRenderer = ({ section }) => {
     const design = section.design || 'simple';
@@ -134,54 +150,63 @@ export const AccordionRenderer = ({ section }) => {
     );
 };
 
-export const PostCardRenderer = ({ section }) => (
-    <div className="max-w-3xl mx-auto">
-        <a href={section.url} target="_blank" rel="noopener noreferrer" className="flex flex-col md:flex-row gap-6 p-6 bg-white/5 backdrop-blur-sm border border-current/10 rounded-xl hover:shadow-lg transition-all duration-300 group">
-            <div className="w-full md:w-48 aspect-video md:aspect-square flex-shrink-0 overflow-hidden rounded-md">
-                <img src={section.image} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" alt="Post" />
-            </div>
-            <div className="flex-1 flex flex-col justify-center">
-                <p className="text-xs opacity-50 mb-2 font-mono">{section.date}</p>
-                <h4 className="text-lg font-medium mb-3 leading-snug group-hover:underline underline-offset-4">{section.title}</h4>
-                <p className="text-sm opacity-70 leading-relaxed line-clamp-2">{section.excerpt}</p>
-            </div>
-        </a>
-    </div>
-);
-
-// Full Width Renderer - spans full width of parent (which is usually constrained by SectionWrapper, but we'll handle that)
-export const FullWidthRenderer = ({ section, children }) => {
+export const PostCardRenderer = ({ section, viewMode }) => {
+    const isMobile = viewMode === 'mobile';
     return (
-        <div className="w-full">
-            {children ? (
-                <div className="space-y-8">
-                    {children}
+        <div className="max-w-3xl mx-auto">
+            <a href={section.url} target="_blank" rel="noopener noreferrer" className={clsx("flex gap-6 p-6 bg-white/5 backdrop-blur-sm border border-current/10 rounded-xl hover:shadow-lg transition-all duration-300 group", isMobile ? "flex-col" : "flex-col md:flex-row")}>
+                <div className={clsx("w-full aspect-video flex-shrink-0 overflow-hidden rounded-md", isMobile ? "" : "md:w-48 md:aspect-square")}>
+                    <img src={section.image} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" alt="Post" />
                 </div>
-            ) : (
-                <div className="text-center p-10 border-2 border-dashed border-gray-600 rounded-lg opacity-50">
-                    Full Width Content Area
+                <div className="flex-1 flex flex-col justify-center">
+                    <p className="text-xs opacity-50 mb-2 font-mono">{section.date}</p>
+                    <h4 className="text-lg font-medium mb-3 leading-snug group-hover:underline underline-offset-4">{section.title}</h4>
+                    <p className="text-sm opacity-70 leading-relaxed line-clamp-2">{section.excerpt}</p>
                 </div>
-            )}
+            </a>
         </div>
     );
 };
 
+
 export const BoxRenderer = ({ section, children }) => {
-    const design = section.design || 'simple'; // simple, sticky, ribbon, shadow
+    const design = section.design || 'simple'; // simple, sticky, ribbon, gradient, glass, comic, dashed, solid
 
     // Base Styles
-    let containerClass = "text-center relative transition-all duration-300";
+    let containerClass = "text-center relative transition-all duration-300 ";
     let titleClass = "font-bold text-lg mb-4";
     let contentClass = "leading-loose whitespace-pre-wrap font-light";
 
-    // Design Variants (applied to the inner content rendering if needed, 
-    // but mostly SectionWrapper handles the outer box. 
-    // However, if we want specific styling *inside* or overriding wrapper...)
-    // Actually, 'boxStyle' in SectionWrapper does most of the heavy lifting.
-    // 'design' here adds specific flair like "Tape" or "Ribbon".
+    const boxColor = section.boxColor || '#3b82f6';
+    const boxStyle = {
+        borderColor: boxColor,
+        boxShadow: design === 'neon' ? `0 0 20px ${boxColor}, inset 0 0 10px ${boxColor}` : (design === 'comic' ? `8px 8px 0px 0px ${boxColor}` : undefined),
+        borderStyle: design === 'dashed' ? 'dashed' : (design === 'double' ? 'double' : 'solid'),
+        paddingTop: section.pTop !== undefined ? `${section.pTop}px` : undefined,
+        paddingBottom: section.pBottom !== undefined ? `${section.pBottom}px` : undefined,
+        paddingLeft: section.pLeft !== undefined ? `${section.pLeft}px` : undefined,
+        paddingRight: section.pRight !== undefined ? `${section.pRight}px` : undefined,
+    };
+
+    // Design specific container classes
+    if (design === 'gradient') {
+        containerClass += "p-8 rounded-2xl bg-gradient-to-br from-blue-500/10 via-purple-500/10 to-pink-500/10 border border-white/50";
+    } else if (design === 'glass') {
+        containerClass += "p-8 rounded-2xl backdrop-blur-md bg-white/40 border shadow-lg";
+    } else if (design === 'comic') {
+        containerClass += "p-8 bg-white border-4 border-black text-gray-900";
+    } else if (design === 'dashed') {
+        containerClass += "p-8 bg-white border-4 rounded-xl";
+    } else if (design === 'solid') {
+        containerClass += "p-8 bg-white border-4 rounded-lg";
+    } else if (design === 'double') {
+        containerClass += "p-8 bg-white border-4 border-double rounded-xl";
+    } else if (design === 'neon') {
+        containerClass += "p-8 bg-black/90 text-white border-2 rounded-xl";
+    }
 
     return (
-        <div className={containerClass}>
+        <div className={containerClass} style={boxStyle}>
             {/* Sticky Tape Decor */}
             {design === 'sticky' && (
                 <div className="absolute -top-6 left-1/2 transform -translate-x-1/2 w-32 h-8 bg-yellow-200/80 rotate-[-2deg] shadow-sm backdrop-blur-sm z-20"></div>
@@ -211,8 +236,9 @@ export const BoxRenderer = ({ section, children }) => {
     );
 };
 
-export const ColumnsRenderer = ({ section }) => {
-    const gridClass = section.columnCount === 4 ? 'md:grid-cols-4' : (section.columnCount === 3 ? 'md:grid-cols-3' : (section.columnCount === 2 ? 'md:grid-cols-2' : 'grid-cols-1'));
+export const ColumnsRenderer = ({ section, viewMode }) => {
+    const isMobile = viewMode === 'mobile';
+    const gridClass = isMobile ? 'grid-cols-1' : (section.columnCount === 4 ? 'md:grid-cols-4' : (section.columnCount === 3 ? 'md:grid-cols-3' : (section.columnCount === 2 ? 'md:grid-cols-2' : 'grid-cols-1')));
     // Use user-defined gap or default to 32px (2rem) which corresponds to gap-8
     const gapStyle = { gap: `${section.gap !== undefined ? section.gap : 32}px` };
 
@@ -276,3 +302,4 @@ export const LinksRenderer = ({ section }) => {
         </div>
     );
 };
+

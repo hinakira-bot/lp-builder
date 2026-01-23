@@ -31,43 +31,70 @@ const Dividers = ({ type, color, position }) => {
     );
 };
 
-export const SectionWrapper = ({ section, children, fontSize }) => {
+export const SectionWrapper = ({ section, children, fontSize, globalPadding = 24 }) => {
     // Generate styles
+    const bgImage = section.style?.bgImage || (section.bgType === 'image' ? `url('${section.bgValue}')` : 'none');
+    const bgColor = section.style?.bgColor || (section.bgType === 'color' ? section.bgValue : 'transparent');
+    const bgOverlay = section.style?.bgOverlay !== undefined ? section.style.bgOverlay : (section.bgOverlay || 0);
+
     const style = {
         animationDelay: '0.2s',
-        backgroundColor: section.bgType === 'color' ? section.bgValue : 'transparent',
-        backgroundImage: section.bgType === 'image' ? `url('${section.bgValue}')` : 'none',
+        backgroundColor: bgColor,
+        backgroundImage: bgImage,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         position: 'relative'
     };
 
     // Box Styles
-    const innerMaxWidth = (section.boxStyle && section.boxStyle !== 'none') || section.type === 'full_width' ? 'w-full' : 'w-full max-w-5xl mx-auto px-6';
-    const boxClasses = section.boxStyle === 'shadow' ? 'bg-white shadow-xl text-gray-800'
-        : section.boxStyle === 'border' ? 'border border-current/20'
-            : section.boxStyle === 'fill' ? 'bg-gray-100/50'
-                : section.boxStyle === 'stitch' ? 'border-2 border-dashed border-current/30' : '';
+    const hasGlobalPadding = globalPadding > 0;
+    const paddingXStyle = { paddingLeft: `${globalPadding}px`, paddingRight: `${globalPadding}px` };
+
+    // Width logic: if padding is 0, it's full width (max-w-none). Otherwise standard max-w-5xl.
+    const containerWidthClass = hasGlobalPadding ? "max-w-5xl mx-auto" : "max-w-none";
+    const innerMaxWidth = (section.boxStyle && section.boxStyle !== 'none') || section.type === 'full_width' ? 'w-full' : `w-full ${containerWidthClass}`;
+
+    const boxColor = section.boxColor || '#3b82f6';
+    const boxClasses = clsx(
+        section.boxStyle === 'shadow' && 'bg-white shadow-xl text-gray-800',
+        section.boxStyle === 'border' && 'border',
+        section.boxStyle === 'fill' && 'bg-gray-100/50',
+        section.boxStyle === 'stitch' && 'border-2 border-dashed',
+        section.boxStyle === 'double' && 'border-4 border-double',
+        section.boxStyle === 'comic' && 'border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] bg-white text-gray-900',
+        section.boxStyle === 'neon' && 'border-2 bg-black/80 text-white',
+        section.boxStyle === 'glass' && 'backdrop-blur-md bg-white/40 border'
+    );
+
+    const boxStyle = {
+        borderColor: (section.boxStyle === 'border' || section.boxStyle === 'stitch' || section.boxStyle === 'double' || section.boxStyle === 'neon' || section.boxStyle === 'glass') ? boxColor : undefined,
+        boxShadow: section.boxStyle === 'neon' ? `0 0 20px ${boxColor}, inset 0 0 10px ${boxColor}` : (section.boxStyle === 'comic' ? `8px 8px 0px 0px ${boxColor}` : undefined),
+        borderStyle: section.boxStyle === 'stitch' ? 'dashed' : (section.boxStyle === 'double' ? 'double' : undefined)
+    };
+
     const boxPadding = section.boxStyle && section.boxStyle !== 'none' ? 'p-8 md:p-12 rounded-xl' : '';
     const isBoxed = section.boxStyle && section.boxStyle !== 'none';
 
     return (
         <div id={`section-${section.id}`} className={clsx("relative opacity-0 animate-fadeInUp", section.pt || 'pt-16', section.pb || 'pb-16')} style={style}>
-            {section.bgType === 'image' && <div className="absolute inset-0 bg-black z-0 pointer-events-none" style={{ opacity: section.bgOverlay || 0 }}></div>}
+            {/* Overlay */}
+            {(bgImage !== 'none' || bgOverlay > 0) && (
+                <div className="absolute inset-0 bg-black z-0 pointer-events-none" style={{ opacity: bgOverlay }}></div>
+            )}
 
             <Dividers type={section.dividerTop} color={section.dividerTopColor} position="top" />
 
             {isBoxed ? (
                 <div className="w-full max-w-5xl mx-auto px-6 relative z-10">
-                    <div className={`${boxClasses} ${boxPadding}`}>
-                        <div className={innerMaxWidth}>
+                    <div className={`${boxClasses} ${boxPadding}`} style={boxStyle}>
+                        <div className={innerMaxWidth} style={paddingXStyle}>
                             {children}
                         </div>
                     </div>
                 </div>
             ) : (
                 <div className="relative z-10">
-                    <div className={innerMaxWidth}>
+                    <div className={innerMaxWidth} style={paddingXStyle}>
                         {children}
                     </div>
                 </div>
@@ -96,10 +123,11 @@ const getTextClasses = (section) => {
 
 export const TextRenderer = ({ section, fontSize }) => {
     const styles = getTextClasses(section);
+    const scale = section.textScale || 1.0;
     return (
         <div className={clsx("max-w-3xl mx-auto transition-all duration-300", section.align === 'center' ? 'text-center' : section.align === 'right' ? 'text-right' : 'text-left', styles.container)}>
-            {section.title && <h3 className={clsx("font-medium tracking-widest mb-6", styles.text)} style={{ fontSize: `${fontSize.sectionTitle}rem` }}>{section.title}</h3>}
-            <p className={clsx("leading-loose whitespace-pre-wrap font-light tracking-wide", styles.text)} style={{ fontSize: `${fontSize.body}rem` }}>{section.content}</p>
+            {section.title && <h3 className={clsx("font-medium tracking-widest mb-6", styles.text)} style={{ fontSize: `${fontSize.sectionTitle * scale}rem` }}>{section.title}</h3>}
+            <p className={clsx("leading-loose whitespace-pre-wrap font-light tracking-wide", styles.text)} style={{ fontSize: `${fontSize.body * scale}rem` }}>{section.content}</p>
         </div>
     );
 };
@@ -108,10 +136,17 @@ export const ImageRenderer = ({ section }) => {
     const width = section.width || 100;
     const alignClass = section.align === 'center' ? 'mx-auto' : (section.align === 'right' ? 'ml-auto' : 'mr-auto');
 
+    const imageUrl = section.image?.url || section.url;
+    const caption = section.image?.caption || section.caption;
+
     return (
         <div style={{ width: `${width}%` }} className={alignClass}>
-            <img src={section.url} alt={section.caption || ''} className="w-full h-auto rounded-lg shadow-lg" />
-            {section.caption && <p className="text-xs text-center mt-4 opacity-60">{section.caption}</p>}
+            {imageUrl ? (
+                <img src={imageUrl} alt={caption || ''} className="w-full h-auto rounded-lg shadow-lg" />
+            ) : (
+                <div className="w-full h-64 bg-gray-200 flex items-center justify-center rounded-lg text-gray-400">No Image</div>
+            )}
+            {caption && <p className="text-xs text-center mt-4 opacity-60">{caption}</p>}
         </div>
     );
 };

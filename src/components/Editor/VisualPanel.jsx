@@ -1,11 +1,57 @@
-import React from 'react';
-import { Camera, Video, Monitor, Layout } from 'lucide-react';
+import React, { useState } from 'react';
+import { Camera, Video, Monitor, Layout, Sparkles, Image, Loader2 } from 'lucide-react';
+import { aiService } from '../../utils/aiService';
 import { InputGroup, TextInput } from '../UI/Input';
 import { Slider, ColorPicker } from '../UI/Input';
+import { AIGeneratorModal } from '../UI/AIGeneratorModal';
+import { ApiKeyModal } from '../UI/ApiKeyModal';
 
 export const VisualPanel = ({ data, setData }) => {
+    const [heroGenState, setHeroGenState] = useState(null); // 'library', 'ai', or null - kept for button loading state if needed, though mostly modal now
+
+    // Modal State
+    const [showGenModal, setShowGenModal] = useState(false);
+    const [showKeyModal, setShowKeyModal] = useState(false);
+    const [modalTab, setModalTab] = useState('ai');
+    const [modalPrompt, setModalPrompt] = useState('');
+
+    const openGenerator = (tab) => {
+        // Prepare prompt from title
+        const prompt = data.heroTitle ? `Main visual for website: ${data.heroTitle}. ${data.heroSubtitle || ''}` : '';
+        setModalPrompt(prompt);
+        setModalTab(tab);
+
+        // Check key if using AI (Search doesn't strictly need OpenAI key but good practice to have at least one valid key logic if we want to expand. 
+        // Actually AIGeneratorModal checks OpenAI key internally for generation. Unsplash doesn't need it. 
+        // But for consistency let's just open the modal. The modal handles missing key errors for AI.)
+        setShowGenModal(true);
+    };
+
+    const handleGenClose = (reason) => {
+        setShowGenModal(false);
+        if (reason === 'MISSING_KEY') {
+            setShowKeyModal(true);
+        }
+    };
+
     return (
         <div className="space-y-8 animate-fadeIn">
+            <AIGeneratorModal
+                isOpen={showGenModal}
+                onClose={handleGenClose}
+                onGenerate={(url) => {
+                    setData({ ...data, heroUrl: url });
+                    setShowGenModal(false);
+                }}
+                initialPrompt={modalPrompt}
+                initialTab={modalTab}
+            />
+            <ApiKeyModal
+                isOpen={showKeyModal}
+                onClose={() => setShowKeyModal(false)}
+                onSave={() => setShowGenModal(true)}
+            />
+
             {/* Main Visual Settings */}
             <section>
                 <div className="flex items-center gap-2 mb-4 text-blue-400">
@@ -30,7 +76,25 @@ export const VisualPanel = ({ data, setData }) => {
                         </div>
                     </InputGroup>
                     <InputGroup label="メディアURL">
-                        <TextInput value={data.heroUrl} onChange={(val) => setData({ ...data, heroUrl: val })} placeholder="URLを入力" />
+                        <div className="flex gap-2 mb-2">
+                            <TextInput value={data.heroUrl} onChange={(val) => setData({ ...data, heroUrl: val })} placeholder="URLを入力" className="flex-1" />
+                        </div>
+                        <div className="grid grid-cols-2 gap-2">
+                            <button
+                                onClick={() => openGenerator('search')}
+                                className="flex items-center justify-center gap-2 bg-gray-700 hover:bg-gray-600 text-white py-2 px-3 rounded text-xs transition-all"
+                            >
+                                <Image size={14} />
+                                Unsplash (写真)
+                            </button>
+                            <button
+                                onClick={() => openGenerator('ai')}
+                                className="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-500 text-white py-2 px-3 rounded text-xs transition-all shadow-lg shadow-blue-900/20"
+                            >
+                                <Sparkles size={14} />
+                                DALL-E 3 (生成)
+                            </button>
+                        </div>
                     </InputGroup>
                     <div className="grid grid-cols-2 gap-4">
                         <InputGroup label="高さ (vh)">

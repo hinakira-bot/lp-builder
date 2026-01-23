@@ -1,6 +1,6 @@
 /* eslint-disable */
 import React from 'react';
-import { AlignLeft, AlignCenter, AlignRight, Plus, Trash2, Crown, Star, Medal, Award, Sparkles } from 'lucide-react';
+import { AlignLeft, AlignCenter, AlignRight, Plus, Trash2, Crown, Star, Medal, Award, Sparkles, ImageIcon } from 'lucide-react';
 import { TextInput, TextArea } from '../UI/Input';
 import { Slider, ColorPicker } from '../UI/Input';
 import { Button } from '../UI/Button';
@@ -112,36 +112,26 @@ export const SectionEditor = ({ section, onChange }) => {
                     </div>
                 </div>
                 <div>
-                    <label className="text-[9px] text-gray-500 mb-1">コンテンツ枠</label>
-                    <select value={section.boxStyle || 'none'} onChange={(e) => update('boxStyle', e.target.value)} className="bg-gray-800 text-xs border border-gray-600 rounded px-1 py-1 w-full text-white">
+                    <select value={section.boxStyle || 'none'} onChange={(e) => update('boxStyle', e.target.value)} className="bg-gray-800 text-xs border border-gray-600 rounded px-1 py-1 w-full text-white mb-2">
                         <option value="none">なし</option>
                         <option value="shadow">影付き箱</option>
                         <option value="border">線枠</option>
                         <option value="fill">塗りつぶし</option>
                         <option value="stitch">ステッチ</option>
+                        <option value="double">二重線</option>
+                        <option value="comic">コミック風</option>
+                        <option value="neon">ネオン</option>
+                        <option value="glass">ガラス風</option>
                     </select>
+                    {section.boxStyle !== 'none' && (
+                        <div className="flex items-center gap-2 mt-1">
+                            <span className="text-[9px] text-gray-500 w-12 text-right">枠色:</span>
+                            <ColorPicker value={section.boxColor || '#3b82f6'} onChange={(val) => update('boxColor', val)} />
+                        </div>
+                    )}
                 </div>
 
-                {/* Text Readability Controls */}
-                <div className="grid grid-cols-2 gap-2 pt-2 border-t border-gray-700">
-                    <div>
-                        <label className="text-[9px] text-gray-500 mb-1">文字影</label>
-                        <select value={section.textShadow || 'none'} onChange={(e) => update('textShadow', e.target.value)} className="bg-gray-800 text-xs border border-gray-600 rounded px-1 py-1 w-full text-white">
-                            <option value="none">なし</option>
-                            <option value="soft">ソフト</option>
-                            <option value="strong">くっきり</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label className="text-[9px] text-gray-500 mb-1">文字背景</label>
-                        <select value={section.textBackdrop || 'none'} onChange={(e) => update('textBackdrop', e.target.value)} className="bg-gray-800 text-xs border border-gray-600 rounded px-1 py-1 w-full text-white">
-                            <option value="none">なし</option>
-                            <option value="blur">ぼかし</option>
-                            <option value="white">白半透明</option>
-                            <option value="black">黒半透明</option>
-                        </select>
-                    </div>
-                </div>
+
             </div>
 
             {/* --- SPECIFIC TYPE FIELDS --- */}
@@ -150,6 +140,11 @@ export const SectionEditor = ({ section, onChange }) => {
                 <>
                     <TextInput value={section.title} onChange={(val) => update('title', val)} placeholder="見出し" />
                     <TextArea value={section.content} onChange={(val) => update('content', val)} placeholder="本文" />
+                    <div className="flex gap-2 items-center mb-2">
+                        <span className="text-[10px] text-gray-500 w-12 text-right">文字サイズ:</span>
+                        <Slider value={section.textScale || 1.0} min={0.5} max={3.0} step={0.1} onChange={(val) => update('textScale', val)} />
+                        <span className="text-[10px] text-gray-400 w-8">{section.textScale || 1.0}x</span>
+                    </div>
                     <div className="flex gap-2">
                         {['left', 'center', 'right'].map(align => (
                             <button key={align} onClick={() => update('align', align)} className={`p-1.5 rounded border transition-colors ${section.align === align ? 'bg-blue-600 border-blue-600 text-white' : 'border-gray-600 text-gray-400 hover:bg-gray-700'}`}>
@@ -315,11 +310,34 @@ export const SectionEditor = ({ section, onChange }) => {
 
             {section.type === 'social' && (
                 <>
-                    <div className="flex gap-2 mb-3">
-                        <button onClick={() => update('platform', 'twitter')} className={`flex-1 flex items-center justify-center gap-2 py-2 rounded text-xs border ${section.platform === 'twitter' ? 'bg-blue-500 border-blue-500 text-white' : 'border-gray-600 text-gray-400'}`}>Twitter</button>
-                        <button onClick={() => update('platform', 'instagram')} className={`flex-1 flex items-center justify-center gap-2 py-2 rounded text-xs border ${section.platform === 'instagram' ? 'bg-pink-600 border-pink-600 text-white' : 'border-gray-600 text-gray-400'}`}>Instagram</button>
+                    <div className="flex justify-between items-center mb-4 bg-gray-900/30 p-2 rounded">
+                        <div className="flex items-center gap-2">
+                            <span className="text-xs text-gray-500">PC列数:</span>
+                            {[1, 2, 3].map(num => (
+                                <button key={num} onClick={() => update('columnCount', num)} className={`px-2 py-0.5 rounded text-xs border ${section.columnCount === num ? 'bg-blue-600 border-blue-600 text-white' : 'border-gray-600 text-gray-400'}`}>{num}</button>
+                            ))}
+                        </div>
                     </div>
-                    <TextInput value={section.url} onChange={(val) => update('url', val)} placeholder="投稿のURL" />
+
+                    <div className="space-y-4">
+                        {(section.items || []).map((item, i) => (
+                            <div key={item.id} className="bg-gray-900/50 p-3 rounded border border-gray-700 relative">
+                                <button
+                                    onClick={() => { const n = section.items.filter((_, idx) => idx !== i); update('items', n); }}
+                                    className="absolute top-2 right-2 text-gray-500 hover:text-red-400"
+                                >
+                                    <Trash2 size={12} />
+                                </button>
+
+                                <div className="flex gap-2 mb-2">
+                                    <button onClick={() => { const n = [...section.items]; n[i] = { ...item, platform: 'twitter' }; update('items', n); }} className={`flex-1 py-1 rounded text-[10px] border ${item.platform === 'twitter' ? 'bg-blue-500 border-blue-500 text-white' : 'border-gray-600 text-gray-400'}`}>Twitter</button>
+                                    <button onClick={() => { const n = [...section.items]; n[i] = { ...item, platform: 'instagram' }; update('items', n); }} className={`flex-1 py-1 rounded text-[10px] border ${item.platform === 'instagram' ? 'bg-pink-600 border-pink-600 text-white' : 'border-gray-600 text-gray-400'}`}>Instagram</button>
+                                </div>
+                                <TextInput value={item.url} onChange={(val) => { const n = [...section.items]; n[i] = { ...item, url: val }; update('items', n); }} placeholder="投稿のURL" />
+                            </div>
+                        ))}
+                        <Button onClick={() => update('items', [...(section.items || []), { id: Math.random(), platform: 'twitter', url: '' }])} variant="outline" className="w-full py-1 text-xs"><Plus size={14} /> SNSを追加</Button>
+                    </div>
                 </>
             )}
             {section.type === 'accordion' && (
@@ -422,12 +440,41 @@ export const SectionEditor = ({ section, onChange }) => {
                 <>
                     <div className="mb-4">
                         <label className="text-[10px] text-gray-500 mb-1 block">デザイン</label>
-                        <div className="flex gap-2">
-                            {['simple', 'sticky', 'ribbon'].map(d => (
-                                <button key={d} onClick={() => update('design', d)} className={`flex-1 py-1 text-xs rounded border capitalize ${(section.design || 'simple') === d ? 'bg-blue-600 border-blue-600 text-white' : 'border-gray-600 text-gray-400'}`}>{d}</button>
+                        <div className="flex gap-1 flex-wrap">
+                            {['simple', 'sticky', 'ribbon', 'gradient', 'glass', 'comic', 'dashed', 'solid', 'double', 'neon'].map(d => (
+                                <button key={d} onClick={() => update('design', d)} className={`px-2 py-1 text-[10px] rounded border capitalize ${(section.design || 'simple') === d ? 'bg-blue-600 border-blue-600 text-white' : 'border-gray-600 text-gray-400'}`}>{d}</button>
                             ))}
                         </div>
                     </div>
+
+                    <div className="bg-gray-800/50 p-3 rounded-lg space-y-3 mb-4">
+                        <label className="text-[10px] text-gray-500 uppercase tracking-wider block">内側余白 (px)</label>
+                        <div className="grid grid-cols-2 gap-x-4 gap-y-2">
+                            <div className="flex flex-col gap-1">
+                                <span className="text-[9px] text-gray-500">上: {section.pTop || 0}px</span>
+                                <Slider value={section.pTop || 0} min={0} max={160} step={8} onChange={(val) => update('pTop', val)} />
+                            </div>
+                            <div className="flex flex-col gap-1">
+                                <span className="text-[9px] text-gray-500">下: {section.pBottom || 0}px</span>
+                                <Slider value={section.pBottom || 0} min={0} max={160} step={8} onChange={(val) => update('pBottom', val)} />
+                            </div>
+                            <div className="flex flex-col gap-1">
+                                <span className="text-[9px] text-gray-500">左: {section.pLeft || 0}px</span>
+                                <Slider value={section.pLeft || 0} min={0} max={160} step={8} onChange={(val) => update('pLeft', val)} />
+                            </div>
+                            <div className="flex flex-col gap-1">
+                                <span className="text-[9px] text-gray-500">右: {section.pRight || 0}px</span>
+                                <Slider value={section.pRight || 0} min={0} max={160} step={8} onChange={(val) => update('pRight', val)} />
+                            </div>
+                        </div>
+                    </div>
+
+                    {section.design && section.design !== 'simple' && (
+                        <div className="flex items-center gap-2 mb-4">
+                            <span className="text-[10px] text-gray-500 w-12">枠色:</span>
+                            <ColorPicker value={section.boxColor || '#3b82f6'} onChange={(val) => update('boxColor', val)} />
+                        </div>
+                    )}
 
                     <TextInput value={section.title} onChange={(val) => update('title', val)} placeholder="タイトル" />
                     {!section.children && <TextArea value={section.content} onChange={(val) => update('content', val)} placeholder="内容" />}
@@ -513,6 +560,24 @@ export const SectionEditor = ({ section, onChange }) => {
 
             {section.type === 'point_list' && (
                 <div className="space-y-4">
+                    <div className="grid grid-cols-2 gap-2">
+                        <div>
+                            <label className="text-[10px] text-gray-500 mb-1 block">デザイン</label>
+                            <div className="flex gap-1">
+                                {['simple', 'alternating', 'cards'].map(d => (
+                                    <button key={d} onClick={() => update('design', d)} className={`flex-1 py-1 text-[10px] rounded border capitalize ${(section.design || 'simple') === d ? 'bg-blue-600 border-blue-600 text-white' : 'border-gray-600 text-gray-400'}`}>{d}</button>
+                                ))}
+                            </div>
+                        </div>
+                        <div>
+                            <label className="text-[10px] text-gray-500 mb-1 block">バッジ設定</label>
+                            <div className="flex gap-1">
+                                <TextInput value={section.badgeText} onChange={(val) => update('badgeText', val)} placeholder="POINT" className="flex-1 text-xs" />
+                                <ColorPicker value={section.badgeColor || '#eab308'} onChange={(val) => update('badgeColor', val)} />
+                            </div>
+                        </div>
+                    </div>
+
                     <div className="space-y-3">
                         <label className="text-xs text-gray-500">ポイント一覧 (画像+テキスト)</label>
                         {(section.items || []).map((item, i) => (
@@ -612,13 +677,13 @@ export const SectionEditor = ({ section, onChange }) => {
                     <div>
                         <label className="text-[10px] text-gray-500 mb-1 block">デザインパターン</label>
                         <div className="flex gap-2">
-                            {['standard', 'featured', 'horizontal'].map(d => (
+                            {['standard', 'minimal', 'modern', 'bold', 'horizontal', 'dark'].map(d => (
                                 <button
                                     key={d}
                                     onClick={() => update('design', d)}
                                     className={`flex-1 py-1.5 text-[10px] rounded border capitalize transition-colors ${(section.design || 'standard') === d ? 'bg-blue-600 border-blue-600 text-white' : 'border-gray-700 text-gray-400'}`}
                                 >
-                                    {d === 'standard' ? '標準' : d === 'featured' ? 'おすすめ強調' : '横並び'}
+                                    {d}
                                 </button>
                             ))}
                         </div>
@@ -726,6 +791,224 @@ export const SectionEditor = ({ section, onChange }) => {
                         >
                             <Plus size={14} /> プランを追加
                         </Button>
+                    </div>
+                </div>
+            )}
+
+            {/* --- NEW COMPONENTS EDITORS --- */}
+
+            {section.type === 'process' && (
+                <div className="space-y-4">
+                    <div className="grid grid-cols-2 gap-2">
+                        <div>
+                            <label className="text-[10px] text-gray-500 mb-1 block">デザイン</label>
+                            <div className="flex gap-1">
+                                {['simple', 'timeline', 'cards'].map(d => (
+                                    <button key={d} onClick={() => update('design', d)} className={`flex-1 py-1 text-[10px] rounded border capitalize ${(section.design || 'simple') === d ? 'bg-blue-600 border-blue-600 text-white' : 'border-gray-600 text-gray-400'}`}>{d}</button>
+                                ))}
+                            </div>
+                        </div>
+                        <div>
+                            <label className="text-[10px] text-gray-500 mb-1 block">アクセント色</label>
+                            <ColorPicker value={section.accentColor || '#3b82f6'} onChange={(val) => update('accentColor', val)} />
+                        </div>
+                    </div>
+
+                    <div className="space-y-3">
+                        <label className="text-xs text-gray-500">ステップ管理</label>
+                        {(section.steps || []).map((step, i) => (
+                            <div key={i} className="bg-gray-900/50 p-3 rounded border border-gray-700 relative space-y-2">
+                                <div className="flex justify-between items-center">
+                                    <span className="text-[10px] font-bold bg-blue-500/20 text-blue-300 px-1.5 py-0.5 rounded">STEP {i + 1}</span>
+                                    <button onClick={() => { const n = section.steps.filter((_, idx) => idx !== i); update('steps', n); }} className="text-gray-500 hover:text-red-400"><Trash2 size={12} /></button>
+                                </div>
+                                <TextInput value={step.title} onChange={(val) => { const n = [...section.steps]; n[i] = { ...step, title: val }; update('steps', n); }} placeholder="タイトル" />
+                                <TextArea value={step.content} onChange={(val) => { const n = [...section.steps]; n[i] = { ...step, content: val }; update('steps', n); }} placeholder="内容" />
+                            </div>
+                        ))}
+                        <Button onClick={() => update('steps', [...(section.steps || []), { title: 'New Step', content: 'Description' }])} variant="outline" className="w-full py-2 text-xs"><Plus size={14} /> ステップを追加</Button>
+                    </div>
+                </div>
+            )}
+
+            {section.type === 'staff' && (
+                <div className="space-y-4">
+                    <div className="space-y-3">
+                        <label className="text-xs text-gray-500">メンバー管理</label>
+                        {(section.members || []).map((member, i) => (
+                            <div key={i} className="bg-gray-900/50 p-3 rounded border border-gray-700 relative space-y-2">
+                                <button onClick={() => { const n = section.members.filter((_, idx) => idx !== i); update('members', n); }} className="absolute top-2 right-2 text-gray-500 hover:text-red-400"><Trash2 size={12} /></button>
+                                <div className="space-y-2 pr-6">
+                                    <div className="flex gap-2">
+                                        <TextInput value={member.name} onChange={(val) => { const n = [...section.members]; n[i] = { ...member, name: val }; update('members', n); }} placeholder="名前" className="flex-1" />
+                                        <TextInput value={member.role} onChange={(val) => { const n = [...section.members]; n[i] = { ...member, role: val }; update('members', n); }} placeholder="役職" className="flex-1" />
+                                    </div>
+                                    <TextArea value={member.desc} onChange={(val) => { const n = [...section.members]; n[i] = { ...member, desc: val }; update('members', n); }} placeholder="紹介文" />
+                                    <div className="flex gap-1">
+                                        <TextInput value={member.image} onChange={(val) => { const n = [...section.members]; n[i] = { ...member, image: val }; update('members', n); }} placeholder="写真URL" />
+                                        <AIGeneratorButton onGenerate={(url) => { const n = [...section.members]; n[i] = { ...member, image: url }; update('members', n); }} initialPrompt="Professional portrait" />
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                        <Button onClick={() => update('members', [...(section.members || []), { name: 'Name', role: 'Role', desc: '...', image: '' }])} variant="outline" className="w-full py-2 text-xs"><Plus size={14} /> メンバーを追加</Button>
+                    </div>
+                </div>
+            )}
+
+            {section.type === 'faq' && (
+                <div className="space-y-4">
+                    <div>
+                        <label className="text-[10px] text-gray-500 mb-1 block">デザイン</label>
+                        <div className="flex gap-1">
+                            {['simple', 'box', 'bubble'].map(d => (
+                                <button key={d} onClick={() => update('design', d)} className={`flex-1 py-1 text-[10px] rounded border capitalize ${(section.design || 'simple') === d ? 'bg-blue-600 border-blue-600 text-white' : 'border-gray-600 text-gray-400'}`}>{d}</button>
+                            ))}
+                        </div>
+                    </div>
+                    <div className="space-y-3">
+                        <label className="text-xs text-gray-500">Q&A管理</label>
+                        {(section.items || []).map((item, i) => (
+                            <div key={i} className="bg-gray-900/50 p-3 rounded border border-gray-700 relative space-y-2">
+                                <button onClick={() => { const n = section.items.filter((_, idx) => idx !== i); update('items', n); }} className="absolute top-2 right-2 text-gray-500 hover:text-red-400"><Trash2 size={12} /></button>
+                                <TextInput value={item.q} onChange={(val) => { const n = [...section.items]; n[i] = { ...item, q: val }; update('items', n); }} placeholder="質問 (Q)" className="font-bold text-blue-200" />
+                                <TextArea value={item.a} onChange={(val) => { const n = [...section.items]; n[i] = { ...item, a: val }; update('items', n); }} placeholder="回答 (A)" />
+                            </div>
+                        ))}
+                        <Button onClick={() => update('items', [...(section.items || []), { q: '質問', a: '回答' }])} variant="outline" className="w-full py-2 text-xs"><Plus size={14} /> Q&Aを追加</Button>
+                    </div>
+                </div>
+            )}
+
+            {section.type === 'comparison' && (
+                <div className="space-y-4">
+                    <div>
+                        <label className="text-[10px] text-gray-500 mb-1 block">デザイン</label>
+                        <div className="flex gap-1">
+                            {['standard', 'minimal', 'modern'].map(d => (
+                                <button key={d} onClick={() => update('design', d)} className={`flex-1 py-1 text-[10px] rounded border capitalize ${(section.design || 'standard') === d ? 'bg-blue-600 border-blue-600 text-white' : 'border-gray-600 text-gray-400'}`}>{d}</button>
+                            ))}
+                        </div>
+                    </div>
+                    <div className="space-y-2">
+                        <label className="text-[10px] text-gray-500">ヘッダー (カンマ区切り)</label>
+                        <TextInput value={(section.headers || []).join(',')} onChange={(val) => update('headers', val.split(','))} placeholder="項目, 自社, A社, B社" />
+                    </div>
+                    <div className="space-y-2">
+                        <label className="text-[10px] text-gray-500">行データ (各行をカンマ区切りで入力)</label>
+                        {(section.rows || []).map((row, i) => (
+
+                            <div key={i} className="bg-gray-900/50 p-2 rounded mb-2 space-y-2 relative">
+                                <button onClick={() => { const n = section.rows.filter((_, idx) => idx !== i); update('rows', n); }} className="absolute top-2 right-2 text-gray-500 hover:text-red-400"><Trash2 size={12} /></button>
+
+                                <TextInput
+                                    value={row[0]}
+                                    onChange={(val) => {
+                                        const n = [...section.rows];
+                                        const newRow = [...row];
+                                        newRow[0] = val;
+                                        n[i] = newRow;
+                                        update('rows', n);
+                                    }}
+                                    placeholder="項目名"
+                                    className="w-[85%]"
+                                />
+
+                                <div className="flex gap-1">
+                                    {/* Render inputs for each competitor column (headers 1..N) */}
+                                    {(section.headers || ['']).slice(1).map((_, hIdx) => {
+                                        const cellIndex = hIdx + 1;
+                                        const cellVal = row[cellIndex] || '-';
+                                        return (
+                                            <select
+                                                key={hIdx}
+                                                value={cellVal}
+                                                onChange={(e) => {
+                                                    const n = [...section.rows];
+                                                    const newRow = [...row];
+                                                    // Ensure row expands if needed
+                                                    while (newRow.length <= cellIndex) newRow.push('-');
+                                                    newRow[cellIndex] = e.target.value;
+                                                    n[i] = newRow;
+                                                    update('rows', n);
+                                                }}
+                                                className="bg-gray-800 text-xs border border-gray-600 rounded px-1 py-1 text-white text-center flex-1"
+                                            >
+                                                <option value="◎">◎</option>
+                                                <option value="◯">◯</option>
+                                                <option value="△">△</option>
+                                                <option value="×">×</option>
+                                                <option value="-">-</option>
+                                            </select>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                        ))}
+                        <Button onClick={() => update('rows', [...(section.rows || []), ['新規項目', '◯', '×', '×']])} variant="outline" className="w-full py-1 text-xs"><Plus size={14} /> 行を追加</Button>
+                    </div>
+                </div>
+            )}
+
+            {section.type === 'access' && (
+                <div className="space-y-4">
+                    <TextInput value={section.title} onChange={(val) => update('title', val)} placeholder="タイトル (ACCESS)" />
+                    <TextInput value={section.address} onChange={(val) => update('address', val)} placeholder="住所 (地図検索用)" />
+                    <TextInput value={section.access} onChange={(val) => update('access', val)} placeholder="アクセス (例: 〇〇駅 徒歩5分)" />
+                    <div className="grid grid-cols-2 gap-2">
+                        <TextInput value={section.hours} onChange={(val) => update('hours', val)} placeholder="営業時間" />
+                        <TextInput value={section.tel} onChange={(val) => update('tel', val)} placeholder="電話番号" />
+                    </div>
+                    <div className="space-y-2 pt-2 border-t border-gray-700">
+                        <label className="text-[10px] text-gray-500">ボタン設定</label>
+                        <TextInput value={section.buttonText} onChange={(val) => update('buttonText', val)} placeholder="ボタン文字" />
+                        <TextInput value={section.buttonUrl} onChange={(val) => update('buttonUrl', val)} placeholder="ボタンURL" />
+                    </div>
+                </div>
+            )}
+            {section.type === 'review' && (
+                <div className="space-y-4">
+                    <div>
+                        <label className="text-[10px] text-gray-500 mb-1 block">デザイン</label>
+                        <div className="flex gap-1">
+                            {['card', 'bubble', 'minimal'].map(d => (
+                                <button key={d} onClick={() => update('design', d)} className={`flex-1 py-1 text-[10px] rounded border capitalize ${(section.design || 'card') === d ? 'bg-blue-600 border-blue-600 text-white' : 'border-gray-600 text-gray-400'}`}>{d}</button>
+                            ))}
+                        </div>
+                    </div>
+                    <div className="space-y-4">
+                        <label className="text-xs text-gray-500 font-bold">レビューリスト</label>
+                        {(section.items || []).map((item, i) => (
+                            <div key={i} className="bg-gray-900/50 p-3 rounded border border-gray-700 relative space-y-3">
+                                <button onClick={() => { const n = section.items.filter((_, idx) => idx !== i); update('items', n); }} className="absolute top-2 right-2 text-gray-500 hover:text-red-400"><Trash2 size={12} /></button>
+
+                                <div className="flex gap-2">
+                                    <div className="w-16 h-16 flex-shrink-0 bg-gray-800 rounded-full overflow-hidden border border-gray-700 flex items-center justify-center">
+                                        {item.image ? <img src={item.image} className="w-full h-full object-cover" /> : <ImageIcon size={20} className="text-gray-600" />}
+                                    </div>
+                                    <div className="flex-1 space-y-2">
+                                        <TextInput value={item.name} onChange={(val) => { const n = [...section.items]; n[i] = { ...item, name: val }; update('items', n); }} placeholder="名前" className="text-xs font-bold" />
+                                        <TextInput value={item.role} onChange={(val) => { const n = [...section.items]; n[i] = { ...item, role: val }; update('items', n); }} placeholder="役職・タイトル" className="text-[10px] text-gray-400" />
+                                    </div>
+                                </div>
+
+                                <TextInput value={item.image} onChange={(val) => { const n = [...section.items]; n[i] = { ...item, image: val }; update('items', n); }} placeholder="顔写真URL" className="text-[10px]" />
+
+                                <div className="flex items-center gap-2">
+                                    <span className="text-[10px] text-gray-500">評価:</span>
+                                    <div className="flex gap-1">
+                                        {[1, 2, 3, 4, 5].map(s => (
+                                            <button key={s} onClick={() => { const n = [...section.items]; n[i] = { ...item, stars: s }; update('items', n); }} className={`p-0.5 ${item.stars >= s ? 'text-yellow-400' : 'text-gray-600'}`}>
+                                                <Star size={14} fill={item.stars >= s ? 'currentColor' : 'none'} />
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                <TextArea value={item.content} onChange={(val) => { const n = [...section.items]; n[i] = { ...item, content: val }; update('items', n); }} placeholder="レビュー本文" className="text-xs" />
+                            </div>
+                        ))}
+                        <Button onClick={() => update('items', [...(section.items || []), { id: Date.now(), name: 'New Reviewer', role: 'Role', content: 'Description...', stars: 5, image: '' }])} variant="outline" className="w-full py-2 text-xs"><Plus size={14} /> レビューを追加</Button>
                     </div>
                 </div>
             )}
