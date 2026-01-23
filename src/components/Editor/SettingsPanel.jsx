@@ -72,7 +72,12 @@ export const SettingsPanel = ({ data, setData }) => {
                                     placeholder="AIza..."
                                     className="w-full bg-gray-900 border border-gray-700 rounded-lg p-3 text-xs text-gray-200 focus:outline-none focus:border-purple-500 transition-colors"
                                 />
-                                <p className="text-[10px] text-gray-500">※LPの構成案・文章作成に使用（無料枠あり）</p>
+                                <div className="flex justify-between items-center px-1">
+                                    <p className="text-[10px] text-gray-500">※LPの構成案・文章作成に使用（無料枠あり）</p>
+                                    <span className="text-[10px] font-mono bg-blue-500/10 text-blue-400 px-1.5 py-0.5 rounded border border-blue-500/20">
+                                        Active: {aiService.GEMINI_MODEL || 'gemini-2.5-pro'}
+                                    </span>
+                                </div>
                             </div>
                         </InputGroup>
 

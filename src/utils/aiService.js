@@ -1,5 +1,7 @@
 import { SECTION_REGISTRY, ALLOWED_SECTION_TYPES, TYPE_ALIASES } from './componentRegistry';
 
+export const GEMINI_MODEL = "gemini-2.5-pro";
+
 const UNSPLASH_LIBRARY = {
     // ... (keep existing library)
     // ... (keep existing library)
@@ -30,6 +32,7 @@ const UNSPLASH_LIBRARY = {
 // (Manual Catalog Removed - Using Imported Registry)
 
 export const aiService = {
+    GEMINI_MODEL: GEMINI_MODEL,
     // Key Management
     getApiKey: () => {
         return localStorage.getItem('lp_builder_ai_key');
@@ -50,7 +53,7 @@ export const aiService = {
     // Gemini prompt optimization (Internal - used by Image Gen)
     generateOptimizedPrompt: async (apiKey, originalPrompt, style) => {
         try {
-            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:generateContent?key=${apiKey}`, {
+            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${apiKey}`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -275,7 +278,7 @@ LPの各セクション(Hero含む)に必要な「画像」を選定してくだ
 
     // Helper: Call Gemini
     _callGemini: async (apiKey, sys, user) => {
-        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:generateContent?key=${apiKey}`, {
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${apiKey}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
