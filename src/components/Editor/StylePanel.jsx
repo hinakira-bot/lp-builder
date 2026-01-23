@@ -11,90 +11,59 @@ export const StylePanel = ({ data, setData }) => {
     const [statusMsg, setStatusMsg] = useState('AIが魔法をかけています...');
     const [tuning, setTuning] = useState({ tone: 'standard', focus: 'benefit' });
 
-    const handleStructureContent = async () => {
+    const handleProfessionalBuild = async (imageMode = 'library') => {
         if (!prompt) return;
         setIsGenerating(true);
-        setStatusMsg('構成と文章を生成中...');
-
-        const apiKey = aiService.getApiKey();
-        if (!apiKey) {
-            await runLocalFallback();
-            setIsGenerating(false);
-            return;
-        }
+        setStatusMsg('プロフェッショナル・ビルドを開始します...');
 
         try {
-            // Step A: Structure
-            setStatusMsg('Step 1: 全体の構成とデザインを設計中...');
-            const structure = await aiService.generateStructure(prompt, tuning);
+            // Stage 1: Strategy
+            setStatusMsg('Phase 1: マーケティング戦略を策定中...');
+            const strategy = await aiService.generateStrategy(prompt, tuning);
 
-            // Step B: Content
-            setStatusMsg('Step 2: プロのセールスコピーを執筆中...');
-            const content = await aiService.generateContent(structure, prompt, tuning);
+            // Stage 2: Sitemap
+            setStatusMsg('Phase 2: 成約率の高い構成を設計中...');
+            const sitemap = await aiService.generateSitemap(strategy, prompt);
 
-            // Merge into state (preserve existing functionality)
-            const aiData = {
-                siteTitle: content.siteTitle || structure.siteTitle,
-                pageBgValue: structure.design.colors.background,
-                textColor: structure.design.colors.text,
-                accentColor: structure.design.colors.accent,
-                fontFamily: structure.design.typography.fontFamily,
-                heroTitle: content.heroConfig?.title || content.siteTitle,
-                heroSubtitle: content.heroConfig?.subtitle || '',
-                sections: content.sections
-                // Images are NULL at this stage
+            // Stage 3: Design
+            setStatusMsg('Phase 3: デザイナー品質の装飾を適用中...');
+            const design = await aiService.generateDesignArchitecture(sitemap, strategy);
+
+            // Stage 4: Visuals
+            setStatusMsg('Phase 4: 最適なビジュアルを厳選中...');
+            const visuals = await aiService.generateVisuals(design, prompt, imageMode);
+
+            // Stage 5: Copywriting
+            setStatusMsg('Phase 5: 魂を込めた文章を執筆中...');
+            const finalData = await aiService.generateCopywriting(visuals, prompt, strategy);
+
+            // Normalize for App
+            const normalized = {
+                siteTitle: finalData.siteTitle,
+                pageBgType: 'color',
+                pageBgValue: finalData.design?.colors?.background || '#ffffff',
+                textColor: finalData.design?.colors?.text || '#2d2d2d',
+                accentColor: finalData.design?.colors?.accent || '#3b82f6',
+                fontFamily: finalData.design?.typography?.fontFamily || 'sans',
+                heroTitle: finalData.heroConfig?.title || finalData.siteTitle,
+                heroSubtitle: finalData.heroConfig?.subtitle || '',
+                heroHeight: finalData.heroConfig?.heroHeight || 90,
+                heroWidth: finalData.heroConfig?.heroWidth || 100,
+                heroOverlayOpacity: finalData.heroConfig?.heroOverlayOpacity || 0.4,
+                heroImageFallback: finalData.heroImageFallback,
+                sections: aiService._validateAndRepairSections(finalData.sections)
             };
 
-            setData(prev => ({ ...prev, ...aiData }));
-            setStatusMsg('構成・文章の生成完了！');
+            setData(prev => ({ ...prev, ...normalized }));
+            setStatusMsg('プロフェッショナル生成が完了しました！');
         } catch (error) {
             console.error(error);
-            setStatusMsg('エラーが発生しました');
+            setStatusMsg('生成中にエラーが発生しました');
         } finally {
             setIsGenerating(false);
         }
     };
 
-    const handleVisuals = async (mode) => {
-        if (!data.sections || data.sections.length === 0) {
-            setStatusMsg('先に構成を生成してください');
-            return;
-        }
-        setIsGenerating(true);
-        setStatusMsg(mode === 'library' ? 'ライブラリから画像を厳選中...' : 'AI画像を生成中...');
-
-        try {
-            // Need to reconstruct "content" object for context, or just pass sections
-            // ideally we pass the full data we have
-            const currentContent = {
-                siteTitle: data.siteTitle,
-                heroConfig: { title: data.heroTitle, subtitle: data.heroSubtitle },
-                sections: data.sections
-            };
-
-            // Note: We might need to update aiService to accept mode hint
-            const finals = await aiService.generateVisuals(currentContent, prompt, mode);
-
-            // Apply updates
-            const aiData = {
-                heroImageFallback: finals.heroImageFallback,
-                sections: finals.sections
-                // We don't overwrite text/colors here, only images
-            };
-
-            setData(prev => ({
-                ...prev,
-                heroImageFallback: aiData.heroImageFallback,
-                sections: aiData.sections
-            }));
-            setStatusMsg('画像の適用完了！');
-        } catch (error) {
-            console.error(error);
-            setStatusMsg('画像生成エラー');
-        } finally {
-            setIsGenerating(false);
-        }
-    };
 
     const runLocalFallback = async () => {
         setStatusMsg('ブランドカラーを選定中...');
@@ -286,39 +255,43 @@ export const StylePanel = ({ data, setData }) => {
                         rows={3}
                         className="bg-black/40 border-blue-500/20 text-xs focus:border-blue-500/50 transition-all placeholder:text-gray-600"
                     />
-                    <div className="grid grid-cols-1 gap-2">
+                    <div className="grid grid-cols-1 gap-3">
                         <Button
-                            onClick={handleStructureContent}
+                            onClick={() => handleProfessionalBuild('library')}
                             disabled={isGenerating || !prompt}
-                            className="w-full bg-blue-600 hover:bg-blue-500 text-white font-black py-4 shadow-xl shadow-blue-900/20"
+                            className="group relative overflow-hidden w-full bg-blue-600 hover:bg-blue-500 text-white font-black py-5 shadow-2xl shadow-blue-900/40 border-b-4 border-blue-800 active:border-b-0 active:translate-y-1 transition-all"
                         >
+                            <div className="absolute inset-0 bg-gradient-to-r from-blue-400/0 via-white/20 to-blue-400/0 -translate-x-full group-hover:animate-shimmer" />
                             {isGenerating ? (
-                                <div className="flex items-center gap-2">
-                                    <Loader2 size={16} className="animate-spin text-blue-400" />
-                                    <span className="animate-pulse">{statusMsg}</span>
+                                <div className="flex flex-col items-center gap-1">
+                                    <div className="flex items-center gap-2">
+                                        <Loader2 size={18} className="animate-spin text-white" />
+                                        <span className="text-sm font-bold tracking-wider">GENERATING...</span>
+                                    </div>
+                                    <span className="text-[10px] text-blue-100/70 font-medium animate-pulse">{statusMsg}</span>
                                 </div>
                             ) : (
-                                <div className="flex items-center gap-2">
-                                    <Sparkles size={16} />
-                                    <span>1. 構成・文章を生成</span>
+                                <div className="flex flex-col items-center">
+                                    <div className="flex items-center gap-2">
+                                        <Sparkles size={20} className="text-yellow-300" />
+                                        <span className="text-base tracking-widest uppercase">Professional Build</span>
+                                    </div>
+                                    <span className="text-[10px] text-blue-100/60 font-normal mt-1">戦略・デザイン・文章・画像をすべて自動生成</span>
                                 </div>
                             )}
                         </Button>
-                        <div className="grid grid-cols-2 gap-2">
-                            <Button
-                                onClick={() => handleVisuals('library')}
-                                disabled={isGenerating || !data.sections}
-                                className="bg-gray-700 hover:bg-gray-600 text-white py-3 text-xs"
-                            >
-                                2. 画像 (ライブラリ)
-                            </Button>
-                            <Button
-                                onClick={() => handleVisuals('ai')}
-                                disabled={isGenerating || !data.sections}
-                                className="bg-gray-700 hover:bg-gray-600 text-white py-3 text-xs"
-                            >
-                                3. 画像 (AI生成)
-                            </Button>
+
+                        <div className="pt-2 border-t border-white/5 flex items-center justify-between">
+                            <span className="text-[10px] text-gray-500">画像生成モード:</span>
+                            <div className="flex gap-2">
+                                <button
+                                    onClick={() => handleProfessionalBuild('ai')}
+                                    disabled={isGenerating || !prompt}
+                                    className="text-[9px] text-blue-400 hover:text-blue-300 flex items-center gap-1 bg-blue-500/10 px-2 py-1 rounded border border-blue-500/20"
+                                >
+                                    <Wand2 size={12} /> DALL-E 3で生成
+                                </button>
+                            </div>
                         </div>
                     </div>
                     {!globalApiKey && (
