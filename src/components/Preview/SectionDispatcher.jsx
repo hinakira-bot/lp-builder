@@ -85,7 +85,7 @@ export const SectionDispatcher = ({ sections, viewMode, fontSize, accentColor, g
 
                 return (
                     <SectionWrapper key={section.id} section={section} fontSize={fontSize} globalPadding={globalPadding}>
-                        <Renderer section={section} fontSize={fontSize} viewMode={viewMode}>
+                        <Renderer section={section} fontSize={fontSize} viewMode={viewMode} accentColor={accentColor}>
                             {childrenNodes}
                         </Renderer>
                     </SectionWrapper>

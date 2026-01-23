@@ -50,7 +50,7 @@ export const aiService = {
     // Gemini prompt optimization (Internal - used by Image Gen)
     generateOptimizedPrompt: async (apiKey, originalPrompt, style) => {
         try {
-            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`, {
+            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:generateContent?key=${apiKey}`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -275,7 +275,7 @@ LPの各セクション(Hero含む)に必要な「画像」を選定してくだ
 
     // Helper: Call Gemini
     _callGemini: async (apiKey, sys, user) => {
-        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`, {
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:generateContent?key=${apiKey}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -293,12 +293,22 @@ LPの各セクション(Hero含む)に必要な「画像」を選定してくだ
         });
 
         if (!response.ok) {
-            const errBody = await response.text();
+            const errBody = await response.json();
             console.error("Gemini API Error Detail:", errBody);
-            throw new Error('Gemini API Error');
+
+            if (response.status === 401) {
+                throw new Error('Gemini API Error: 認証に失敗しました。APIキーが正しいか、または有効期限が切れていないか確認してください。 (Note: Gemini APIキーは AIza... で始まります)');
+            }
+            if (response.status === 404) {
+                throw new Error('Gemini API Error: モデルが見つかりません。設定を確認してください。');
+            }
+            throw new Error(`Gemini API Error: ${errBody.error?.message || '不明なエラーが発生しました'}`);
         }
 
         const data = await response.json();
+        if (!data.candidates || data.candidates.length === 0) {
+            throw new Error("Gemini API Error: AIからの回答が空でした。プロンプトを調整してください。");
+        }
         let text = data.candidates[0].content.parts[0].text;
 
         console.log("Gemini Raw Response:", text); // Debug log
