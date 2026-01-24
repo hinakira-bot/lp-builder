@@ -28,22 +28,30 @@ export const HeroSection = ({ data, viewMode }) => {
         <div className="hero-container relative mx-auto overflow-hidden shadow-lg group" style={heroStyle}>
             <div className="absolute inset-0 w-full h-full">
                 {data.heroType === 'video' ? (
-                    <video
-                        className="w-full h-full object-cover"
-                        src={data.heroUrl}
-                        autoPlay
-                        loop
-                        muted
-                        playsInline
-                        style={mediaStyle}
-                    ></video>
+                    (data.heroUrl && data.heroUrl.trim().length > 0) ? (
+                        <video
+                            className="w-full h-full object-cover"
+                            src={data.heroUrl}
+                            autoPlay
+                            loop
+                            muted
+                            playsInline
+                            style={mediaStyle}
+                        ></video>
+                    ) : (
+                        <div className="w-full h-full bg-gray-500 opacity-20"></div>
+                    )
                 ) : (
-                    <img
-                        src={data.heroUrl || data.heroImageFallback}
-                        className="hero-media w-full h-full object-cover"
-                        alt="Hero"
-                        style={mediaStyle}
-                    />
+                    (data.heroUrl && data.heroUrl.trim().length > 0) ? (
+                        <img
+                            src={data.heroUrl}
+                            className="hero-media w-full h-full object-cover"
+                            alt="Hero"
+                            style={mediaStyle}
+                        />
+                    ) : (
+                        <div className="w-full h-full bg-gray-500 opacity-20"></div>
+                    )
                 )}
             </div>
             <div className="absolute inset-0 bg-black transition-opacity duration-300" style={{ opacity: data.heroOverlayOpacity }}></div>

@@ -17,51 +17,61 @@ export const StylePanel = ({ data, setData }) => {
         setStatusMsg('プロフェッショナル・ビルドを開始します...');
 
         try {
-            console.log("[Pipeline] Phase 1: Strategy - START");
-            setStatusMsg('Phase 1: マーケティング戦略を策定中...');
-            const strategy = await aiService.generateStrategy(prompt, tuning);
-            console.log("[Pipeline] Phase 1 - DONE", strategy);
+            // Use the unified 5-stage pipeline
+            const normalizedData = await aiService.generateLP(prompt, {
+                ...tuning,
+                imageMode // Pass imageMode to the pipeline
+            });
 
-            console.log("[Pipeline] Phase 2: Sitemap - START");
-            setStatusMsg('Phase 2: 成約率の高い構成を設計中...');
-            const sitemap = await aiService.generateSitemap(strategy, prompt);
-            console.log("[Pipeline] Phase 2 - DONE", sitemap);
+            console.log("[Pipeline] Professional Build Complete", normalizedData);
 
-            console.log("[Pipeline] Phase 3: Design - START");
-            setStatusMsg('Phase 3: デザイナー品質の装飾を適用中...');
-            const design = await aiService.generateDesignArchitecture(sitemap, strategy);
-            console.log("[Pipeline] Phase 3 - DONE", design);
+            setData(prev => {
+                const next = {
+                    // まずベースは prev
+                    ...prev,
 
-            console.log("[Pipeline] Phase 4: Visuals - START");
-            setStatusMsg('Phase 4: 最適なビジュアルを厳選中...');
-            const visuals = await aiService.generateVisuals(design, prompt, imageMode);
-            console.log("[Pipeline] Phase 4 - DONE", visuals);
+                    // 次に生成結果を優先で上書き（浅い領域）
+                    ...normalizedData,
 
-            console.log("[Pipeline] Phase 5: Copywriting - START");
-            setStatusMsg('Phase 5: 魂を込めた文章を執筆中...');
-            const finalData = await aiService.generateCopywriting(visuals, prompt, strategy);
-            console.log("[Pipeline] Phase 5 - DONE", finalData);
+                    // ✅ sections は必ず生成結果で置き換え（配列deep merge事故を防ぐ）
+                    sections: normalizedData.sections ?? prev.sections,
 
-            // Normalize for App
-            console.log("[Pipeline] Normalizing data for preview...");
-            const normalized = {
-                siteTitle: finalData.siteTitle,
-                pageBgType: 'color',
-                pageBgValue: finalData.design?.colors?.background || '#ffffff',
-                textColor: finalData.design?.colors?.text || '#2d2d2d',
-                accentColor: finalData.design?.colors?.accent || '#3b82f6',
-                fontFamily: finalData.design?.typography?.fontFamily || 'sans',
-                heroTitle: finalData.heroConfig?.title || finalData.siteTitle,
-                heroSubtitle: finalData.heroConfig?.subtitle || '',
-                heroHeight: finalData.heroConfig?.heroHeight || 90,
-                heroWidth: finalData.heroConfig?.heroWidth || 100,
-                heroOverlayOpacity: finalData.heroConfig?.heroOverlayOpacity || 0.4,
-                heroImageFallback: finalData.heroImageFallback,
-                sections: aiService._validateAndRepairSections(finalData.sections)
-            };
+                    // ✅ heroConfig は “生成結果優先” で上書き
+                    heroConfig: {
+                        ...(prev.heroConfig ?? {}),
+                        ...(normalizedData.heroConfig ?? {}),
+                    },
 
-            console.log("[Pipeline] Setting Data to preview...", normalized);
-            setData(prev => ({ ...prev, ...normalized }));
+                    // ✅ design もネストなので明示的に
+                    design: {
+                        ...(prev.design ?? {}),
+                        ...(normalizedData.design ?? {}),
+                        colors: {
+                            ...(prev.design?.colors ?? {}),
+                            ...(normalizedData.design?.colors ?? {}),
+                        },
+                        typography: {
+                            ...(prev.design?.typography ?? {}),
+                            ...(normalizedData.design?.typography ?? {}),
+                        },
+                    },
+                };
+
+                // ✅ Heroが変わらない対策：fallbackを必ず最新bgImageに同期
+                const latestHero =
+                    next.heroConfig?.bgImage ||
+                    normalizedData.heroConfig?.bgImage ||
+                    normalizedData.heroImageFallback ||
+                    next.heroImageFallback;
+
+                if (latestHero) {
+                    next.heroImageFallback = latestHero;
+                    // Ensure heroUrl mirrored for UI stability
+                    next.heroUrl = latestHero;
+                }
+
+                return next;
+            });
             setStatusMsg('プロフェッショナル生成が完了しました！');
         } catch (error) {
             console.error("[Pipeline] CRITICAL ERROR:", error);

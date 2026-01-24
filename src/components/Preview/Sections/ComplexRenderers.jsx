@@ -1,8 +1,9 @@
 /* eslint-disable */
 import React, { useEffect, useRef } from 'react';
 import { ChevronRight, Plus } from 'lucide-react';
-import { getYouTubeId } from '../../../utils/helpers';
+import { getYouTubeId, getImgUrl } from '../../../utils/helpers';
 import { clsx } from 'clsx';
+import { SectionWrapper } from './SectionWrapper';
 
 // Social Embed Component
 export const SocialEmbedPreview = ({ platform, url }) => {
@@ -92,15 +93,17 @@ export const SocialRenderer = ({ section, viewMode }) => {
     const items = section.items || (section.url ? [{ id: 'default', platform: section.platform || 'twitter', url: section.url }] : []);
 
     return (
-        <div className="max-w-6xl mx-auto px-6">
-            <div className={`grid grid-cols-1 ${gridClass}`} style={gapStyle}>
-                {items.map(item => (
-                    <div key={item.id} className="flex justify-center overflow-hidden w-full">
-                        <SocialEmbedPreview platform={item.platform} url={item.url} />
-                    </div>
-                ))}
+        <SectionWrapper section={section}>
+            <div className="max-w-6xl mx-auto px-6">
+                <div className={`grid grid-cols-1 ${gridClass}`} style={gapStyle}>
+                    {items.map(item => (
+                        <div key={item.id} className="flex justify-center overflow-hidden w-full">
+                            <SocialEmbedPreview platform={item.platform} url={item.url} />
+                        </div>
+                    ))}
+                </div>
             </div>
-        </div>
+        </SectionWrapper>
     );
 };
 
@@ -108,63 +111,72 @@ export const AccordionRenderer = ({ section }) => {
     const design = section.design || 'simple';
 
     return (
-        <div className="max-w-3xl mx-auto flex flex-col gap-4">
-            {section.items.map(item => (
-                <details
-                    key={item.id}
-                    className={clsx(
-                        "group overflow-hidden transition-all duration-300",
-                        design === 'simple' && "border border-current/10 rounded-lg bg-white/5",
-                        design === 'flat' && "border-b border-current/10 bg-transparent rounded-none",
-                        design === 'card' && "bg-white/5 backdrop-blur-sm shadow-sm rounded-xl border border-white/10 hover:shadow-md"
-                    )}
-                >
-                    <summary className={clsx(
-                        "flex justify-between items-center font-medium cursor-pointer list-none select-none",
-                        design === 'simple' && "p-5",
-                        design === 'flat' && "p-4 px-0 hover:opacity-70 transition-opacity",
-                        design === 'card' && "p-6"
-                    )}>
-                        <span className="text-lg">{item.title}</span>
-                        <span className={clsx(
-                            "transition-transform duration-300 w-6 h-6 flex items-center justify-center rounded-full",
-                            "group-open:rotate-180",
-                            design === 'card' ? "bg-white/10" : ""
+        <SectionWrapper section={section}>
+            <div className="max-w-3xl mx-auto flex flex-col gap-4">
+                {section.items?.map(item => (
+                    <details
+                        key={item.id}
+                        className={clsx(
+                            "group overflow-hidden transition-all duration-300",
+                            design === 'simple' && "border border-current/10 rounded-lg bg-white/5",
+                            design === 'flat' && "border-b border-current/10 bg-transparent rounded-none",
+                            design === 'card' && "bg-white/5 backdrop-blur-sm shadow-sm rounded-xl border border-white/10 hover:shadow-md"
+                        )}
+                    >
+                        <summary className={clsx(
+                            "flex justify-between items-center font-medium cursor-pointer list-none select-none",
+                            design === 'simple' && "p-5",
+                            design === 'flat' && "p-4 px-0 hover:opacity-70 transition-opacity",
+                            design === 'card' && "p-6"
                         )}>
-                            <ChevronRight size={18} className="rotate-90" />
-                        </span>
-                    </summary>
-                    <div className={clsx(
-                        "text-sm opacity-80 leading-loose whitespace-pre-wrap",
-                        design === 'simple' && "p-5 pt-0 pb-6 border-t border-current/5", // Added pb-6 and kept pt-0 but added margin top via child or just spacing? User asked for MORE top margin
-                        design === 'flat' && "pb-6 animate-fadeIn",
-                        design === 'card' && "p-6 pt-0 text-base"
-                    )}>
-                        <div className="pt-2"> {/* Inner wrapper to ensure spacing */}
-                            {item.content}
+                            <span className="text-lg">{item.title || item.question || item.q}</span>
+                            <span className={clsx(
+                                "transition-transform duration-300 w-6 h-6 flex items-center justify-center rounded-full",
+                                "group-open:rotate-180",
+                                design === 'card' ? "bg-white/10" : ""
+                            )}>
+                                <ChevronRight size={18} className="rotate-90" />
+                            </span>
+                        </summary>
+                        <div className={clsx(
+                            "text-sm opacity-80 leading-loose whitespace-pre-wrap",
+                            design === 'simple' && "p-5 pt-0 pb-6 border-t border-current/5", // Added pb-6 and kept pt-0 but added margin top via child or just spacing? User asked for MORE top margin
+                            design === 'flat' && "pb-6 animate-fadeIn",
+                            design === 'card' && "p-6 pt-0 text-base"
+                        )}>
+                            <div className="pt-2"> {/* Inner wrapper to ensure spacing */}
+                                {item.text || item.content || item.description || item.answer || item.a}
+                            </div>
                         </div>
-                    </div>
-                </details>
-            ))}
-        </div>
+                    </details>
+                ))}
+            </div>
+        </SectionWrapper>
     );
 };
 
 export const PostCardRenderer = ({ section, viewMode }) => {
     const isMobile = viewMode === 'mobile';
+    const body = section.excerpt || section.text || section.content || "";
     return (
-        <div className="max-w-3xl mx-auto">
-            <a href={section.url} target="_blank" rel="noopener noreferrer" className={clsx("flex gap-6 p-6 bg-white/5 backdrop-blur-sm border border-current/10 rounded-xl hover:shadow-lg transition-all duration-300 group", isMobile ? "flex-col" : "flex-col md:flex-row")}>
-                <div className={clsx("w-full aspect-video flex-shrink-0 overflow-hidden rounded-md", isMobile ? "" : "md:w-48 md:aspect-square")}>
-                    <img src={section.image} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" alt="Post" />
-                </div>
-                <div className="flex-1 flex flex-col justify-center">
-                    <p className="text-xs opacity-50 mb-2 font-mono">{section.date}</p>
-                    <h4 className="text-lg font-medium mb-3 leading-snug group-hover:underline underline-offset-4">{section.title}</h4>
-                    <p className="text-sm opacity-70 leading-relaxed line-clamp-2">{section.excerpt}</p>
-                </div>
-            </a>
-        </div>
+        <SectionWrapper section={section}>
+            <div className="max-w-3xl mx-auto">
+                <a href={section.url} target="_blank" rel="noopener noreferrer" className={clsx("flex gap-6 p-6 bg-white/5 backdrop-blur-sm border border-current/10 rounded-xl hover:shadow-lg transition-all duration-300 group", isMobile ? "flex-col" : "flex-col md:flex-row")}>
+                    <div className={clsx("w-full aspect-video flex-shrink-0 overflow-hidden rounded-md", isMobile ? "" : "md:w-48 md:aspect-square")}>
+                        {getImgUrl(section.image) && getImgUrl(section.image).trim().length > 0 ? (
+                            <img src={getImgUrl(section.image)} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" alt="Post" />
+                        ) : (
+                            <div className="w-full h-full bg-gray-200 flex items-center justify-center text-xs opacity-50 font-serif">No Image</div>
+                        )}
+                    </div>
+                    <div className="flex-1 flex flex-col justify-center">
+                        <p className="text-xs opacity-50 mb-2 font-mono">{section.date}</p>
+                        <h4 className="text-lg font-medium mb-3 leading-snug group-hover:underline underline-offset-4">{section.title}</h4>
+                        <p className="text-sm opacity-70 leading-relaxed line-clamp-2">{body}</p>
+                    </div>
+                </a>
+            </div>
+        </SectionWrapper>
     );
 };
 
@@ -206,33 +218,35 @@ export const BoxRenderer = ({ section, children }) => {
     }
 
     return (
-        <div className={containerClass} style={boxStyle}>
-            {/* Sticky Tape Decor */}
-            {design === 'sticky' && (
-                <div className="absolute -top-6 left-1/2 transform -translate-x-1/2 w-32 h-8 bg-yellow-200/80 rotate-[-2deg] shadow-sm backdrop-blur-sm z-20"></div>
-            )}
+        <SectionWrapper section={section}>
+            <div className={containerClass} style={boxStyle}>
+                {/* Sticky Tape Decor */}
+                {design === 'sticky' && (
+                    <div className="absolute -top-6 left-1/2 transform -translate-x-1/2 w-32 h-8 bg-yellow-200/80 rotate-[-2deg] shadow-sm backdrop-blur-sm z-20"></div>
+                )}
 
-            {/* Ribbon Decor */}
-            {design === 'ribbon' && section.title && (
-                <div className="absolute -top-10 left-1/2 transform -translate-x-1/2 bg-red-600 text-white px-8 py-2 shadow-lg z-20">
-                    <h4 className="font-bold tracking-widest text-sm uppercase">{section.title}</h4>
-                    <div className="absolute top-0 right-full border-[16px] border-transparent border-r-red-600 border-b-red-800"></div>
-                    <div className="absolute top-0 left-full border-[16px] border-transparent border-l-red-600 border-b-red-800"></div>
-                </div>
-            )}
+                {/* Ribbon Decor */}
+                {design === 'ribbon' && section.title && (
+                    <div className="absolute -top-10 left-1/2 transform -translate-x-1/2 bg-red-600 text-white px-8 py-2 shadow-lg z-20">
+                        <h4 className="font-bold tracking-widest text-sm uppercase">{section.title}</h4>
+                        <div className="absolute top-0 right-full border-[16px] border-transparent border-r-red-600 border-b-red-800"></div>
+                        <div className="absolute top-0 left-full border-[16px] border-transparent border-l-red-600 border-b-red-800"></div>
+                    </div>
+                )}
 
-            {/* Content or Children */}
-            {children ? (
-                <div className={`space-y-6 ${design === 'ribbon' ? 'pt-6' : ''}`}>
-                    {children}
-                </div>
-            ) : (
-                <>
-                    {design !== 'ribbon' && section.title && <h4 className={titleClass}>{section.title}</h4>}
-                    <p className={contentClass}>{section.content}</p>
-                </>
-            )}
-        </div>
+                {/* Content or Children */}
+                {children ? (
+                    <div className={`space-y-6 ${design === 'ribbon' ? 'pt-6' : ''}`}>
+                        {children}
+                    </div>
+                ) : (
+                    <>
+                        {design !== 'ribbon' && section.title && <h4 className={titleClass}>{section.title}</h4>}
+                        <p className={contentClass}>{section.content}</p>
+                    </>
+                )}
+            </div>
+        </SectionWrapper>
     );
 };
 
@@ -243,63 +257,106 @@ export const ColumnsRenderer = ({ section, viewMode }) => {
     const gapStyle = { gap: `${section.gap !== undefined ? section.gap : 32}px` };
 
     return (
-        <div className={`grid grid-cols-1 ${gridClass}`} style={gapStyle}>
-            {section.items.map(item => (
-                <div key={item.id} className="flex flex-col space-y-4">
-                    {section.colType === 'card' && (
-                        <>
-                            <div className="aspect-[4/3] w-full overflow-hidden rounded-lg bg-gray-100">
-                                <img src={item.image} alt={item.title} className="w-full h-full object-cover transition-transform duration-500 hover:scale-105" />
-                            </div>
-                            <div>
-                                <h4 className="text-lg font-medium mb-1">{item.title}</h4>
-                                <p className="text-sm opacity-70 leading-relaxed text-xs">{item.text}</p>
-                            </div>
-                        </>
-                    )}
-                    {section.colType === 'text' && (
-                        <div className="p-6 bg-white/5 rounded-lg border border-current/10 h-full">
-                            <h4 className="text-lg font-bold mb-2">{item.title}</h4>
-                            <p className="text-sm opacity-80 leading-relaxed">{item.text}</p>
-                        </div>
-                    )}
-                    {section.colType === 'image' && (
-                        <div className="aspect-square w-full overflow-hidden rounded-lg shadow-sm">
-                            <img src={item.image} alt="Image" className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
-                        </div>
-                    )}
-                    {section.colType === 'social' && (
-                        <div className="flex justify-center overflow-hidden">
-                            <SocialEmbedPreview platform={item.platform} url={item.url} />
-                        </div>
-                    )}
-                    {section.colType === 'video' && (
-                        <div className="aspect-video w-full rounded-lg overflow-hidden bg-black shadow">
-                            {getYouTubeId(item.url) ? (
-                                <iframe width="100%" height="100%" src={`https://www.youtube.com/embed/${getYouTubeId(item.url)}`} frameBorder="0" allowFullScreen></iframe>
-                            ) : (
-                                <video src={item.url} controls className="w-full h-full object-cover"></video>
+        <SectionWrapper section={section}>
+            <div className={`grid grid-cols-1 ${gridClass}`} style={gapStyle}>
+                {section.items?.map((item, idx) => {
+                    const key = item.id ?? item._id ?? `${section.id || 'section'}-${idx}`;
+                    const imgUrl = getImgUrl(item.image);
+                    // text/content/description 両対応
+                    const body = item.text ?? item.content ?? item.description ?? "";
+
+                    return (
+                        <div key={key} className="flex flex-col space-y-4">
+                            {section.colType === 'card' && (
+                                <>
+                                    <div className="aspect-[4/3] w-full overflow-hidden rounded-lg bg-gray-100">
+                                        {(imgUrl && imgUrl.trim().length > 0) ? (
+                                            <img
+                                                src={imgUrl}
+                                                alt={item.title || 'image'}
+                                                className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
+                                                loading="lazy"
+                                            />
+                                        ) : (
+                                            <div className="w-full h-full flex items-center justify-center text-xs opacity-50">
+                                                No image
+                                            </div>
+                                        )}
+                                    </div>
+                                    <div>
+                                        <h4 className="text-lg font-medium mb-1">{item.title}</h4>
+                                        <p className="text-sm opacity-70 leading-relaxed text-xs whitespace-pre-wrap">
+                                            {body}
+                                        </p>
+                                    </div>
+                                </>
+                            )}
+                            {section.colType === 'text' && (
+                                <div className="p-6 bg-white/5 rounded-lg border border-current/10 h-full">
+                                    <h4 className="text-lg font-bold mb-2">{item.title}</h4>
+                                    <p className="text-sm opacity-80 leading-relaxed whitespace-pre-wrap">
+                                        {body}
+                                    </p>
+                                </div>
+                            )}
+                            {section.colType === 'image' && (
+                                <div className="aspect-square w-full overflow-hidden rounded-lg shadow-sm bg-gray-100">
+                                    {(imgUrl && imgUrl.trim().length > 0) ? (
+                                        <img
+                                            src={imgUrl}
+                                            alt={item.title || 'image'}
+                                            className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
+                                            loading="lazy"
+                                        />
+                                    ) : (
+                                        <div className="w-full h-full flex items-center justify-center text-xs opacity-50">
+                                            No image
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+                            {section.colType === 'social' && (
+                                <div className="flex justify-center overflow-hidden">
+                                    <SocialEmbedPreview platform={item.platform} url={item.url} />
+                                </div>
+                            )}
+                            {section.colType === 'video' && (
+                                <div className="aspect-video w-full rounded-lg overflow-hidden bg-black shadow">
+                                    {getYouTubeId(item.url) ? (
+                                        <iframe
+                                            width="100%"
+                                            height="100%"
+                                            src={`https://www.youtube.com/embed/${getYouTubeId(item.url)}`}
+                                            frameBorder="0"
+                                            allowFullScreen
+                                        />
+                                    ) : (
+                                        <video src={item.url} controls className="w-full h-full object-cover" />
+                                    )}
+                                </div>
                             )}
                         </div>
-                    )}
-                </div>
-            ))}
-        </div>
+                    );
+                })}
+            </div>
+        </SectionWrapper>
     );
 };
 
 export const LinksRenderer = ({ section }) => {
     return (
-        <div className="max-w-xl mx-auto space-y-3">
-            {section.links.map(link => (
-                <a key={link.id} href={link.url} target="_blank" rel="noopener noreferrer" className="block w-full bg-white/5 backdrop-blur-sm border border-current/10 p-4 rounded-xl flex items-center justify-between hover:bg-white/10 transition-colors group">
-                    <div>
-                        <div className="font-bold">{link.label}</div>
-                        {link.subtext && <div className="text-xs opacity-70 mt-1">{link.subtext}</div>}
-                    </div>
-                </a>
-            ))}
-        </div>
+        <SectionWrapper section={section}>
+            <div className="max-w-xl mx-auto space-y-3">
+                {section.links?.map(link => (
+                    <a key={link.id} href={link.url} target="_blank" rel="noopener noreferrer" className="block w-full bg-white/5 backdrop-blur-sm border border-current/10 p-4 rounded-xl flex items-center justify-between hover:bg-white/10 transition-colors group">
+                        <div>
+                            <div className="font-bold">{link.label}</div>
+                            {link.subtext && <div className="text-xs opacity-70 mt-1">{link.subtext}</div>}
+                        </div>
+                    </a>
+                ))}
+            </div>
+        </SectionWrapper>
     );
 };
 

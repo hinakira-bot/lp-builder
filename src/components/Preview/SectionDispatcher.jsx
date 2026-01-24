@@ -1,17 +1,22 @@
 /* eslint-disable */
 import React from 'react';
 import { HeroSection } from './HeroSection';
-import { SectionWrapper, TextRenderer, ImageRenderer, HeadingRenderer, VideoRenderer, ButtonRenderer } from './Sections/Renderers';
+import { TextRenderer, ImageRenderer, HeadingRenderer, VideoRenderer, ButtonRenderer } from './Sections/Renderers';
 import { SocialRenderer, AccordionRenderer, PostCardRenderer, ColumnsRenderer, LinksRenderer, BoxRenderer } from './Sections/ComplexRenderers';
 import { ConversionPanel, PointList, ProblemChecklist, SpeechBubbleRenderer, PricingRenderer, ProcessRenderer, StaffRenderer, FAQRenderer, ComparisonRenderer, AccessRenderer, ReviewRenderer } from './Sections/BusinessRenderers';
+import { SectionWrapper } from './Sections/SectionWrapper';
+import { TYPE_ALIASES } from '../../utils/componentRegistry';
+import { normalizeSectionForRender } from '../../utils/normalization';
+import { getImgUrl } from '../../utils/helpers';
 
 // Map of all available renderers
 export const renderers = {
     text: TextRenderer,
     image: ImageRenderer,
-    image_text: ({ section, fontSize, viewMode }) => {
+    image_text: ({ section, fontSize, viewMode, globalPadding }) => {
         const isRight = section.imagePosition === 'right';
         const isMobile = viewMode === 'mobile';
+        const imgUrl = getImgUrl(section.image);
 
         // Text Styles Logic
         let textClasses = "";
@@ -24,17 +29,23 @@ export const renderers = {
         if (section.textBackdrop === 'black') containerClasses += " bg-black/70 backdrop-blur text-white p-6 rounded-xl shadow-lg";
 
         return (
-            <div className={`flex flex-col ${isMobile ? '' : 'md:flex-row'} gap-10 items-center`}>
-                <div className={`w-full ${isMobile ? '' : 'md:w-1/2'} ${!isMobile && isRight ? 'md:order-2' : ''}`}>
-                    <img src={section.image} alt={section.title} className="w-full h-auto rounded-lg shadow-lg object-cover aspect-[4/3]" />
-                </div>
-                <div className={`w-full ${isMobile ? '' : 'md:w-1/2'} ${!isMobile && isRight ? 'md:order-1 md:pr-10' : (isMobile ? '' : 'md:pl-10')}`}>
-                    <div className={containerClasses}>
-                        <h3 className={`font-medium tracking-widest mb-6 leading-tight ${textClasses}`} style={{ fontSize: `${fontSize.sectionTitle}rem` }}>{section.title}</h3>
-                        <p className={`leading-loose whitespace-pre-wrap font-light ${textClasses}`} style={{ fontSize: `${fontSize.body}rem` }}>{section.content}</p>
+            <SectionWrapper section={section} globalPadding={globalPadding}>
+                <div className={`flex flex-col ${isMobile ? '' : 'md:flex-row'} gap-10 items-center`}>
+                    <div className={`w-full ${isMobile ? '' : 'md:w-1/2'} ${!isMobile && isRight ? 'md:order-2' : ''}`}>
+                        {imgUrl ? (
+                            <img src={imgUrl} alt={section.title} className="w-full h-auto rounded-lg shadow-lg object-cover aspect-[4/3]" />
+                        ) : (
+                            <div className="w-full h-auto aspect-[4/3] bg-gray-200 flex items-center justify-center rounded-lg text-gray-400">No Image</div>
+                        )}
+                    </div>
+                    <div className={`w-full ${isMobile ? '' : 'md:w-1/2'} ${!isMobile && isRight ? 'md:order-1 md:pr-10' : (isMobile ? '' : 'md:pl-10')}`}>
+                        <div className={containerClasses}>
+                            <h3 className={`font-medium tracking-widest mb-6 leading-tight ${textClasses}`} style={{ fontSize: `${fontSize.sectionTitle}rem` }}>{section.title}</h3>
+                            <p className={`leading-loose whitespace-pre-wrap font-light ${textClasses}`} style={{ fontSize: `${fontSize.body}rem` }}>{section.content}</p>
+                        </div>
                     </div>
                 </div>
-            </div>
+            </SectionWrapper>
         );
     },
     heading: HeadingRenderer,
@@ -72,7 +83,17 @@ export const SectionDispatcher = ({ sections, viewMode, fontSize, accentColor, g
                 // Actually, sticky usually implies "fixed to viewport", which is bad if nested. 
                 // We will render it normally if nested.
 
-                const Renderer = renderers[section.type] || (() => <div className="text-red-500 p-4 border border-red-500">Unknown Section: {section.type}</div>);
+                const normalizedSection = normalizeSectionForRender(section);
+                const resolvedType = renderers[normalizedSection.type] ? normalizedSection.type : (TYPE_ALIASES[normalizedSection.type] || normalizedSection.type);
+                const Renderer = renderers[resolvedType] || (() => (
+                    <div className="text-red-500 p-8 border-2 border-dashed border-red-200 rounded-2xl bg-red-50/50 font-serif my-8 text-center">
+                        <p className="font-bold text-lg mb-2">Unknown Section: {section.type}</p>
+                        <p className="text-sm opacity-70">
+                            ご不便をおかけしております。このコンポーネントは現在準備中か、名称が変更された可能性があります。<br />
+                            AI生成をやり直すか、別のパーツへの差し替えをお試しください。
+                        </p>
+                    </div>
+                ));
 
                 // Handle Children (Nesting)
                 // If the section has 'children' (e.g. Box, FullWidth), we pass a function or node to render them.
@@ -84,11 +105,16 @@ export const SectionDispatcher = ({ sections, viewMode, fontSize, accentColor, g
                 ) : null;
 
                 return (
-                    <SectionWrapper key={section.id} section={section} fontSize={fontSize} globalPadding={globalPadding}>
-                        <Renderer section={section} fontSize={fontSize} viewMode={viewMode} accentColor={accentColor}>
-                            {childrenNodes}
-                        </Renderer>
-                    </SectionWrapper>
+                    <Renderer
+                        key={normalizedSection.id}
+                        section={normalizedSection}
+                        fontSize={fontSize}
+                        viewMode={viewMode}
+                        accentColor={accentColor}
+                        globalPadding={globalPadding}
+                    >
+                        {childrenNodes}
+                    </Renderer>
                 );
             })}
         </>

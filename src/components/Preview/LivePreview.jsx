@@ -3,12 +3,16 @@ import React, { useState, useEffect } from 'react';
 import { clsx } from 'clsx';
 import { HeroSection } from './HeroSection';
 import { SectionDispatcher } from './SectionDispatcher';
+import { normalizeGlobalDataForRender } from '../../utils/normalization';
 
-export const LivePreview = ({ data, viewMode, activeSectionId, isPublished = false }) => {
+export const LivePreview = ({ data: rawData, viewMode, activeSectionId, isPublished = false }) => {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
     // Initial check to avoid crashing if data is missing
-    if (!data) return <div className="p-10 text-gray-400">Loading Preview Data...</div>;
+    if (!rawData) return <div className="p-10 text-gray-400">Loading Preview Data...</div>;
+
+    // Normalize data for rendering consistency
+    const data = normalizeGlobalDataForRender(rawData);
 
     // Auto Scroll Logic (Editor only)
     useEffect(() => {
@@ -40,7 +44,7 @@ export const LivePreview = ({ data, viewMode, activeSectionId, isPublished = fal
             style={{
                 color: data.textColor,
                 backgroundColor: data.pageBgType === 'color' ? data.pageBgValue : 'transparent',
-                backgroundImage: data.pageBgType === 'image' ? `url(${data.pageBgValue})` : 'none',
+                backgroundImage: data.pageBgType === 'image' && data.pageBgValue ? `url(${data.pageBgValue})` : 'none',
                 backgroundSize: data.pageBgType === 'image' ? 'cover' : 'auto',
                 fontFamily: data.fontFamily === 'serif' ? "'Cormorant Garamond', 'Noto Sans JP', serif" : "'Noto Sans JP', sans-serif"
             }}
