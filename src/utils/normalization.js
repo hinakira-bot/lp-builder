@@ -11,19 +11,26 @@ export function normalizeSectionForRender(section) {
     const normalized = { ...section };
 
     // 1. Background Normalization (bgType / bgValue)
-    const bgImage =
+    // 1. Background Normalization (bgType / bgValue)
+    const isExplicitColor = normalized.bgType === 'color';
+
+    // Only treat bgValue as potential image if NOT explicitly set to color
+    const bgImageCandidate =
         normalized.bgImage ||
         normalized.style?.bgImage ||
         normalized.style?.backgroundImage ||
         normalized.imageConfig?.bgImage ||
-        normalized.bgValue;
+        (!isExplicitColor ? normalized.bgValue : null);
 
-    if (bgImage && typeof bgImage === 'string' && bgImage.length > 0) {
+    // Simple heuristic: if it looks like a color code, ignore it as image
+    const appearsToBeColor = typeof bgImageCandidate === 'string' && (bgImageCandidate.startsWith('#') || bgImageCandidate.startsWith('rgb') || bgImageCandidate.startsWith('hsl'));
+
+    if (bgImageCandidate && typeof bgImageCandidate === 'string' && bgImageCandidate.length > 0 && !appearsToBeColor) {
         normalized.bgType = 'image';
-        normalized.bgValue = bgImage.replace(/^url\(["']?/, '').replace(/["']?\)$/, '');
-    } else if (normalized.backgroundColor || (normalized.bgType === 'color' && normalized.bgValue)) {
+        normalized.bgValue = bgImageCandidate.replace(/^url\(["']?/, '').replace(/["']?\)$/, '');
+    } else if (normalized.backgroundColor || isExplicitColor || appearsToBeColor) {
         normalized.bgType = 'color';
-        normalized.bgValue = normalized.backgroundColor || normalized.bgValue;
+        normalized.bgValue = normalized.bgValue || normalized.backgroundColor || (appearsToBeColor ? bgImageCandidate : null);
     }
 
     // 2. Text Key Mapping (heading / text)

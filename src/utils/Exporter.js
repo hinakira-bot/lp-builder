@@ -54,6 +54,41 @@ const getYouTubeId = (url) => {
     return (match && match[1].length === 11) ? match[1] : null;
 };
 
+const parseRichTextHtml = (text, markerColor, accent) => {
+    if (!text) return "";
+    const color = markerColor || '#ffff00';
+    const accentColor = accent || '#3b82f6';
+
+    // Split by markers [[...]], bold **...**, subheadings ###...###, red text !!...!!, and links [...](...)
+    const parts = text.split(/(\[\[.*?\]\]|\*\*.*?\*\*|###.*?###|!!.*?!!|\[.*?\]\(.*?\))/g);
+
+    return parts.map(part => {
+        if (part.startsWith('[[') && part.endsWith(']]')) {
+            const content = part.slice(2, -2);
+            return `<mark style="background: linear-gradient(transparent 60%, ${color} 60%); text-shadow: none;">${content}</mark>`;
+        }
+        if (part.startsWith('**') && part.endsWith('**')) {
+            const content = part.slice(2, -2);
+            return `<strong>${content}</strong>`;
+        }
+        if (part.startsWith('!!') && part.endsWith('!!')) {
+            const content = part.slice(2, -2);
+            return `<span style="color: #ef4444; font-weight: bold;">${content}</span>`;
+        }
+        if (part.startsWith('[') && part.endsWith(')')) {
+            const match = part.match(/\[(.*?)\]\((.*?)\)/);
+            if (match) {
+                return `<a href="${match[2]}" target="_blank" rel="noopener noreferrer" style="color: #3b82f6; text-decoration: underline;">${match[1]}</a>`;
+            }
+        }
+        if (part.startsWith('###') && part.endsWith('###')) {
+            const content = part.slice(3, -3);
+            return `<div style="display: block; margin-top: 40px; margin-bottom: 16px; padding-left: 16px; margin-left: 24px; border-left: 4px solid ${accentColor}; font-weight: 900; font-size: 1.25em;">${content}</div>`;
+        }
+        return part;
+    }).join("");
+};
+
 // --- HTML Generator ---
 const generateHTML = (data) => {
     const bgStyle = data.pageBgType === 'color'
@@ -130,25 +165,86 @@ const generateHTML = (data) => {
         else if (section.textBackdrop === 'black') containerClasses += ` ${backdropBase} bg-black/70 text-white`;
 
         if (section.type === 'text') {
-            const textAlign = section.align === 'center' ? 'text-center' : (section.align === 'right' ? 'text-right' : 'text-left');
+            const align = section.align || 'left';
+            const textAlignProp = section.textAlign || align;
+            const alignClass = align === 'center' ? 'text-center' : (align === 'right' ? 'text-right' : 'text-left');
+            const textAlignClass = textAlignProp === 'center' ? 'text-center' : (textAlignProp === 'right' ? 'text-right' : 'text-left');
 
-            // Apply container to wrapper if exists, otherwise text
+            const scale = section.textScale || 1.0;
+            const markerColor = section.markerColor || '#ffff00';
+            const textShadowVal = (section.bgType === 'image' || section.bgImage) ? '2px 2px 0 #fff, -2px -2px 0 #fff, 2px -2px 0 #fff, -2px 2px 0 #fff, 0 2px 0 #fff, 0 -2px 0 #fff, 2px 0 0 #fff, -2px 0 0 #fff' : '';
+            const textShadowStyle = textShadowVal ? `text-shadow: ${textShadowVal};` : '';
+
+            // Re-use heading pattern logic for text section title
+            const pattern = section.pattern || 'standard';
+            const accent = section.accentColor || data.accentColor || '#3b82f6';
+            let headingClass = `font-bold mb-8 tracking-tight ${alignClass} `;
+            let headingStyle = `font-size: ${data.fontSize.sectionTitle * scale}rem; ${textShadowStyle} `;
+            let decorationHtml = '';
+
+            // Layout Container Styles (match Renderers.jsx: max-w-4xl = 896px)
+            let headingContainerStyle = `max-width: 896px; margin-left: auto; margin-right: auto; width: 100%; margin-bottom: 32px;`;
+            let bodyContainerStyle = `max-width: 896px; margin-left: auto; margin-right: auto; font-size: ${data.fontSize.body * scale}rem; opacity: 0.8;`;
+
+            // Indentation for Left Align
+            if (align === 'left') {
+                headingContainerStyle += ` padding-left: 1rem;`;
+            }
+            if (textAlignProp === 'left') {
+                bodyContainerStyle += ` padding-left: 1rem;`;
+            }
+
+            if (section.title) {
+                if (pattern === 'background') {
+                    headingClass += "inline-block px-6 py-3 rounded-lg ";
+                    headingStyle += `background-color: ${accent}; color: #fff; text-shadow: none; `;
+                } else if (pattern === 'leftBorder') {
+                    headingClass += "border-l-8 pl-4 py-1 ";
+                    headingStyle += `border-left-color: ${accent}; `;
+                } else if (pattern === 'doubleLine') {
+                    headingClass += "border-y-2 py-4 border-dashed ";
+                    headingStyle += `border-top-color: ${accent}; border-bottom-color: ${accent}; `;
+                } else if (pattern === 'quote') {
+                    headingClass += "relative pl-10 py-2 border-l-4 ";
+                    headingStyle += `border-left-color: ${accent}; `;
+                    decorationHtml = `<div style="position: absolute; left: 12px; top: 0; font-size: 2.25rem; opacity: 0.2; font-family: serif; color: ${accent};">&ldquo;</div>`;
+                } else {
+                    // Standard
+                    decorationHtml = `<div style="width: 48px; height: 4px; margin-top: 16px; border-radius: 9999px; background-color: ${accent}; ${alignClass === 'text-center' ? 'margin-left: auto; margin-right: auto;' : (alignClass === 'text-right' ? 'margin-left: auto;' : '')}"></div>`;
+                }
+            }
+
             const inner = `
-                ${section.title ? `<h3 class="font-medium tracking-widest mb-6 ${textClasses}" style="font-size: ${data.fontSize.sectionTitle}rem;">${section.title}</h3>` : ''}
-                <p class="leading-loose whitespace-pre-wrap font-light tracking-wide ${textClasses}" style="font-size: ${data.fontSize.body}rem;">${section.content}</p>
+                ${section.title ? `
+                    <div style="${headingContainerStyle}" class="${alignClass}">
+                        <div style="display: inline-block; position: relative; ${align === 'center' ? '' : 'width: 100%;'}">
+                            ${pattern === 'quote' ? decorationHtml : ''}
+                            <h3 class="${headingClass}" style="${headingStyle}">${parseRichTextHtml(section.title, markerColor, accent)}</h3>
+                            ${pattern !== 'quote' && pattern !== 'background' && pattern !== 'leftBorder' && pattern !== 'doubleLine' ? decorationHtml : ''}
+                        </div>
+                    </div>
+                ` : ''}
+                <div class="leading-loose whitespace-pre-wrap ${textClasses} ${textAlignClass}" style="${bodyContainerStyle}">${parseRichTextHtml(section.content || section.text, markerColor, accent)}</div>
             `;
 
             contentHtml = `
-            <div class="max-w-3xl mx-auto ${textAlign} ${containerClasses}">
+            <div class="w-full ${containerClasses}">
                 ${inner}
             </div>`;
         }
         else if (section.type === 'image') {
             const width = section.width || 100;
             const alignClass = section.align === 'center' ? 'mx-auto' : (section.align === 'right' ? 'ml-auto' : 'mr-auto');
+            const borderRadiusStyle = section.borderRadius !== undefined ? `border-radius: ${section.borderRadius}px;` : '';
+
+            const imgTag = `<img src="${section.url}" alt="${section.caption || ''}" class="w-full h-auto ${section.borderRadius === undefined ? 'rounded-lg' : ''} shadow-lg" style="${borderRadiusStyle}" />`;
+            const content = section.linkUrl
+                ? `<a href="${section.linkUrl}" target="_blank" class="block hover:opacity-80 transition-opacity">${imgTag}</a>`
+                : imgTag;
+
             contentHtml = `
             <div style="width: ${width}%;" class="${alignClass}">
-               <img src="${section.url}" alt="${section.caption || ''}" class="w-full h-auto rounded-lg shadow-lg" />
+               ${content}
                ${section.caption ? `<p class="text-xs text-center mt-4 opacity-60">${section.caption}</p>` : ''}
             </div>`;
         }
@@ -161,7 +257,7 @@ const generateHTML = (data) => {
             const inner = `
                 <h3 class="font-bold tracking-tight mb-6 leading-tight ${textClasses}" style="font-size: ${data.fontSize.sectionTitle * 1.1}rem; color: ${section.bgType === 'image' ? '#fff' : 'inherit'};">${section.title}</h3>
                 <div class="w-12 h-1 mb-8 opacity-50" style="background-color: ${section.bgType === 'image' ? '#fff' : accent}"></div>
-                <p class="leading-loose whitespace-pre-wrap ${textClasses}" style="font-size: ${data.fontSize.body}rem; color: ${section.bgType === 'image' ? '#fff' : 'inherit'}; opacity: 0.8;">${section.content}</p>
+                <div class="leading-loose whitespace-pre-wrap ${textClasses}" style="font-size: ${data.fontSize.body * (section.textScale || 1.0)}rem; color: ${section.bgType === 'image' ? '#fff' : 'inherit'}; opacity: 0.8;">${parseRichTextHtml(section.content, section.markerColor || '#ffff00', accent)}</div>
             `;
 
             contentHtml = `
@@ -177,16 +273,53 @@ const generateHTML = (data) => {
               </div>`;
         }
         else if (section.type === 'heading') {
-            const alignClass = section.style === 'center' ? 'text-center' : (section.style === 'right' ? 'text-right' : 'text-left');
-            const accent = section.accentColor || data.accentColor || '#3b82f6';
-            const textShadowStyle = (section.bgType === 'image') ? 'text-shadow: 2px 2px 0 #fff, -2px -2px 0 #fff, 2px -2px 0 #fff, -2px 2px 0 #fff, 0 2px 0 #fff, 0 -2px 0 #fff, 2px 0 0 #fff, -2px 0 0 #fff;' : '';
+            const align = section.align || section.style || 'center';
+            const alignClass = align === 'center' ? 'text-center' : (align === 'right' ? 'text-right' : 'text-left');
+            const pattern = section.pattern || 'simple';
+            const design = section.design || 'standard';
+            const theme = getDesignTheme(design);
+            const accent = section.accentColor || data.accentColor || theme.primary;
+            const headingText = section.text || section.content || section.heading || section.title;
+            const textShadowStyle = (section.bgType === 'image' || section.bgImage) ? '2px 2px 0 #fff, -2px -2px 0 #fff, 2px -2px 0 #fff, -2px 2px 0 #fff, 0 2px 0 #fff, 0 -2px 0 #fff, 2px 0 0 #fff, -2px 0 0 #fff' : '';
+
+            let headingClass = "font-black leading-tight tracking-tight mb-2 ";
+            let headingStyle = `font-size: ${data.fontSize.sectionTitle * 1.3}rem; color: ${theme.text}; ${textShadowStyle ? `text-shadow: ${textShadowStyle};` : ''}`;
+            let decorationHtml = '';
+            let containerClass = "inline-block relative ";
+
+            if (pattern === 'background') {
+                headingClass += "inline-block px-6 py-3 rounded-lg ";
+                headingStyle += `background-color: ${accent}; color: #fff; text-shadow: none; `;
+            } else if (pattern === 'leftBorder') {
+                headingClass += "border-l-8 pl-4 py-1 ";
+                headingStyle += `border-left-color: ${accent}; `;
+            } else if (pattern === 'doubleLine') {
+                headingClass += "border-y-2 py-4 border-dashed ";
+                headingStyle += `border-top-color: ${accent}; border-bottom-color: ${accent}; `;
+            } else if (pattern === 'underline') {
+                headingClass += "border-b-4 pb-2 inline-block px-4 ";
+                headingStyle += `border-bottom-color: ${accent}; `;
+            } else if (pattern === 'bracket') {
+                headingClass += "border-x-8 px-6 py-1 ";
+                headingStyle += `border-left-color: ${accent}; border-right-color: ${accent}; `;
+            } else if (pattern === 'gradient') {
+                headingClass += "bg-clip-text text-transparent ";
+                headingStyle += `background-image: linear-gradient(45deg, ${accent}, #64748b); color: transparent; -webkit-background-clip: text; background-clip: text; text-shadow: none; `;
+            } else if (pattern === 'quote') {
+                headingClass += "relative pl-10 py-2 border-l-4 ";
+                headingStyle += `border-left-color: ${accent}; `;
+                decorationHtml = `<div class="absolute left-3 top-0 text-4xl opacity-20 font-serif" style="color: ${accent};">&ldquo;</div>`;
+            }
+
+            const wrapperClass = `max-w-4xl mx-auto ${alignClass} ${align === 'left' ? 'pl-4 md:pl-8' : ''}`;
 
             contentHtml = `
-             <div class="max-w-4xl mx-auto ${alignClass}">
-                <div class="inline-block relative px-4 ${containerClasses}">
-                  <h2 class="font-black leading-tight tracking-tight mb-2 ${textClasses}" style="font-size: ${data.fontSize.sectionTitle * 1.3}rem; ${textShadowStyle}">${section.text || section.title}</h2>
-                  ${section.subText ? `<p class="text-xs md:text-sm opacity-40 font-black tracking-[0.2em] mb-4 uppercase ${textClasses}" style="${textShadowStyle}">${section.subText}</p>` : ''}
-                  <div class="w-12 h-1 ${alignClass === 'text-center' ? 'mx-auto' : (alignClass === 'text-right' ? 'ml-auto' : '')} rounded-full" style="background-color: ${accent}"></div>
+             <div class="${wrapperClass}">
+                <div class="${containerClass}">
+                  ${pattern === 'quote' ? decorationHtml : ''}
+                  <h2 class="${headingClass} ${textClasses}" style="${headingStyle}">${parseRichTextHtml(headingText, section.markerColor, accent)}</h2>
+                  ${section.subText ? `<p class="text-xs md:text-sm opacity-40 font-black tracking-[0.2em] mb-4 uppercase ${textClasses}" style="${textShadowStyle ? `text-shadow: ${textShadowStyle};` : ''}">${section.subText}</p>` : ''}
+                  ${pattern !== 'quote' && decorationHtml ? decorationHtml : ''} 
                 </div>
              </div>`;
         }
@@ -205,13 +338,73 @@ const generateHTML = (data) => {
         else if (section.type === 'button') {
             const alignClass = section.align === 'center' ? 'text-center' : (section.align === 'right' ? 'text-right' : 'text-left');
             const color = section.color || '#1f2937';
-            const btnStyle = section.style === 'fill' ? `background-color: ${color}; color: #ffffff;` : `background-color: transparent; color: ${color}; border-color: ${color};`;
-            const size = section.size || 'M';
-            const sizeClass = size === 'S' ? 'px-6 py-2 text-sm' : size === 'M' ? 'px-10 py-4 text-base' : 'px-14 py-5 text-xl';
-            const widthStyle = section.width && section.width > 0 ? `width: ${section.width}%; display: inline-flex; justify-content: center;` : '';
+            const paddingY = section.paddingY || 16;
+
+            // Text Size
+            const baseSize = section.size || 'M';
+            const textSizeClass = baseSize === 'S' ? 'text-[10px] md:text-xs' :
+                baseSize === 'M' ? 'text-xs md:text-sm' :
+                    baseSize === 'L' ? 'text-sm md:text-lg' :
+                        'text-base md:text-2xl';
+
+            const pxClass = baseSize === 'S' ? 'px-6' :
+                baseSize === 'M' ? 'px-10' :
+                    baseSize === 'L' ? 'px-14' :
+                        'px-16';
+
+            const isOutline = section.style === 'outline';
+            const effect = section.effect || 'none';
+            const widthStyle = section.width > 0 ? `width: ${section.width}%;` : '';
+
+            let btnStyle = isOutline
+                ? `background-color: transparent; color: ${color}; border: 2px solid ${color};`
+                : `background-color: ${color}; color: #ffffff; border: none;`;
+
+            btnStyle += ` padding-top: ${paddingY}px; padding-bottom: ${paddingY}px;`;
+
+            let effectClass = "";
+            if (effect === 'float') effectClass = "animate-bounce-slow";
+            if (effect === '3d' && !isOutline) {
+                btnStyle += ` box-shadow: 0 4px 0 ${color}cc; margin-bottom: 4px;`;
+            }
+
+            const hoverClass = effect === '3d' ? "active:translate-y-[4px] active:shadow-none" : "hover:-translate-y-1 hover:shadow-lg";
+
+            const keyframes = `
+                <style>
+                    @keyframes shimmer { 0% { transform: translateX(-150%) skewX(-15deg); } 100% { transform: translateX(150%) skewX(-15deg); } }
+                    .animate-shimmer { animation: shimmer 3s infinite; }
+                    @keyframes bounce-slow { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
+                    .animate-bounce-slow { animation: bounce-slow 2s infinite ease-in-out; }
+                </style>`;
+
+            // Icon SVG Logic
+            const icon = section.icon || 'arrowRight';
+            let iconSvg = '';
+            const svgProps = 'width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"';
+
+            if (icon === 'arrowRight') iconSvg = `<svg ${svgProps}><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>`;
+            else if (icon === 'mail') iconSvg = `<svg ${svgProps}><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>`;
+            else if (icon === 'phone') iconSvg = `<svg ${svgProps}><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>`;
+            else if (icon === 'externalLink') iconSvg = `<svg ${svgProps}><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" x2="21" y1="14" y2="3"/></svg>`;
+            else if (icon === 'cart') iconSvg = `<svg ${svgProps}><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg>`;
+            else if (icon === 'check') iconSvg = `<svg ${svgProps}><polyline points="20 6 9 17 4 12"/></svg>`;
+
+            if (icon === 'none') iconSvg = '';
+
+            const microCopyHtml = section.microCopy ? `<p class="text-xs text-center mb-2 font-bold opacity-75 leading-none">${section.microCopy}</p>` : '';
+            const sparkleHtml = effect === 'sparkle' ? `<div class="absolute top-0 left-0 w-full h-full animate-shimmer pointer-events-none opacity-20"><div class="w-1/2 h-full bg-gradient-to-r from-transparent via-white to-transparent transform -skew-x-12"></div></div>` : '';
 
             contentHtml = `<div class="max-w-4xl mx-auto ${alignClass}">
-                <a href="${section.url}" target="_blank" style="${btnStyle} ${widthStyle}" class="inline-block border rounded-full transition-all ${sizeClass} font-medium tracking-widest">${section.label}</a>
+                ${keyframes}
+                ${microCopyHtml}
+                <a href="${section.url}" target="_blank" style="${btnStyle} ${widthStyle}" class="group relative inline-flex items-center justify-center transition-all duration-300 overflow-hidden font-black tracking-widest uppercase rounded-lg ${textSizeClass} ${pxClass} ${effectClass} ${hoverClass}">
+                    <span class="relative z-10 flex items-center gap-2">
+                        ${section.label}
+                        ${iconSvg}
+                    </span>
+                    ${sparkleHtml}
+                </a>
             </div>`;
         }
         else if (section.type === 'pricing') {
@@ -414,6 +607,105 @@ const generateHTML = (data) => {
                 </div>` : ''}
                 <div class="grid gap-6 md:gap-10 items-stretch ${section.layout === 'vertical' ? 'grid-cols-1 max-w-2xl mx-auto' : `grid-cols-1 ${items.length === 2 ? 'md:grid-cols-2 max-w-4xl mx-auto' : 'md:grid-cols-3'}`} md:scale-[1.05] md:origin-top transition-transform">
                     ${plansHtml}
+                </div>
+            </div>`;
+        }
+        else if (section.type === 'box') {
+            const design = section.design || 'simple';
+            const accent = section.boxColor || section.accentColor || data.accentColor || '#3b82f6';
+
+            // Padding
+            const pStyle = `padding-top: ${section.pTop !== undefined ? section.pTop : 32}px; padding-bottom: ${section.pBottom !== undefined ? section.pBottom : 32}px; padding-left: ${section.pLeft !== undefined ? section.pLeft : 32}px; padding-right: ${section.pRight !== undefined ? section.pRight : 32}px;`;
+
+            let containerClass = "relative transition-all duration-300 w-full mx-auto ";
+            let style = pStyle;
+            let innerClass = "";
+
+            // Design Logic
+            if (design === 'comic') {
+                containerClass += "bg-white border-4 border-black text-gray-900 shadow-[8px_8px_0px_0px_black] ";
+            } else if (design === 'neon') {
+                containerClass += "bg-neutral-900 text-white border-2 border-blue-500 shadow-[0_0_15px_rgba(59,130,246,0.5)] rounded-xl ";
+                style += ` border-color: ${accent}; box-shadow: 0 0 15px ${accent}80;`;
+            } else if (design === 'glass') {
+                containerClass += "backdrop-blur-md bg-white/40 border border-white/50 shadow-xl rounded-[2rem] ";
+            } else if (design === 'sticky') {
+                containerClass += "bg-[#fff9c4] text-gray-800 shadow-md transform -rotate-1 max-w-[95%] mx-auto ";
+                style += ` background-color: #fff9c4;`;
+            } else if (design === 'feminine') {
+                containerClass += "bg-white border-2 border-dashed rounded-[2rem] shadow-sm relative ";
+                style += ` border-color: ${accent}; background-color: ${accent}08;`;
+            } else if (design === 'earth') {
+                containerClass += "bg-[#f4f4f0] rounded-lg shadow-sm border-l-8 ";
+                style += ` border-left-color: ${accent};`;
+            } else if (design === 'gentle') {
+                containerClass += "bg-white rounded-[2rem] shadow-[0_10px_25px_-5px_rgba(0,0,0,0.08),0_8px_10px_-6px_rgba(0,0,0,0.01)] ";
+            } else if (design === 'modern') {
+                containerClass += "bg-white border border-gray-200 rounded-md border-t-4 shadow-sm ";
+                style += ` border-top-color: ${accent};`;
+            } else if (design === 'ribbon') {
+                containerClass += "bg-white border border-gray-200 rounded-lg shadow-sm pt-12 relative overflow-hidden ";
+                style += ` padding-top: ${Math.max(section.pTop || 0, 48)}px;`;
+            } else if (design === 'gradient') {
+                containerClass += "p-[3px] rounded-xl bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 shadow-lg ";
+                style = `background-image: linear-gradient(45deg, ${accent}, #a855f7); padding: 3px;`; // Override padding for outer
+                innerClass = "bg-white rounded-[calc(0.75rem-3px)] h-full w-full ";
+            } else if (design === 'dashed') {
+                containerClass += "bg-white border-2 border-dashed rounded-lg ";
+                style += ` border-color: ${accent};`;
+            } else if (design === 'double') {
+                containerClass += "bg-white border-4 border-double rounded-lg ";
+                style += ` border-color: ${accent};`;
+            } else if (design === 'solid') {
+                containerClass += "bg-white border-2 border-solid rounded-lg ";
+                style += ` border-color: ${accent};`;
+            } else {
+                // Simple
+                containerClass += "bg-white border border-gray-100 rounded-xl shadow-sm ";
+            }
+
+            const titleHtml = (section.title && design !== 'ribbon') ? `
+                <div class="mb-6 ${design === 'comic' ? "text-left" : "text-center"}">
+                    <h4 class="text-xl md:text-2xl font-black" style="${design === 'neon' ? 'color: white;' : ''}">${section.title}</h4>
+                    ${(design !== 'comic' && design !== 'sticky') ? `<div class="w-12 h-1 mx-auto mt-3 rounded-full opacity-30" style="background-color: ${accent}"></div>` : ''}
+                </div>` : '';
+
+            const textScale = section.textScale || 1.0;
+            const contentText = section.content ? `<div class="leading-loose whitespace-pre-wrap opacity-90 ${innerClass}" style="font-size: ${textScale}rem; ${design === 'gradient' ? pStyle : ''}">${section.content}</div>` : '';
+
+            // Children Processing (Mini-Export for Box Children)
+            let childrenHtml = '';
+            if (section.children && section.children.length > 0) {
+                childrenHtml = section.children.map(child => {
+                    if (child.type === 'button') {
+                        const btnColor = child.color || accent;
+                        const widthStyle = child.width > 0 ? `width: ${child.width}%;` : '';
+                        return `<div class="text-center mt-6"><a href="${child.url}" class="inline-block px-8 py-4 bg-blue-600 text-white font-bold rounded-lg shadow hover:opacity-90 transition-transform hover:-translate-y-1" style="background-color: ${btnColor}; ${widthStyle}">${child.label}</a></div>`;
+                    } else if (child.type === 'image') {
+                        return `<div class="my-6 text-center"><img src="${child.src || child.image}" alt="" class="max-w-full h-auto rounded shadow-sm mx-auto" style="width: ${child.width || 100}%" /></div>`;
+                    } else if (child.type === 'heading') {
+                        return `<h4 class="font-bold text-center mt-6 mb-4" style="font-size: 1.5rem">${child.text}</h4>`;
+                    } else if (child.type === 'text') {
+                        return `<div class="leading-relaxed whitespace-pre-wrap mb-4">${child.text || child.content}</div>`;
+                    }
+                    return '';
+                }).join('');
+            }
+
+            // Ribbon/Sticky Extras
+            const ribbonHtml = (design === 'ribbon') ? `
+                <div class="absolute top-[16px] -right-[30px] w-[120px] text-center text-white text-xs font-bold py-1 shadow-md transform rotate-45" style="background-color: ${accent}">
+                    ${section.title || 'PICK UP'}
+                </div>` : '';
+
+            const stickyHtml = (design === 'sticky') ? `<div class="absolute -top-3 left-1/2 transform -translate-x-1/2 w-32 h-8 bg-white/40 shadow-sm rotate-[-1deg] backdrop-blur-sm z-10 pointer-events-none"></div>` : '';
+
+            contentHtml = `
+            <div class="max-w-4xl mx-auto w-full px-4 ${design === 'sticky' ? 'py-4' : ''}">
+                <div class="${containerClass}" style="${style}">
+                    ${ribbonHtml}
+                    ${stickyHtml}
+                    ${design === 'gradient' ? `<div class="${innerClass}" style="${pStyle}">${titleHtml}${contentText}${childrenHtml}</div>` : `${titleHtml}${contentText}${childrenHtml}`}
                 </div>
             </div>`;
         }
@@ -807,19 +1099,134 @@ const generateHTML = (data) => {
             const design = section.design || 'standard';
             const theme = getDesignTheme(design);
             const accent = section.accentColor || data.accentColor || theme.primary;
-            const mapUrl = `https://maps.google.com/maps?q=${encodeURIComponent(section.address || '')}&t=&z=15&ie=UTF8&iwloc=&output=embed`;
+            const address = section.address || section.location || "住所が設定されていません";
+            const mapUrl = `https://maps.google.com/maps?q=${encodeURIComponent(address)}&t=&z=15&ie=UTF8&iwloc=&output=embed`;
+
+            // Design Flags
+            const isSango = ['gentle', 'standard', 'modern'].includes(design);
+            const isEarth = design === 'earth';
+            const isSwell = ['masculine', 'stylish'].includes(design);
+            const isLuxury = design === 'luxury';
+            const isCyber = design === 'cyber';
+
+            // Container Styles
+            let mapContainerClass = "w-full min-h-[350px] relative overflow-hidden transition-all duration-300 md:w-1/2 ";
+            if (isSango) mapContainerClass += "rounded-[2.5rem] shadow-xl border-4 border-white ring-1 ring-gray-100 ";
+            else if (isEarth) mapContainerClass += "rounded-[1.5rem] border-2 border-dashed border-[#8d6e63] bg-[#fffcf5] p-2 ";
+            else if (isSwell) mapContainerClass += "rounded-sm border border-gray-200 shadow-lg bg-white p-1 ";
+            else if (isLuxury) mapContainerClass += "rounded-lg border border-[#ca8a04]/30 shadow-[0_0_30px_rgba(0,0,0,0.5)] ";
+            else if (isCyber) mapContainerClass += "rounded-xl border border-cyan-500/50 shadow-[0_0_20px_rgba(6,182,212,0.2)] bg-[#0f172a] p-1 ";
+            else mapContainerClass += "rounded-2xl shadow-lg bg-gray-200 ";
+
+            let mapInnerClass = "w-full h-full relative overflow-hidden ";
+            if (isSango) mapInnerClass += "rounded-[1.8rem] ";
+            else if (isEarth) mapInnerClass += "rounded-[1.2rem] ";
+            else if (isSwell) mapInnerClass += "rounded-none ";
+            else if (isLuxury) mapInnerClass += "rounded ";
+            else if (isCyber) mapInnerClass += "rounded-lg opacity-80 mix-blend-luminosity ";
+
+            // Text Styles
+            let titleClass = "font-black mb-6 leading-tight text-3xl md:text-4xl ";
+            if (isLuxury) titleClass += "font-serif text-transparent bg-clip-text bg-gradient-to-r from-[#fcd34d] to-[#ca8a04] ";
+            else if (isCyber) titleClass += "font-mono text-cyan-400 drop-shadow-[0_0_5px_rgba(34,211,238,0.8)] ";
+            else if (isEarth) titleClass += "font-serif text-[#5d4037] ";
+            else if (isSwell) titleClass += "text-gray-800 tracking-tighter ";
+
+            let labelClass = "text-xs font-black uppercase tracking-widest mb-1 text-gray-400 ";
+            let valueClass = "font-bold leading-relaxed text-gray-700 ";
+
+            // Enhanced text styles for specific themes
+            if (isLuxury) {
+                labelClass = "text-[#b45309] font-serif text-xs font-black uppercase tracking-widest mb-1 ";
+                valueClass = "text-[#1e293b] font-serif tracking-wide font-bold leading-relaxed ";
+            } else if (isCyber) {
+                labelClass = "text-[#0891b2] font-mono text-xs font-black uppercase tracking-widest mb-1 ";
+                valueClass = "text-[#0f172a] font-mono font-bold leading-relaxed ";
+            } else if (isEarth) {
+                labelClass = "text-[#8d6e63] text-xs font-black uppercase tracking-widest mb-1 ";
+                valueClass = "text-[#5d4037] font-bold leading-relaxed ";
+            }
+
+            // Icons
+            const getIcon = (type) => {
+                if (!(isSango || isEarth)) return '';
+
+                let iconSvg = '';
+                if (type === 'address') iconSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/></svg>`; // Medal
+                if (type === 'access') iconSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>`; // ArrowRight
+                if (type === 'hours') iconSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>`; // Sparkles
+                if (type === 'tel') iconSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg>`; // MessageCircle
+
+                let iconClass = "w-8 h-8 flex items-center justify-center flex-shrink-0 transition-transform group-hover:scale-110 mb-1 ";
+                if (isSango) iconClass += "rounded-full bg-white shadow-sm text-gray-400 border border-gray-100 ";
+                else if (isEarth) iconClass += "rounded-full border border-[#8d6e63]/30 text-[#8d6e63] bg-[#fffcf5] ";
+
+                return `<div class="${iconClass}">${iconSvg}</div>`;
+            };
+
+            const renderItem = (label, text, type) => {
+                if (!text) return '';
+                const hasIcon = isSango || isEarth;
+
+                let containerClass = "flex flex-col transition-all ";
+                if (hasIcon) {
+                    containerClass += "gap-4 mb-4 last:mb-0 ";
+                } else {
+                    containerClass += "gap-1 border-r border-b border-gray-100 p-4 bg-white bg-opacity-50 ";
+                    if (isCyber) containerClass += "border-cyan-500 border-opacity-20 bg-cyan-500 bg-opacity-5 ";
+                    if (isLuxury) containerClass += "border-[#ca8a04] border-opacity-20 bg-[#ca8a04] bg-opacity-5 ";
+                }
+
+                const iconHtml = hasIcon ? `
+                <div class="flex items-center gap-3">
+                    <div class="${isSango ? 'w-7 h-7 rounded-full bg-white shadow-sm text-gray-400 border border-gray-100' : 'w-7 h-7 rounded-full border border-[#8d6e63]/30 text-[#8d6e63] bg-[#fffcf5]'} flex items-center justify-center transition-transform group-hover:scale-110">
+                        ${getIcon(type)}
+                    </div>
+                    <p class="${labelClass} text-[10px] tracking-[0.15em] font-black uppercase mb-0">${label}</p>
+                </div>` : '';
+
+                return `
+                <div class="${containerClass} group">
+                    ${iconHtml}
+                    <div class="space-y-0">
+                        ${!hasIcon ? `<p class="${labelClass} text-[10px] tracking-[0.15em] font-black uppercase mb-1">${label}</p>` : ''}
+                        <p class="${valueClass} text-sm md:text-base font-bold leading-relaxed">${text}</p>
+                    </div>
+                </div>`;
+            };
+
+            const hasIcon = isSango || isEarth;
+            const tableContainerClass = hasIcon ? "space-y-0" : "grid grid-cols-1 border-t border-l border-gray-100 rounded-lg shadow-sm overflow-hidden bg-white bg-opacity-30";
+            const mapStyles = isSango ? 'rounded-[2.5rem]' : (isEarth ? 'rounded-[1.6rem]' : (isLuxury ? 'filter: grayscale(100%) contrast(1.2);' : ''));
+
             contentHtml = `
-            <div class="max-w-5xl mx-auto flex flex-col md:flex-row gap-8">
-                <div class="w-full md:w-1/2 min-h-[300px] bg-gray-200 rounded-2xl overflow-hidden shadow-lg relative">
-                    <iframe width="100%" height="100%" frameborder="0" src="${mapUrl}" class="absolute inset-0"></iframe>
+            <div class="w-full max-w-4xl mx-auto flex flex-col items-center justify-center gap-8 md:gap-12 px-6 md:px-12 py-8 md:py-16">
+                <!-- Title Container - Moved to TOP CENTER -->
+                <div class="w-full text-center mb-4">
+                    ${isCyber ? '<span class="text-cyan-600 font-mono text-[10px] tracking-widest mb-1 block uppercase">LOCATION DATA</span>' : ''}
+                    ${isLuxury ? '<span class="text-[#ca8a04] font-serif text-[10px] tracking-[0.2em] mb-1 block uppercase text-center w-full">Access Information</span>' : ''}
+                    
+                    <h3 class="${titleClass} text-xl md:text-3xl mb-2 mx-auto">${section.title || "ACCESS"}</h3>
+                    <div class="h-1 rounded-full mx-auto ${isSango ? 'w-12' : 'w-10'}" style="background-color: ${isCyber ? '#0891b2' : (isLuxury ? '#ca8a04' : accent)};"></div>
                 </div>
-                <div class="w-full md:w-1/2 space-y-6 flex flex-col justify-center">
-                    <h3 class="text-2xl font-bold border-l-4 pl-4" style="border-color: ${accent};">${section.title || "ACCESS"}</h3>
-                    <div class="space-y-4 text-sm text-gray-600">
-                        <p><span class="font-bold mr-4">住所</span>${section.address || ""}</p>
-                        ${section.access ? `<p><span class="font-bold mr-4">アクセス</span>${section.access}</p>` : ''}
-                        ${section.hours ? `<p><span class="font-bold mr-4">営業時間</span>${section.hours}</p>` : ''}
-                        ${section.tel ? `<p><span class="font-bold mr-4">電話番号</span>${section.tel}</p>` : ''}
+
+                <!-- Content Container (Map + Info) -->
+                <div class="w-full flex flex-col md:flex-row items-center justify-center gap-8 md:gap-16">
+                    <!-- Map Container -->
+                    <div class="${mapContainerClass} aspect-square w-full ${hasIcon ? 'md:w-[320px] md:shrink-0' : 'md:w-1/2 md:aspect-auto md:min-h-[350px]'}">
+                        <div class="${mapInnerClass} ${hasIcon ? (isSango ? 'rounded-[2.5rem]' : 'rounded-[1.6rem]') : ''}">
+                            <iframe width="100%" height="100%" frameborder="0" src="${mapUrl}" class="absolute inset-0" style="${mapStyles}"></iframe>
+                        </div>
+                    </div>
+
+                    <!-- Info Container -->
+                    <div class="w-full ${hasIcon ? 'max-w-md' : 'md:w-1/2'} space-y-6 flex flex-col justify-center">
+                        <div class="${tableContainerClass}">
+                            ${renderItem('Address', address, 'address')}
+                            ${renderItem('Access', section.access, 'access')}
+                            ${renderItem('Working Hours', section.hours, 'hours')}
+                            ${renderItem('Phone', section.tel, 'tel')}
+                        </div>
                     </div>
                 </div>
             </div>`;
@@ -1249,6 +1656,134 @@ const generateHTML = (data) => {
                 </div>
             </div>`;
         }
+        else if (section.type === 'speech_bubble') {
+            const items = section.items || [{
+                name: section.characterName || "Character",
+                text: section.text || "ここにメッセージを入力してください。",
+                image: section.characterImage,
+                position: section.align || 'left'
+            }];
+            const design = section.design || 'standard';
+            const theme = getDesignTheme(design);
+            const accent = section.accentColor || data.accentColor || theme.primary;
+
+            // Design Flags
+            const isSango = ['gentle', 'standard', 'modern'].includes(design);
+            const isSwell = ['masculine', 'stylish'].includes(design);
+            const isLuxury = design === 'luxury';
+            const isCyber = design === 'cyber';
+            const isEarth = design === 'earth';
+
+            // Animation Class
+            const animClass = (section.animation === 'float') ? 'animate-float' :
+                (section.animation === 'pulse') ? 'animate-pulse-subtle' :
+                    (section.animation === 'fadeIn') ? 'animate-fadeIn' : '';
+
+            const itemsHtml = items.map((item, i) => {
+                const isRight = item.position === 'right' || section.align === 'right' || (section.align === undefined && i % 2 !== 0);
+                const imgUrl = getImgUrl(item.image) || getImgUrl(section.characterImage);
+
+                const showBorder = section.showBorder !== false;
+                const bubbleBg = section.bubbleColor || (isCyber ? '#020617' : (isEarth ? '#fffcf5' : '#ffffff'));
+
+                let bubbleClass = "relative w-full md:w-auto md:flex-1 p-4 md:p-8 transition-all duration-500 text-left ";
+                let tailBaseClass = "hidden md:block absolute top-8 w-0 h-0 border-solid ";
+                let tailStyle = "";
+
+                if (isSwell) {
+                    bubbleClass += "rounded-xl shadow-lg ";
+                    if (showBorder) bubbleClass += "border border-gray-100 ";
+                    tailBaseClass += isRight ? "border-l-[12px] border-y-[8px] border-y-transparent -right-3 " : "border-r-[12px] border-y-[8px] border-y-transparent -left-3 ";
+                    tailStyle = `border-${isRight ? 'left' : 'right'}-color: ${bubbleBg};`;
+                } else if (isLuxury) {
+                    bubbleClass += "rounded-lg shadow-2xl font-serif ";
+                    if (showBorder) bubbleClass += "border border-[#ca8a04] border-opacity-30 ";
+                    tailBaseClass += isRight ? "border-l-[15px] border-y-[6px] border-y-transparent -right-3.5 " : "border-r-[15px] border-y-[6px] border-y-transparent -left-3.5 ";
+                    tailStyle = `border-${isRight ? 'left' : 'right'}-color: ${bubbleBg};`;
+                } else if (isCyber) {
+                    bubbleClass += "shadow-[0_0_20px_rgba(6,182,212,0.2)] font-mono ";
+                    if (showBorder) bubbleClass += "border border-cyan-500 border-opacity-50 ";
+                    tailBaseClass += isRight ? "border-l-[10px] border-y-[10px] border-y-transparent -right-2.5 " : "border-r-[10px] border-y-[10px] border-y-transparent -left-2.5 ";
+                    tailStyle = `border-${isRight ? 'left' : 'right'}-color: ${showBorder ? 'rgba(6,182,212,0.5)' : bubbleBg};`;
+                } else if (isEarth) {
+                    bubbleClass += "rounded-[2.5rem] shadow-sm ";
+                    if (showBorder) bubbleClass += "border-2 border-dashed border-[#8d6e63] border-opacity-30 ";
+                    tailBaseClass += isRight ? "border-l-[15px] border-y-[10px] border-y-transparent -right-3.5 " : "border-r-[15px] border-y-[10px] border-y-transparent -left-3.5 ";
+                    tailStyle = `border-${isRight ? 'left' : 'right'}-color: ${bubbleBg};`;
+                } else {
+                    bubbleClass += "rounded-[2rem] shadow-xl ";
+                    if (showBorder) bubbleClass += "border-4 border-white ";
+                    tailBaseClass += isRight ? "border-l-[15px] border-y-[10px] border-y-transparent -right-3.5 " : "border-r-[15px] border-y-[10px] border-y-transparent -left-3.5 ";
+                    tailStyle = `border-${isRight ? 'left' : 'right'}-color: ${bubbleBg};`;
+                }
+
+                // Avatar Border Logic
+                let avatarHtml = '';
+                const avatarImg = imgUrl ? `<img src="${imgUrl}" alt="${item.name}" class="w-full h-full object-cover">` : `<div class="w-full h-full flex items-center justify-center text-[10px] text-gray-400 font-bold bg-gray-50 capitalize">${design.slice(0, 3)}</div>`;
+
+                if (isLuxury) {
+                    avatarHtml = `
+                    <div class="w-16 h-16 md:w-28 md:h-28 relative flex items-center justify-center p-1.5 border-2 border-[#ca8a04]/40 rounded-full shadow-2xl bg-white">
+                        <div class="absolute inset-[2px] border border-[#ca8a04]/20 rounded-full"></div>
+                        <div class="w-full h-full rounded-full overflow-hidden border border-[#ca8a04]/10">
+                            ${avatarImg}
+                        </div>
+                    </div>`;
+                } else if (isCyber) {
+                    avatarHtml = `
+                    <div class="w-16 h-16 md:w-28 md:h-28 relative group">
+                        <div class="absolute inset-0 bg-cyan-500/20 skew-x-[-12deg] skew-y-[3deg] scale-110 blur-[2px]"></div>
+                        <div class="w-full h-full relative bg-[#0f172a] border-2 border-cyan-500/60 skew-x-[-12deg] skew-y-[3deg] overflow-hidden">
+                            <div class="w-full h-full scale-[1.3] skew-x-[12deg] skew-y-[-3deg] absolute inset-0">
+                                ${avatarImg}
+                            </div>
+                        </div>
+                        <div class="absolute -bottom-1 -right-1 w-4 h-4 bg-cyan-500 animate-pulse"></div>
+                    </div>`;
+                } else if (isEarth) {
+                    avatarHtml = `
+                    <div class="w-16 h-16 md:w-28 md:h-28 relative">
+                        <div class="absolute inset-0 bg-[#8d6e63]/5 transform rotate-6 rounded-[2rem]"></div>
+                        <div class="w-full h-full relative bg-[#fffcf5] border-2 border-[#8d6e63]/20 rounded-[1.8rem] overflow-hidden p-1 shadow-sm">
+                            <div class="w-full h-full rounded-[1.6rem] overflow-hidden">
+                                ${avatarImg}
+                            </div>
+                        </div>
+                    </div>`;
+                } else {
+                    let avatarClass = "w-12 h-12 md:w-24 md:h-24 overflow-hidden relative ";
+                    if (isSwell) avatarClass += "rounded-lg border border-gray-100 bg-white shadow-md ";
+                    else avatarClass += "rounded-full border-4 border-white shadow-2xl bg-white ";
+                    avatarHtml = `<div class="${avatarClass}">${avatarImg}</div>`;
+                }
+
+                let nameClass = "text-[10px] md:text-sm font-black tracking-tighter opacity-80 mt-2 ";
+                if (isLuxury) nameClass += "font-serif text-[#ca8a04] italic ";
+                if (isCyber) nameClass += "font-mono text-cyan-400 uppercase tracking-widest ";
+                if (isEarth) nameClass += "text-[#5d4037] font-medium ";
+
+                return `
+                <div class="flex flex-col md:flex-row ${isRight ? 'items-end md:items-start md:flex-row-reverse' : 'items-start md:flex-row'} gap-2 md:gap-10 ${animClass}">
+                    <div class="flex flex-col items-center flex-shrink-0">
+                        ${avatarHtml}
+                        <div class="${nameClass}">${item.name || "NAME"}</div>
+                    </div>
+                    <div class="${bubbleClass}" style="background-color: ${bubbleBg};">
+                        <div class="${tailBaseClass}" style="${tailStyle}"></div>
+                        ${isCyber ? '<div class="absolute top-0 left-0 w-full h-0.5 bg-gradient-to-r from-transparent via-cyan-500 to-transparent"></div>' : ''}
+                        ${isLuxury ? '<div class="absolute inset-2 border border-[#ca8a04]/5 rounded pointer-events-none"></div>' : ''}
+                        <p class="text-sm md:text-base leading-loose whitespace-pre-wrap relative z-10 text-left w-full ${isLuxury ? 'text-gray-800 md:leading-[1.9]' : (isCyber ? 'text-cyan-50 font-mono' : (isEarth ? 'text-[#5d4037] font-serif' : 'text-gray-800'))}" style="text-align: left;">${item.text || item.content || ""}</p>
+                    </div>
+                </div>`;
+            }).join('');
+
+            contentHtml = `
+            <div class="px-3 md:px-16 mx-auto" style="max-width: ${section.contentWidth || 900}px;">
+                <div class="flex flex-col gap-10 md:gap-16">
+                    ${itemsHtml}
+                </div>
+            </div>`;
+        }
         else if (section.type === 'problem_checklist') {
             const items = section.items || [];
             const design = section.design || 'standard';
@@ -1387,7 +1922,13 @@ const generateHTML = (data) => {
 
 
     return `<!DOCTYPE html> <html lang="ja"> <head> <meta charset="UTF-8"> <meta name="viewport" content="width=device-width, initial-scale=1.0"> <title>${data.siteTitle}</title> <script src="https://cdn.tailwindcss.com"></script> <script> tailwind.config = { theme: { extend: { colors: { primary: '${data.accentColor || '#3b82f6'}', accent: '${data.accentColor || '#3b82f6'}' }, keyframes: { fadeInUp: { '0%': { opacity: '0', transform: 'translateY(20px)' }, '100%': { opacity: '1', transform: 'translateY(0)' }, } }, animation: { fadeInUp: 'fadeInUp 0.5s ease-out forwards', } } } } </script> <link rel="preconnect" href="https://fonts.googleapis.com"> <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin> <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,400&family=Noto+Sans+JP:wght@300;400;500;700&display=swap" rel="stylesheet"> <style> .font-serif { font-family: 'Cormorant Garamond', 'Noto Sans JP', serif; } .font-sans { font-family: 'Noto Sans JP', sans-serif; } @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } } .animate-fadeInUp { animation: fadeInUp 1s cubic-bezier(0.16, 1, 0.3, 1) forwards; } .hero-media { transition: transform 20s linear; transform: scale(1); } .hero-container:hover .hero-media { transform: scale(1.1); } #mobile-menu { transition: transform 0.3s ease-in-out; } html { scroll-behavior: smooth; } html { font-size: clamp(18px, 1.3vw, 24px); } 
- summary::-webkit-details-marker { display: none; } .scrollbar-hide::-webkit-scrollbar { display: none; } .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; } .bg-dots-pattern { background-image: radial-gradient(#333 1px, transparent 1px); background-size: 20px 20px; } @keyframes shimmer { 0% { transform: translateX(-150%) skewX(-15deg); } 20% { transform: translateX(150%) skewX(-15deg); } 100% { transform: translateX(150%) skewX(-15deg); } } .animate-shimmer { animation: shimmer 3s infinite; } @keyframes bounce-slow { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } } .animate-bounce-slow { animation: bounce-slow 3s infinite ease-in-out; } @keyframes shine { 0% { left: -100%; } 100% { left: 100%; } } </style> <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script> <script async src="//www.instagram.com/embed.js"></script> </head> <body class="antialiased" style="${bgStyle} color: ${data.textColor};"> <div class="relative min-h-screen flex flex-col ${fontClass}"> <header class="absolute top-0 left-0 w-full z-30 px-6 py-8 text-white"> <div class="flex justify-between items-center max-w-7xl mx-auto"> <div class="font-bold text-2xl tracking-widest uppercase opacity-90 mix-blend-difference relative z-50">${data.siteTitle}</div> <nav class="hidden md:block mix-blend-difference"> <ul class="flex space-x-12 text-sm tracking-widest font-black"> ${menuItemsHtml} </ul> </nav> <button id="menu-btn" class="md:hidden z-50 relative w-8 h-8 flex flex-col justify-center items-end gap-1.5 group mix-blend-difference"> <span class="w-full h-0.5 bg-current transition-all duration-300 origin-right"></span> <span class="w-2/3 h-0.5 bg-current transition-all duration-300 origin-right"></span> <span class="w-full h-0.5 bg-current transition-all duration-300 origin-right"></span> </button> </div> </header> <div id="mobile-menu" class="fixed inset-0 bg-black/95 z-40 transform translate-x-full flex items-center justify-center md:hidden"> <ul class="text-center space-y-8 text-white"> ${menuItemsHtml} </ul> </div> <div class="hero-container relative mx-auto overflow-hidden shadow-2xl transition-all duration-700 ${data.heroWidth < 100 ? 'rounded-[3.5rem]' : ''}" style="${heroStyle}">
+  @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+  .animate-float { animation: float 3s ease-in-out infinite; }
+  @keyframes bubble-pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.03); } }
+  .animate-pulse-subtle { animation: bubble-pulse 2s ease-in-out infinite; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+  .animate-fadeIn { animation: fadeIn 0.6s ease-out forwards; }
+  summary::-webkit-details-marker { display: none; } .scrollbar-hide::-webkit-scrollbar { display: none; } .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; } .bg-dots-pattern { background-image: radial-gradient(#333 1px, transparent 1px); background-size: 20px 20px;  @keyframes shimmer { 0% { transform: translateX(-150%) skewX(-15deg); } 20% { transform: translateX(150%) skewX(-15deg); } 100% { transform: translateX(150%) skewX(-15deg); } } .animate-shimmer { animation: shimmer 3s infinite; } @keyframes bounce-slow { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } } .animate-bounce-slow { animation: bounce-slow 3s infinite ease-in-out; } @keyframes shine { 0% { left: -100%; } 100% { left: 100%; } } </style> <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script> <script async src="//www.instagram.com/embed.js"></script> <script>function checkUA() { return false; }</script> </head> <body class="antialiased" style="${bgStyle} color: ${data.textColor};"> <div class="relative min-h-screen flex flex-col ${fontClass}"> <header class="absolute top-0 left-0 w-full z-30 px-6 py-8 text-white"> <div class="flex justify-between items-center max-w-7xl mx-auto"> <div class="font-bold text-2xl tracking-widest uppercase opacity-90 mix-blend-difference relative z-50">${data.siteTitle}</div> <nav class="hidden md:block mix-blend-difference"> <ul class="flex space-x-12 text-sm tracking-widest font-black"> ${menuItemsHtml} </ul> </nav> <button id="menu-btn" class="md:hidden z-50 relative w-8 h-8 flex flex-col justify-center items-end gap-1.5 group mix-blend-difference"> <span class="w-full h-0.5 bg-current transition-all duration-300 origin-right"></span> <span class="w-2/3 h-0.5 bg-current transition-all duration-300 origin-right"></span> <span class="w-full h-0.5 bg-current transition-all duration-300 origin-right"></span> </button> </div> </header> <div id="mobile-menu" class="fixed inset-0 bg-black/95 z-40 transform translate-x-full flex items-center justify-center md:hidden"> <ul class="text-center space-y-8 text-white"> ${menuItemsHtml} </ul> </div> <div class="hero-container relative mx-auto overflow-hidden shadow-2xl transition-all duration-700 ${data.heroWidth < 100 ? 'rounded-[3.5rem]' : ''}" style="${heroStyle}">
             <div class="absolute inset-0 w-full h-full bg-gray-900">
                 ${data.heroType === 'video' ? `<video class="w-full h-full object-cover" src="${data.heroUrl}" autoplay loop muted playsinline style="${mediaStyle}"></video>` : `<img src="${data.heroUrl || data.heroImageFallback}" class="hero-media w-full h-full object-cover" alt="Hero" style="${mediaStyle}">`}
             </div>

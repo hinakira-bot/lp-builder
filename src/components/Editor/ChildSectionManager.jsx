@@ -1,7 +1,7 @@
 /* eslint-disable */
 import React from 'react';
-import { Trash2, AlignLeft, ImageIcon, MousePointerClick } from 'lucide-react';
-import { TextInput, TextArea } from '../UI/Input';
+import { Trash2, AlignLeft, AlignCenter, AlignRight, ImageIcon, MousePointerClick } from 'lucide-react';
+import { TextInput, TextArea, Slider } from '../UI/Input';
 
 export const ChildSectionManager = ({ childrenSections = [], onChange }) => {
 
@@ -12,8 +12,8 @@ export const ChildSectionManager = ({ childrenSections = [], onChange }) => {
 
         // Defaults
         if (type === 'text') newSection = { ...newSection, content: 'テキストを入力', align: 'left' };
-        if (type === 'image') newSection = { ...newSection, url: 'https://placehold.co/600x400', caption: '' };
-        if (type === 'button') newSection = { ...newSection, label: 'ボタン', url: '#', style: 'fill', align: 'center' };
+        if (type === 'image') newSection = { ...newSection, url: 'https://placehold.co/600x400', caption: '', width: 100, align: 'center' };
+        if (type === 'button') newSection = { ...newSection, label: 'ボタン', url: '#', style: 'fill', align: 'center', width: 0 }; // 0 means auto/fit
 
         onChange([...childrenSections, newSection]);
     };
@@ -47,12 +47,31 @@ export const ChildSectionManager = ({ childrenSections = [], onChange }) => {
                             <TextArea value={child.content} onChange={(val) => updateChild(child.id, { ...child, content: val })} rows={2} placeholder="テキスト" />
                         )}
                         {child.type === 'image' && (
-                            <TextInput value={child.url} onChange={(val) => updateChild(child.id, { ...child, url: val })} placeholder="画像URL" />
+                            <div className="space-y-2">
+                                <TextInput value={child.url} onChange={(val) => updateChild(child.id, { ...child, url: val })} placeholder="画像URL" />
+                                <div className="flex items-center gap-2">
+                                    <div className="flex bg-gray-800 rounded p-1 border border-gray-600">
+                                        <button onClick={() => updateChild(child.id, { ...child, align: 'left' })} className={`p-1 rounded ${(!child.align || child.align === 'left') ? 'bg-gray-600 text-white' : 'text-gray-400 hover:text-white'}`}><AlignLeft size={14} /></button>
+                                        <button onClick={() => updateChild(child.id, { ...child, align: 'center' })} className={`p-1 rounded ${child.align === 'center' ? 'bg-gray-600 text-white' : 'text-gray-400 hover:text-white'}`}><AlignCenter size={14} /></button>
+                                        <button onClick={() => updateChild(child.id, { ...child, align: 'right' })} className={`p-1 rounded ${child.align === 'right' ? 'bg-gray-600 text-white' : 'text-gray-400 hover:text-white'}`}><AlignRight size={14} /></button>
+                                    </div>
+                                    <div className="flex flex-1 items-center gap-2">
+                                        <span className="text-[10px] text-gray-500 w-8 ml-1">幅%</span>
+                                        <Slider value={child.width || 100} min={10} max={100} step={5} onChange={(val) => updateChild(child.id, { ...child, width: val })} className="flex-1" />
+                                    </div>
+                                </div>
+                            </div>
                         )}
                         {child.type === 'button' && (
-                            <div className="flex gap-2">
-                                <TextInput value={child.label} onChange={(val) => updateChild(child.id, { ...child, label: val })} placeholder="ラベル" />
-                                <TextInput value={child.url} onChange={(val) => updateChild(child.id, { ...child, url: val })} placeholder="URL" />
+                            <div className="space-y-2">
+                                <div className="flex gap-2">
+                                    <TextInput value={child.label} onChange={(val) => updateChild(child.id, { ...child, label: val })} placeholder="ラベル" className="flex-1" />
+                                    <TextInput value={child.url} onChange={(val) => updateChild(child.id, { ...child, url: val })} placeholder="URL" className="flex-1" />
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <span className="text-[10px] text-gray-500 w-8">幅: {child.width || 0}%</span>
+                                    <Slider value={child.width || 0} min={0} max={100} step={10} onChange={(val) => updateChild(child.id, { ...child, width: val })} className="flex-1" />
+                                </div>
                             </div>
                         )}
                     </div>

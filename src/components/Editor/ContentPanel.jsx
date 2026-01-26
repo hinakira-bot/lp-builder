@@ -55,7 +55,7 @@ export const ContentPanel = ({ data, setData, setActiveSectionId }) => {
         if (type === 'text') newSection = { ...newSection, title: 'New Section', content: 'コンテンツを入力してください', align: 'center' };
         if (type === 'columns') newSection = { ...newSection, columnCount: 3, colType: 'card', items: [{ id: 1, image: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=988&auto=format&fit=crop', title: 'Card 1', text: 'Text', url: '#', platform: 'twitter' }, { id: 2, image: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=1064&auto=format&fit=crop', title: 'Card 2', text: 'Text', url: '#', platform: 'twitter' }, { id: 3, image: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?q=80&w=987&auto=format&fit=crop', title: 'Card 3', text: 'Text', url: '#', platform: 'twitter' }] };
         if (type === 'links') newSection = { ...newSection, links: [{ id: 1, label: 'Button', url: '#', subtext: '' }] };
-        if (type === 'image') newSection = { ...newSection, url: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?q=80&w=2070&auto=format&fit=crop', caption: '' };
+        if (type === 'image') newSection = { ...newSection, url: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?q=80&w=2070&auto=format&fit=crop', caption: '', width: 75, align: 'center' };
         if (type === 'image_text') newSection = { ...newSection, title: 'Title', content: 'Text here...', image: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=2073&auto=format&fit=crop', imagePosition: 'left' };
         if (type === 'button') newSection = { ...newSection, label: 'Click Me', url: '#', align: 'center', style: 'fill' };
         if (type === 'review') newSection = {
@@ -64,12 +64,12 @@ export const ContentPanel = ({ data, setData, setActiveSectionId }) => {
                 { id: 2, name: '佐藤 佳奈', role: 'フリーランスデザイナー', content: '直感的な操作感で、デザインの質を落とさずにスピードアップできました。サポートも迅速で助かりました。', stars: 4, image: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?q=80&w=2070&auto=format&fit=crop' }
             ]
         };
-        if (type === 'heading') newSection = { ...newSection, text: 'Heading', subText: 'Subtitle', style: 'center', design: 'simple' };
+        if (type === 'heading') newSection = { ...newSection, text: 'Heading', subText: 'Subtitle', align: 'center', design: 'simple', pattern: 'simple' };
         if (type === 'video') newSection = { ...newSection, url: 'https://www.youtube.com/watch?v=LXb3EKWsInQ', caption: '' };
         if (type === 'post_card') newSection = { ...newSection, title: 'Article Title', date: '2023.01.01', excerpt: 'Article summary...', image: 'https://images.unsplash.com/photo-1491438590914-bc09fcaaf77a?q=80&w=2070&auto=format&fit=crop', url: '#' };
         if (type === 'social') newSection = { ...newSection, platform: 'twitter', url: 'https://twitter.com/SpaceX/status/1856890374974914755' };
         if (type === 'accordion') newSection = { ...newSection, items: [{ id: 1, title: 'Question 1', content: 'Answer 1' }, { id: 2, title: 'Question 2', content: 'Answer 2' }] };
-        if (type === 'box') newSection = { ...newSection, boxStyle: 'border', title: 'Box Title', content: 'Content here...' };
+        if (type === 'box') newSection = { ...newSection, design: 'simple', title: 'Box Title', content: '' };
         if (type === 'conversion_panel') newSection = {
             ...newSection,
             title: '今だけ限定価格',
@@ -141,6 +141,15 @@ export const ContentPanel = ({ data, setData, setActiveSectionId }) => {
             items: [
                 { q: '詳しく話を聞きたいのですが', a: '無料相談会を実施しておりますので、お気軽にご予約ください。' },
                 { q: '費用はどれくらいですか？', a: 'ご要望に応じて柔軟にプランニング可能です。まずは資料請求を。' }
+            ]
+        };
+        if (type === 'links') newSection = {
+            ...newSection,
+            design: 'simple',
+            links: [
+                { id: 1, label: 'Company Profile', url: '#', subtext: '会社概要' },
+                { id: 2, label: 'Contact Us', url: '#', subtext: 'お問合せ' },
+                { id: 3, label: 'Privacy Policy', url: '#', subtext: 'プライバシーポリシー' }
             ]
         };
         if (type === 'comparison') newSection = {

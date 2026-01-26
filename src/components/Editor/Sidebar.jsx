@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
-import { Layout, X, ImageIcon, Type, Palette, Settings as SettingsIcon, Download, FileCode, LayoutTemplate, FolderOpen } from 'lucide-react';
+import { Layout, X, ImageIcon, Type, Palette, Settings as SettingsIcon, Download, FileCode, LayoutTemplate, FolderOpen, Sparkles } from 'lucide-react';
 import { Button } from '../UI/Button';
 import { clsx } from 'clsx';
 import { VisualPanel } from './VisualPanel';
 import { ContentPanel } from './ContentPanel';
 import { HeaderPanel } from './HeaderPanel';
 import { StylePanel } from './StylePanel';
+import { AIPanel } from './AIPanel';
 import { SettingsPanel } from './SettingsPanel';
 import { exportConfig, exportHTML } from '../../utils/Exporter';
 
@@ -72,10 +73,16 @@ export const Sidebar = ({ isOpen, setIsOpen, data, setData, setActiveSectionId }
                     label="Content"
                 />
                 <TabButton
+                    active={activeTab === 'ai'}
+                    onClick={() => setActiveTab('ai')}
+                    icon={Sparkles}
+                    label="AI"
+                />
+                <TabButton
                     active={activeTab === 'style'}
                     onClick={() => setActiveTab('style')}
                     icon={Palette}
-                    label="Theme"
+                    label="Style"
                 />
                 <TabButton
                     active={activeTab === 'settings'}
@@ -90,6 +97,7 @@ export const Sidebar = ({ isOpen, setIsOpen, data, setData, setActiveSectionId }
                 {activeTab === 'visual' && <VisualPanel data={data} setData={setData} />}
                 {activeTab === 'header' && <HeaderPanel data={data} setData={setData} />}
                 {activeTab === 'content' && <ContentPanel data={data} setData={setData} setActiveSectionId={setActiveSectionId} />}
+                {activeTab === 'ai' && <AIPanel data={data} setData={setData} />}
                 {activeTab === 'style' && <StylePanel data={data} setData={setData} />}
                 {activeTab === 'settings' && <SettingsPanel data={data} setData={setData} />}
             </div>

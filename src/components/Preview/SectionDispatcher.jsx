@@ -2,7 +2,7 @@
 import React from 'react';
 import { clsx } from 'clsx';
 import { HeroSection } from './HeroSection';
-import { TextRenderer, ImageRenderer, HeadingRenderer, VideoRenderer, ButtonRenderer } from './Sections/Renderers';
+import { TextRenderer, ImageRenderer, HeadingRenderer, VideoRenderer, ButtonRenderer, parseRichText } from './Sections/Renderers';
 import { SocialRenderer, AccordionRenderer, PostCardRenderer, ColumnsRenderer, LinksRenderer, BoxRenderer } from './Sections/ComplexRenderers';
 import { ConversionPanel, PointList, ProblemChecklist, SpeechBubbleRenderer, PricingRenderer, ProcessRenderer, StaffRenderer, FAQRenderer, ComparisonRenderer, AccessRenderer, ReviewRenderer } from './Sections/BusinessRenderers';
 import { SectionWrapper } from './Sections/SectionWrapper';
@@ -14,7 +14,7 @@ import { getImgUrl, getDesignTheme } from '../../utils/helpers';
 export const renderers = {
     text: TextRenderer,
     image: ImageRenderer,
-    image_text: ({ section, fontSize, viewMode, globalPadding }) => {
+    image_text: ({ section, fontSize, viewMode, globalPadding, accentColor }) => {
         const isRight = section.imagePosition === 'right';
         const isMobile = viewMode === 'mobile';
         const imgUrl = getImgUrl(section.image);
@@ -62,10 +62,10 @@ export const renderers = {
                             )}
                             <div className={clsx("w-12 h-1 mb-8 opacity-50", isMobile ? "mx-auto" : "")}
                                 style={{ backgroundColor: theme.text }}></div>
-                            <p className={clsx("leading-loose whitespace-pre-wrap opacity-80", textClasses)}
-                                style={{ fontSize: `${fontSize.body}rem` }}>
-                                {section.content || section.text}
-                            </p>
+                            <div className={clsx("leading-loose whitespace-pre-wrap opacity-80", textClasses)}
+                                style={{ fontSize: `${fontSize.body * (section.textScale || 1.0)}rem` }}>
+                                {parseRichText(section.content || section.text, section.markerColor || accentColor, section.markerColor)}
+                            </div>
                         </div>
                     </div>
                 </div>

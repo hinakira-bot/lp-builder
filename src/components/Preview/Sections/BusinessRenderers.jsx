@@ -465,45 +465,169 @@ export const SpeechBubbleRenderer = ({ section, viewMode, accentColor: globalAcc
     const isMobile = viewMode === 'mobile';
     const design = section.design || 'standard';
     const theme = getDesignTheme(design);
-    const isSangoLine = ['earth', 'gentle', 'standard', 'modern'].includes(design);
+    const accent = section.accentColor || globalAccent || theme.primary;
+
+    const items = section.items || [{
+        name: section.characterName || "Character",
+        text: section.text || "ここにメッセージを入力してください。",
+        image: section.characterImage,
+        position: section.align || 'left'
+    }];
+
+    // Design Flags
+    const isSango = ['gentle', 'standard', 'modern'].includes(design);
+    const isSwell = ['masculine', 'stylish'].includes(design);
+    const isLuxury = design === 'luxury';
+    const isCyber = design === 'cyber';
+    const isEarth = design === 'earth';
+
+    // Animation Class
+    const animClass = section.animation === 'float' ? 'animate-float' :
+        section.animation === 'pulse' ? 'animate-pulse-subtle' :
+            section.animation === 'fadeIn' ? 'animate-fadeIn' : '';
 
     return (
         <SectionWrapper section={section}>
-            <div className="px-6 py-12 mx-auto" style={{ maxWidth: section.contentWidth || 800 }}>
-                <div className="flex flex-col gap-8 md:gap-12">
+            <div className="px-3 md:px-6 py-8 md:py-16 mx-auto" style={{ maxWidth: section.contentWidth || 900 }}>
+                <div className="flex flex-col gap-10 md:gap-16">
                     {items.map((item, i) => {
                         const isRight = item.position === 'right' || section.align === 'right' || (section.align === undefined && i % 2 !== 0);
                         const imgUrl = getImgUrl(item.image) || getImgUrl(section.characterImage);
 
-                        return (
-                            <div key={i} className={clsx("flex gap-6 items-start", isRight ? "flex-row-reverse" : "flex-row")}>
-                                <div className="flex flex-col items-center gap-2 flex-shrink-0">
-                                    <div className={clsx(
-                                        "w-14 h-14 md:w-20 md:h-20 overflow-hidden bg-white",
-                                        isSangoLine ? "rounded-full shadow-md border-[3px] border-white" : "rounded-lg shadow-sm border border-gray-200"
-                                    )}>
+                        // Bubble Background & Border
+                        const showBorder = section.showBorder !== false;
+                        const bubbleBg = section.bubbleColor || (isCyber ? '#020617' : (isEarth ? '#fffcf5' : '#ffffff'));
+
+                        let bubbleClass = isMobile
+                            ? "relative w-full p-4 transition-all duration-500 text-left "
+                            : "relative flex-1 p-8 transition-all duration-500 text-left ";
+                        let tailBaseClass = isMobile
+                            ? "hidden "
+                            : "absolute top-8 w-0 h-0 border-solid ";
+                        let tailStyle = {};
+
+                        if (isSwell) {
+                            bubbleClass += "rounded-xl shadow-[0_10px_30px_-10px_rgba(0,0,0,0.1)] ";
+                            if (showBorder) bubbleClass += "border border-gray-100 ";
+                            tailBaseClass += isRight ? "border-l-[12px] border-y-[8px] border-y-transparent -right-3 " : "border-r-[12px] border-y-[8px] border-y-transparent -left-3 ";
+                            tailStyle = { [isRight ? 'borderLeftColor' : 'borderRightColor']: bubbleBg };
+                        } else if (isLuxury) {
+                            bubbleClass += "rounded-lg shadow-2xl font-serif ";
+                            if (showBorder) bubbleClass += "border border-[#ca8a04]/30 ";
+                            tailBaseClass += isRight ? "border-l-[15px] border-y-[6px] border-y-transparent -right-3.5 " : "border-r-[15px] border-y-[6px] border-y-transparent -left-3.5 ";
+                            tailStyle = { [isRight ? 'borderLeftColor' : 'borderRightColor']: bubbleBg };
+                        } else if (isCyber) {
+                            bubbleClass += "shadow-[0_0_20px_rgba(6,182,212,0.2)] font-mono ";
+                            if (showBorder) bubbleClass += "border border-cyan-500/50 ";
+                            tailBaseClass += isRight ? "border-l-[10px] border-y-[10px] border-y-transparent -right-2.5 " : "border-r-[10px] border-y-[10px] border-y-transparent -left-2.5 ";
+                            tailStyle = { [isRight ? 'borderLeftColor' : 'borderRightColor']: showBorder ? 'rgba(6,182,212,0.5)' : bubbleBg };
+                        } else if (isEarth) {
+                            bubbleClass += "rounded-[2.5rem] shadow-sm ";
+                            if (showBorder) bubbleClass += "border-2 border-dashed border-[#8d6e63]/30 ";
+                            tailBaseClass += isRight ? "border-l-[15px] border-y-[10px] border-y-transparent -right-3.5 " : "border-r-[15px] border-y-[10px] border-y-transparent -left-3.5 ";
+                            tailStyle = { [isRight ? 'borderLeftColor' : 'borderRightColor']: bubbleBg };
+                        } else {
+                            // Sango / Default
+                            bubbleClass += "rounded-[2rem] shadow-[0_15px_40px_-12px_rgba(0,0,0,0.15)] ";
+                            if (showBorder) bubbleClass += "border-4 border-white ";
+                            tailBaseClass += isRight ? "border-l-[15px] border-y-[10px] border-y-transparent -right-3.5 " : "border-r-[15px] border-y-[10px] border-y-transparent -left-3.5 ";
+                            tailStyle = { [isRight ? 'borderLeftColor' : 'borderRightColor']: bubbleBg };
+                        }
+
+                        // Avatar specific containers
+                        let avatarContainer = null;
+                        const avatarClass = "w-full h-full object-cover transition-transform duration-500 group-hover:scale-110";
+
+                        if (isLuxury) {
+                            avatarContainer = (
+                                <div className="w-16 h-16 md:w-28 md:h-28 relative flex items-center justify-center p-1.5 border-2 border-[#ca8a04]/40 rounded-full shadow-2xl bg-white group hover:border-[#ca8a04] transition-colors">
+                                    <div className="absolute inset-[2px] border border-[#ca8a04]/20 rounded-full"></div>
+                                    <div className="w-full h-full rounded-full overflow-hidden border border-[#ca8a04/10]">
+                                        {imgUrl ? <img src={imgUrl} alt={item.name} className={avatarClass} /> : <div className="w-full h-full flex items-center justify-center bg-gray-50 text-gray-400">LUX</div>}
+                                    </div>
+                                </div>
+                            );
+                        } else if (isCyber) {
+                            avatarContainer = (
+                                <div className="w-16 h-16 md:w-28 md:h-28 relative group">
+                                    <div className="absolute inset-0 bg-cyan-500/20 skew-x-[-12deg] skew-y-[3deg] scale-110 blur-[2px] group-hover:bg-cyan-500/40 transition-all"></div>
+                                    <div className="w-full h-full relative bg-[#0f172a] border-2 border-cyan-500/60 skew-x-[-12deg] skew-y-[3deg] overflow-hidden">
+                                        <div className="w-full h-full scale-[1.3] skew-x-[12deg] skew-y-[-3deg] absolute inset-0">
+                                            {imgUrl ? <img src={imgUrl} alt={item.name} className={avatarClass} /> : <div className="w-full h-full flex items-center justify-center text-cyan-500/50">CYB</div>}
+                                        </div>
+                                    </div>
+                                    <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-cyan-500 animate-pulse"></div>
+                                </div>
+                            );
+                        } else if (isEarth) {
+                            avatarContainer = (
+                                <div className="w-16 h-16 md:w-28 md:h-28 relative group">
+                                    <div className="absolute inset-0 bg-[#8d6e63]/5 transform rotate-6 rounded-[2rem] transition-transform group-hover:rotate-12"></div>
+                                    <div className="w-full h-full relative bg-[#fffcf5] border-2 border-[#8d6e63]/20 rounded-[1.8rem] overflow-hidden p-1 shadow-sm">
+                                        <div className="w-full h-full rounded-[1.6rem] overflow-hidden">
+                                            {imgUrl ? <img src={imgUrl} alt={item.name} className={avatarClass} /> : <div className="w-full h-full flex items-center justify-center text-[#8d6e63]/40">BIO</div>}
+                                        </div>
+                                    </div>
+                                </div>
+                            );
+                        } else {
+                            // Sango / Swell
+                            avatarContainer = (
+                                <div className={clsx(
+                                    "w-12 h-12 md:w-24 md:h-24 overflow-hidden relative group",
+                                    isSwell ? "rounded-lg border border-gray-100 bg-white shadow-md" :
+                                        "rounded-full border-4 border-white shadow-2xl bg-white"
+                                )}>
+                                    <div className="w-full h-full overflow-hidden rounded-inherit">
                                         {imgUrl ? (
-                                            <img src={imgUrl} alt={item.name} className="w-full h-full object-cover" />
+                                            <img src={imgUrl} alt={item.name} className={avatarClass} />
                                         ) : (
-                                            <div className="w-full h-full flex items-center justify-center text-[10px] text-gray-400 font-bold bg-gray-50">ICON</div>
+                                            <div className="w-full h-full flex items-center justify-center text-[10px] text-gray-400 font-bold bg-gray-50 capitalize">{design}</div>
                                         )}
                                     </div>
-                                    <span className="text-xs font-bold opacity-60 max-w-[5rem] truncate text-center">{item.name || section.characterName || "Name"}</span>
+                                </div>
+                            );
+                        }
+
+                        return (
+                            <div key={i} className={clsx(
+                                "flex",
+                                isMobile ? "flex-col gap-2" : "flex-row gap-10",
+                                isMobile ? (isRight ? "items-end" : "items-start") : "items-start",
+                                !isMobile && isRight ? "flex-row-reverse" : "",
+                                animClass
+                            )}>
+                                {/* Character Area */}
+                                <div className="flex flex-col items-center gap-2 md:gap-4 flex-shrink-0">
+                                    {avatarContainer}
+                                    <div className={clsx(
+                                        "text-[10px] md:text-sm font-black tracking-tighter opacity-80",
+                                        isLuxury && "font-serif text-[#ca8a04] italic",
+                                        isCyber && "font-mono text-cyan-400 uppercase tracking-widest",
+                                        isEarth && "text-[#5d4037] font-medium"
+                                    )}>
+                                        {item.name || section.characterName || "NAME"}
+                                    </div>
                                 </div>
 
+                                {/* Bubble Area */}
                                 <div className={clsx(
-                                    "relative p-6 md:p-8 max-w-2xl",
-                                    isSangoLine ? "rounded-[2rem] bg-white border border-gray-100 shadow-sm" : "rounded-lg bg-gray-50 border border-gray-200",
-                                    isRight ? (isSangoLine ? "rounded-tr-none" : "rounded-tr-none") : (isSangoLine ? "rounded-tl-none" : "rounded-tl-none")
-                                )}
-                                    style={{
-                                        backgroundColor: bubbleColor
-                                    }}
-                                >
-                                    <div className={clsx("absolute top-8 w-4 h-4 transform rotate-45 border-inherit bg-inherit border-t border-l",
-                                        isRight ? "-right-2 border-r border-b border-t-0 border-l-0" : "-left-2")}
-                                    ></div>
-                                    <p className="leading-loose whitespace-pre-wrap relative z-10 text-gray-700">{item.text || item.content || section.text}</p>
+                                    bubbleClass,
+                                    "transition-transform"
+                                )} style={{
+                                    backgroundColor: bubbleBg,
+                                }}>
+                                    <div className={tailBaseClass} style={tailStyle}></div>
+
+                                    {isCyber && <div className="absolute top-0 left-0 w-full h-0.5 bg-gradient-to-r from-transparent via-cyan-500 to-transparent shadow-[0_0_10px_cyan]"></div>}
+                                    {isLuxury && <div className="absolute inset-2 border border-[#ca8a04]/5 rounded pointer-events-none"></div>}
+
+                                    <p className={clsx(
+                                        "text-sm md:text-base leading-loose whitespace-pre-wrap relative z-10 text-left w-full",
+                                        isLuxury ? "text-gray-800 md:leading-[1.9] tracking-wide" :
+                                            isCyber ? "text-cyan-50 md:text-base leading-relaxed font-mono" :
+                                                isEarth ? "text-[#5d4037] font-serif leading-[1.8]" : "text-gray-800"
+                                    )} style={{ textAlign: 'left' }}>{item.text || item.content || section.text}</p>
                                 </div>
                             </div>
                         );
@@ -1527,47 +1651,117 @@ export const AccessRenderer = ({ section, viewMode, accentColor: globalAccent })
     const mapUrl = `https://maps.google.com/maps?q=${encodeURIComponent(address)}&t=&z=15&ie=UTF8&iwloc=&output=embed`;
     const accent = globalAccent || theme.primary;
 
-    const isSangoLine = ['earth', 'gentle', 'standard', 'modern'].includes(design);
+    // --- Design Flags ---
+    const isSango = ['gentle', 'standard', 'modern'].includes(design);
+    const isEarth = design === 'earth';
+    const isSwell = ['masculine', 'stylish'].includes(design);
+    const isLuxury = design === 'luxury';
+    const isCyber = design === 'cyber';
 
     return (
         <SectionWrapper section={section}>
-            <div className={clsx("px-6 py-10 md:py-16 flex flex-col gap-10", !isMobile && "md:flex-row")}>
-                <div className={clsx(
-                    "w-full min-h-[350px] shadow-2xl relative overflow-hidden",
-                    !isMobile ? "md:w-1/2" : "",
-                    isSangoLine ? "rounded-[3rem]" : "rounded-lg"
-                )}>
-                    <iframe src={mapUrl} width="100%" height="100%" frameBorder="0" className="absolute inset-0 w-full h-full" loading="lazy"></iframe>
+            <div className={clsx(
+                "w-full max-w-4xl mx-auto flex flex-col items-center justify-center",
+                (isMobile) ? "gap-6 py-8 px-4" : "gap-12 py-16 px-6 md:px-12"
+            )}>
+                {/* Title Container - Moved to TOP CENTER */}
+                <div className={clsx("w-full text-center mb-4")}>
+                    {isCyber && <span className="text-cyan-600 font-mono text-[10px] tracking-widest mb-1 block uppercase">LOCATION DATA</span>}
+                    {isLuxury && <span className="text-[#ca8a04] font-serif text-[10px] tracking-[0.2em] mb-1 block uppercase text-center w-full">Access Information</span>}
+
+                    <h3 className={clsx(
+                        "font-black mb-2 leading-tight mx-auto",
+                        isMobile ? "text-xl" : "text-2xl md:text-3xl",
+                        isLuxury && "font-serif text-[#ca8a04]",
+                        isCyber && "font-mono text-[#0891b2]",
+                        isEarth && "font-serif text-[#5d4037]",
+                        isSwell && "text-gray-800 tracking-tighter"
+                    )}>{section.title || "ACCESS"}</h3>
+
+                    <div className={clsx(
+                        "h-1 rounded-full mx-auto",
+                        isSango ? "w-12" : "w-10",
+                    )} style={{ backgroundColor: isCyber ? '#0891b2' : (isLuxury ? '#ca8a04' : accent) }}></div>
                 </div>
 
-                <div className={clsx("w-full space-y-8 flex flex-col justify-center", !isMobile && "md:w-1/2 md:pl-12")}>
-                    <div>
-                        <span className="text-[10px] font-black tracking-widest uppercase opacity-40 mb-2 block">Location Info</span>
-                        <h3 className="text-3xl font-black mb-6">{section.title || "ACCESS"}</h3>
-                        <div className="w-12 h-1 mb-8" style={{ backgroundColor: accent }}></div>
+                {/* Content Container (Map + Info) */}
+                <div className={clsx(
+                    "w-full flex items-center justify-center",
+                    isMobile ? "flex-col gap-8" : "flex-row gap-16"
+                )}>
+                    {/* Map Container */}
+                    <div className={clsx(
+                        "relative overflow-hidden transition-all duration-300",
+                        isMobile ? "aspect-square w-full" : ((isSango || isEarth) ? "aspect-square w-[320px] shrink-0" : "w-full min-h-[350px] md:w-1/2"),
+                        // Design Styles
+                        isSango && "rounded-[3rem] shadow-2xl border-8 border-white ring-1 ring-gray-100",
+                        isEarth && "rounded-[2rem] border-2 border-dashed border-[#8d6e63] bg-[#fffcf5] p-2",
+                        isSwell && "rounded-sm border border-gray-200 shadow-lg bg-white p-1",
+                        isLuxury && "rounded-lg border border-[#ca8a04]/30 shadow-[0_0_30px_rgba(0,0,0,0.5)]",
+                        isCyber && "rounded-xl border border-cyan-500/50 shadow-[0_0_20px_rgba(6,182,212,0.2)] bg-[#0f172a] p-1"
+                    )}>
+                        <div className={clsx(
+                            "w-full h-full relative overflow-hidden",
+                            isSango && "rounded-[2.5rem]",
+                            isEarth && "rounded-[1.6rem]",
+                            isSwell && "rounded-none",
+                            isLuxury && "rounded",
+                            isCyber && "rounded-lg opacity-80 mix-blend-luminosity hover:mix-blend-normal transition-all"
+                        )}>
+                            <iframe src={mapUrl} width="100%" height="100%" frameBorder="0" className="absolute inset-0 w-full h-full" loading="lazy" style={{ filter: isLuxury ? 'grayscale(100%) contrast(1.2)' : 'none' }}></iframe>
+                        </div>
                     </div>
 
-                    <div className="space-y-6">
-                        <div className="flex items-start gap-4">
-                            <div className="w-8 h-8 rounded-full flex items-center justify-center bg-gray-100 flex-shrink-0">
-                                <Medal size={16} className="text-gray-400" />
-                            </div>
-                            <div>
-                                <p className="text-xs font-black uppercase tracking-widest text-gray-400 mb-1">Address</p>
-                                <p className="font-bold text-gray-700">{address}</p>
-                            </div>
+                    {/* Info Container */}
+                    <div className={clsx("w-full flex flex-col justify-center", !isMobile && (isSango || isEarth ? "max-w-md" : "md:w-1/2"))}>
+                        <div className={clsx(
+                            "grid",
+                            (isSango || isEarth) ? "gap-4" : "grid-cols-1 border-t border-l border-gray-100 rounded-lg overflow-hidden shadow-sm"
+                        )}>
+                            {[
+                                { label: "Address", text: address, icon: Medal },
+                                section.access ? { label: "Access", text: section.access, icon: ArrowRight } : null,
+                                section.hours ? { label: "Working Hours", text: section.hours, icon: Sparkles } : null,
+                                section.tel ? { label: "Phone", text: section.tel, icon: MessageCircle } : null,
+                            ].filter(Boolean).map((item, i) => (
+                                <div key={i} className={clsx(
+                                    "transition-all group flex flex-col",
+                                    (isSango || isEarth) ? "gap-4" : "gap-1 border-r border-b border-gray-100 p-4 bg-white/50 hover:bg-white",
+                                    isCyber && "border-cyan-500/20 bg-cyan-500/5",
+                                    isLuxury && "border-[#ca8a04]/20 bg-[#ca8a04]/5"
+                                )}>
+                                    <div className={clsx("flex items-center gap-3", !(isSango || isEarth) && "sr-only")}>
+                                        {(isSango || isEarth) && (
+                                            <div className={clsx(
+                                                "w-7 h-7 flex items-center justify-center transition-transform group-hover:scale-110",
+                                                isSango && "rounded-full bg-white shadow-sm text-gray-400 border border-gray-100",
+                                                isEarth && "rounded-full border border-[#8d6e63]/30 text-[#8d6e63] bg-[#fffcf5]"
+                                            )}>
+                                                <item.icon size={14} />
+                                            </div>
+                                        )}
+                                        <p className={clsx(
+                                            "text-[10px] font-black uppercase tracking-[0.15em]",
+                                            isSango && "text-gray-400",
+                                            isEarth && "text-[#8d6e63]"
+                                        )}>{item.label}</p>
+                                    </div>
+
+                                    <div className="space-y-0">
+                                        {!(isSango || isEarth) && (
+                                            <p className={clsx(
+                                                "text-[10px] font-black uppercase tracking-[0.15em] mb-1",
+                                                isLuxury ? "text-[#b45309] font-serif" : (isCyber ? "text-[#0891b2] font-mono" : "text-gray-400")
+                                            )}>{item.label}</p>
+                                        )}
+                                        <p className={clsx(
+                                            "font-bold leading-relaxed text-sm md:text-base text-gray-900",
+                                            isLuxury ? "text-[#1e293b] font-serif tracking-wide" : (isCyber ? "text-[#0f172a] font-mono" : (isEarth ? "text-[#5d4037]" : "text-gray-900"))
+                                        )}>{item.text}</p>
+                                    </div>
+                                </div>
+                            ))}
                         </div>
-                        {section.hours && (
-                            <div className="flex items-start gap-4">
-                                <div className="w-8 h-8 rounded-full flex items-center justify-center bg-gray-100 flex-shrink-0">
-                                    <Sparkles size={16} className="text-gray-400" />
-                                </div>
-                                <div>
-                                    <p className="text-xs font-black uppercase tracking-widest text-gray-400 mb-1">Working Hours</p>
-                                    <p className="font-bold text-gray-700">{section.hours}</p>
-                                </div>
-                            </div>
-                        )}
                     </div>
                 </div>
             </div>

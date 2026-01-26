@@ -1,23 +1,9 @@
 import React, { useState } from 'react';
-import { aiService } from '../../utils/aiService';
-import { unsplashService } from '../../utils/unsplashService';
-import { InputGroup, TextInput, ColorPicker } from '../UI/Input';
-import { Megaphone, Key, ArrowDownToLine } from 'lucide-react';
+import { Megaphone, ArrowDownToLine } from 'lucide-react';
+import { InputGroup, TextInput } from '../UI/Input';
 
 export const SettingsPanel = ({ data, setData }) => {
-    const [googleKey, setGoogleKey] = useState(aiService.getApiKey() || '');
-    const [openaiKey, setOpenaiKey] = useState(aiService.getOpenAIKey() || '');
-    const [unsplashKey, setUnsplashKey] = useState(unsplashService.getAccessKey() || '');
     const [saved, setSaved] = useState(false);
-
-    const handleSave = () => {
-        console.log('[DEBUG] Saving Keys:', { google: !!googleKey, openai: !!openaiKey });
-        aiService.setApiKey(googleKey);
-        aiService.setOpenAIKey(openaiKey);
-        unsplashService.setAccessKey(unsplashKey);
-        setSaved(true);
-        setTimeout(() => setSaved(false), 2000);
-    };
 
     const updateCta = (key, value) => {
         setData(prev => ({
@@ -55,69 +41,6 @@ export const SettingsPanel = ({ data, setData }) => {
 
 
             {/* API Key Section */}
-            <section>
-                <div className="bg-gray-800/30 p-4 rounded-xl border border-gray-700/50 space-y-4">
-                    <div className="flex items-center gap-2 mb-2">
-                        <Key size={16} className="text-purple-400" />
-                        <h4 className="text-sm font-bold text-white">APIキー設定 (外部サービス)</h4>
-                    </div>
-
-                    <div className="space-y-4">
-                        <InputGroup label="Google AI Key (Gemini - Text & Structure)">
-                            <div className="space-y-1">
-                                <input
-                                    type="password"
-                                    value={googleKey}
-                                    onChange={(e) => setGoogleKey(e.target.value)}
-                                    placeholder="AIza..."
-                                    className="w-full bg-gray-900 border border-gray-700 rounded-lg p-3 text-xs text-gray-200 focus:outline-none focus:border-purple-500 transition-colors"
-                                />
-                                <div className="flex justify-between items-center px-1">
-                                    <p className="text-[10px] text-gray-500">※LPの構成案・文章作成に使用（無料枠あり）</p>
-                                    <span className="text-[10px] font-mono bg-blue-500/10 text-blue-400 px-1.5 py-0.5 rounded border border-blue-500/20">
-                                        Active: {aiService.GEMINI_MODEL || 'gemini-2.5-pro'}
-                                    </span>
-                                </div>
-                            </div>
-                        </InputGroup>
-
-                        <InputGroup label="OpenAI API Key (DALL-E 3 - Images)">
-                            <div className="space-y-1">
-                                <input
-                                    type="password"
-                                    value={openaiKey}
-                                    onChange={(e) => setOpenaiKey(e.target.value)}
-                                    placeholder="sk-..."
-                                    className="w-full bg-gray-900 border border-gray-700 rounded-lg p-3 text-xs text-gray-200 focus:outline-none focus:border-teal-500 transition-colors"
-                                />
-                                <p className="text-[10px] text-gray-500">※高品質な画像生成に使用（従量課金）</p>
-                            </div>
-                        </InputGroup>
-
-                        <InputGroup label="Unsplash Access Key">
-                            <div className="space-y-1">
-                                <input
-                                    type="password"
-                                    value={unsplashKey}
-                                    onChange={(e) => setUnsplashKey(e.target.value)}
-                                    placeholder="Access Key..."
-                                    className="w-full bg-gray-900 border border-gray-700 rounded-lg p-3 text-xs text-gray-200 focus:outline-none focus:border-pink-500 transition-colors"
-                                />
-                                <p className="text-[10px] text-gray-500">※無料の画像検索に使用</p>
-                            </div>
-                        </InputGroup>
-                    </div>
-
-                    <div className="pt-2 flex justify-end">
-                        <button
-                            onClick={handleSave}
-                            className={`px-6 py-2 rounded-lg text-xs font-bold transition-all shadow-lg ${saved ? 'bg-green-600 text-white' : 'bg-blue-600 hover:bg-blue-500 text-white'}`}
-                        >
-                            {saved ? '設定を保存しました' : '設定を保存'}
-                        </button>
-                    </div>
-                </div>
-            </section>
 
             {/* Help & Publishing Guide */}
             <section className="space-y-4">

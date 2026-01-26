@@ -1,85 +1,15 @@
 import React, { useState } from 'react';
-import { Palette, Type, Sparkles, Wand2, Loader2 } from 'lucide-react';
+import { Palette, Type, Sparkles, Wand2, Loader2, Layout } from 'lucide-react';
 import { Button } from '../UI/Button';
 import { TextArea } from '../UI/Input';
-import { InputGroup, Slider, ColorPicker } from '../UI/Input';
+import { InputGroup, Slider, ColorPicker, TextInput } from '../UI/Input';
 import { aiService } from '../../utils/aiService';
 
 export const StylePanel = ({ data, setData }) => {
     const [prompt, setPrompt] = useState('');
-    const [isGenerating, setIsGenerating] = useState(false);
-    const [statusMsg, setStatusMsg] = useState('AIが魔法をかけています...');
-    const [tuning, setTuning] = useState({ tone: 'standard', focus: 'benefit' });
+    // AI Magic states removed (moved to AIPanel)
 
-    const handleProfessionalBuild = async (imageMode = 'library') => {
-        if (!prompt) return;
-        setIsGenerating(true);
-        setStatusMsg('プロフェッショナル・ビルドを開始します...');
-
-        try {
-            // Use the unified 5-stage pipeline
-            const normalizedData = await aiService.generateLP(prompt, {
-                ...tuning,
-                imageMode // Pass imageMode to the pipeline
-            });
-
-            console.log("[Pipeline] Professional Build Complete", normalizedData);
-
-            setData(prev => {
-                const next = {
-                    // まずベースは prev
-                    ...prev,
-
-                    // 次に生成結果を優先で上書き（浅い領域）
-                    ...normalizedData,
-
-                    // ✅ sections は必ず生成結果で置き換え（配列deep merge事故を防ぐ）
-                    sections: normalizedData.sections ?? prev.sections,
-
-                    // ✅ heroConfig は “生成結果優先” で上書き
-                    heroConfig: {
-                        ...(prev.heroConfig ?? {}),
-                        ...(normalizedData.heroConfig ?? {}),
-                    },
-
-                    // ✅ design もネストなので明示的に
-                    design: {
-                        ...(prev.design ?? {}),
-                        ...(normalizedData.design ?? {}),
-                        colors: {
-                            ...(prev.design?.colors ?? {}),
-                            ...(normalizedData.design?.colors ?? {}),
-                        },
-                        typography: {
-                            ...(prev.design?.typography ?? {}),
-                            ...(normalizedData.design?.typography ?? {}),
-                        },
-                    },
-                };
-
-                // ✅ Heroが変わらない対策：fallbackを必ず最新bgImageに同期
-                const latestHero =
-                    next.heroConfig?.bgImage ||
-                    normalizedData.heroConfig?.bgImage ||
-                    normalizedData.heroImageFallback ||
-                    next.heroImageFallback;
-
-                if (latestHero) {
-                    next.heroImageFallback = latestHero;
-                    // Ensure heroUrl mirrored for UI stability
-                    next.heroUrl = latestHero;
-                }
-
-                return next;
-            });
-            setStatusMsg('プロフェッショナル生成が完了しました！');
-        } catch (error) {
-            console.error("[Pipeline] CRITICAL ERROR:", error);
-            setStatusMsg('生成中にエラーが発生しました');
-        } finally {
-            setIsGenerating(false);
-        }
-    };
+    // AI Logic moved to AIPanel
 
 
     const runLocalFallback = async () => {
@@ -202,122 +132,9 @@ export const StylePanel = ({ data, setData }) => {
         setData(prev => ({ ...prev, ...updates }));
     };
 
-    const globalApiKey = aiService.getApiKey();
-
-    const TuningChip = ({ label, active, onClick }) => (
-        <button
-            onClick={onClick}
-            className={`text-[10px] px-2 py-1 rounded-md transition-all border ${active ? 'bg-blue-500 text-white border-blue-400' : 'bg-black/20 text-blue-200 border-blue-500/20 hover:bg-blue-500/20'}`}
-        >
-            {label}
-        </button>
-    );
-
     return (
         <div className="space-y-8 animate-fadeIn">
-            <section className="bg-gradient-to-br from-blue-600/20 to-purple-600/20 p-5 rounded-2xl border border-blue-500/30 shadow-inner">
-                <h2 className="text-sm font-black text-white mb-4 flex items-center gap-2">
-                    <Wand2 size={16} className="text-blue-400 animate-pulse" /> AI Magic (おまかせ生成)
-                </h2>
-                <div className="space-y-4">
-                    <div className="flex items-center justify-between mb-1">
-                        <p className="text-[10px] text-blue-200/70 font-medium leading-relaxed">
-                            やりたいことを入力してください。AIが最適な構成を提案します。
-                        </p>
-                        {globalApiKey ? (
-                            <span className="text-[9px] bg-green-900/50 text-green-400 px-2 py-0.5 rounded-full flex items-center gap-1">
-                                <Sparkles size={10} /> 本格AIモード
-                            </span>
-                        ) : (
-                            <span className="text-[9px] bg-gray-800 text-gray-500 px-2 py-0.5 rounded-full">
-                                デモモード
-                            </span>
-                        )}
-                    </div>
-
-                    {/* AI Tuning Panel */}
-                    <div className="bg-black/20 p-3 rounded-xl border border-white/5 space-y-3">
-                        <div className="flex items-center gap-2">
-                            <span className="text-[10px] text-gray-400 w-12">トーン:</span>
-                            <div className="flex gap-1 flex-wrap">
-                                {['standard', 'luxury', 'friendly', 'energetic'].map(t => (
-                                    <TuningChip
-                                        key={t}
-                                        label={t === 'standard' ? '標準' : t === 'luxury' ? '高級感' : t === 'friendly' ? '親しみ' : '情熱的'}
-                                        active={tuning.tone === t}
-                                        onClick={() => setTuning(prev => ({ ...prev, tone: t }))}
-                                    />
-                                ))}
-                            </div>
-                        </div>
-                        <div className="flex items-center gap-2">
-                            <span className="text-[10px] text-gray-400 w-12">重視:</span>
-                            <div className="flex gap-1 flex-wrap">
-                                {['benefit', 'proof', 'sales'].map(f => (
-                                    <TuningChip
-                                        key={f}
-                                        label={f === 'benefit' ? 'ベネフィット' : f === 'proof' ? '信頼・実績' : 'セールス'}
-                                        active={tuning.focus === f}
-                                        onClick={() => setTuning(prev => ({ ...prev, focus: f }))}
-                                    />
-                                ))}
-                            </div>
-                        </div>
-                    </div>
-
-                    <TextArea
-                        value={prompt}
-                        onChange={(val) => setPrompt(val)}
-                        placeholder="例：渋谷にある、メンズ特化のカジュアルな美容室。黒を基調にして、予約ボタンを目立たせたい。"
-                        rows={3}
-                        className="bg-black/40 border-blue-500/20 text-xs focus:border-blue-500/50 transition-all placeholder:text-gray-600"
-                    />
-                    <div className="grid grid-cols-1 gap-3">
-                        <Button
-                            onClick={() => handleProfessionalBuild('library')}
-                            disabled={isGenerating || !prompt}
-                            className="group relative overflow-hidden w-full bg-blue-600 hover:bg-blue-500 text-white font-black py-5 shadow-2xl shadow-blue-900/40 border-b-4 border-blue-800 active:border-b-0 active:translate-y-1 transition-all"
-                        >
-                            <div className="absolute inset-0 bg-gradient-to-r from-blue-400/0 via-white/20 to-blue-400/0 -translate-x-full group-hover:animate-shimmer" />
-                            {isGenerating ? (
-                                <div className="flex flex-col items-center gap-1">
-                                    <div className="flex items-center gap-2">
-                                        <Loader2 size={18} className="animate-spin text-white" />
-                                        <span className="text-sm font-bold tracking-wider">GENERATING...</span>
-                                    </div>
-                                    <span className="text-[10px] text-blue-100/70 font-medium animate-pulse">{statusMsg}</span>
-                                </div>
-                            ) : (
-                                <div className="flex flex-col items-center">
-                                    <div className="flex items-center gap-2">
-                                        <Sparkles size={20} className="text-yellow-300" />
-                                        <span className="text-base tracking-widest uppercase">Professional Build</span>
-                                    </div>
-                                    <span className="text-[10px] text-blue-100/60 font-normal mt-1">戦略・デザイン・文章・画像をすべて自動生成</span>
-                                </div>
-                            )}
-                        </Button>
-
-                        <div className="pt-2 border-t border-white/5 flex items-center justify-between">
-                            <span className="text-[10px] text-gray-500">画像生成モード:</span>
-                            <div className="flex gap-2">
-                                <button
-                                    onClick={() => handleProfessionalBuild('ai')}
-                                    disabled={isGenerating || !prompt}
-                                    className="text-[9px] text-blue-400 hover:text-blue-300 flex items-center gap-1 bg-blue-500/10 px-2 py-1 rounded border border-blue-500/20"
-                                >
-                                    <Wand2 size={12} /> DALL-E 3で生成
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                    {!globalApiKey && (
-                        <p className="text-[9px] text-gray-500 text-center">
-                            ※設定タブでAPIキーを入れると、より精微な生成が可能です
-                        </p>
-                    )}
-                </div>
-            </section>
+            {/* AI Magic moved to dedicated tab */}
 
 
 
@@ -346,6 +163,36 @@ export const StylePanel = ({ data, setData }) => {
                         step={4}
                     />
                 </InputGroup>
+            </section>
+
+            <section>
+                <div className="flex items-center gap-2 mb-4 text-blue-400">
+                    <Layout size={18} />
+                    <h2 className="font-bold">全体背景 (デフォルト)</h2>
+                </div>
+                <div className="bg-gray-800/30 p-4 rounded-xl border border-gray-700/50 space-y-5">
+                    <InputGroup label="背景タイプ">
+                        <div className="flex gap-4">
+                            <label className="flex items-center gap-2 cursor-pointer">
+                                <input type="radio" checked={data.pageBgType === 'color'} onChange={() => setData(prev => ({ ...prev, pageBgType: 'color' }))} className="accent-blue-500" />
+                                <span className="text-sm">単色</span>
+                            </label>
+                            <label className="flex items-center gap-2 cursor-pointer">
+                                <input type="radio" checked={data.pageBgType === 'image'} onChange={() => setData(prev => ({ ...prev, pageBgType: 'image' }))} className="accent-blue-500" />
+                                <span className="text-sm">画像</span>
+                            </label>
+                        </div>
+                    </InputGroup>
+                    {data.pageBgType === 'color' ? (
+                        <InputGroup label="背景色">
+                            <ColorPicker value={data.pageBgValue} onChange={(val) => setData(prev => ({ ...prev, pageBgValue: val }))} />
+                        </InputGroup>
+                    ) : (
+                        <InputGroup label="画像URL">
+                            <TextInput value={data.pageBgValue} onChange={(val) => setData(prev => ({ ...prev, pageBgValue: val }))} placeholder="URL" />
+                        </InputGroup>
+                    )}
+                </div>
             </section>
 
             <section>

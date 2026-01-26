@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Camera, Video, Monitor, Layout, Sparkles, Image, Loader2 } from 'lucide-react';
+import { Camera, Video, Monitor, Sparkles, Image, Loader2 } from 'lucide-react';
 import { aiService } from '../../utils/aiService';
 import { InputGroup, TextInput, TextArea } from '../UI/Input';
 import { Slider, ColorPicker } from '../UI/Input';
@@ -146,36 +146,6 @@ export const VisualPanel = ({ data, setData }) => {
                 </div>
             </section>
 
-            {/* Global Background Settings */}
-            <section>
-                <div className="flex items-center gap-2 mb-4 text-blue-400">
-                    <Layout size={18} />
-                    <h2 className="font-bold">全体背景 (デフォルト)</h2>
-                </div>
-                <div className="bg-gray-800/30 p-4 rounded-xl border border-gray-700/50 space-y-5">
-                    <InputGroup label="背景タイプ">
-                        <div className="flex gap-4">
-                            <label className="flex items-center gap-2 cursor-pointer">
-                                <input type="radio" checked={data.pageBgType === 'color'} onChange={() => setData(prev => ({ ...prev, pageBgType: 'color' }))} className="accent-blue-500" />
-                                <span className="text-sm">単色</span>
-                            </label>
-                            <label className="flex items-center gap-2 cursor-pointer">
-                                <input type="radio" checked={data.pageBgType === 'image'} onChange={() => setData(prev => ({ ...prev, pageBgType: 'image' }))} className="accent-blue-500" />
-                                <span className="text-sm">画像</span>
-                            </label>
-                        </div>
-                    </InputGroup>
-                    {data.pageBgType === 'color' ? (
-                        <InputGroup label="背景色">
-                            <ColorPicker value={data.pageBgValue} onChange={(val) => setData(prev => ({ ...prev, pageBgValue: val }))} />
-                        </InputGroup>
-                    ) : (
-                        <InputGroup label="画像URL">
-                            <TextInput value={data.pageBgValue} onChange={(val) => setData(prev => ({ ...prev, pageBgValue: val }))} placeholder="URL" />
-                        </InputGroup>
-                    )}
-                </div>
-            </section>
         </div>
     );
 };

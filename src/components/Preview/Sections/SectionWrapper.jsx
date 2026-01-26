@@ -14,7 +14,8 @@ export const SectionWrapper = ({ section, children, className, globalPadding = 2
         ? section.bgValue
         : (section.bgImage || section.style?.bgImage || 'none');
 
-    const bgColor = section.backgroundColor || section.style?.bgColor || (section.bgType === 'color' ? section.bgValue : 'transparent');
+    const isColor = section.bgType === 'color' || !section.bgType;
+    const bgColor = (isColor && section.bgValue) ? section.bgValue : (section.backgroundColor || section.style?.bgColor || 'transparent');
     const bgOverlay = section.bgOverlay !== undefined ? section.bgOverlay : (section.style?.bgOverlay || 0);
 
     const style = {
