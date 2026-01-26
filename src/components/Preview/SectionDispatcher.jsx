@@ -1,5 +1,6 @@
 /* eslint-disable */
 import React from 'react';
+import { clsx } from 'clsx';
 import { HeroSection } from './HeroSection';
 import { TextRenderer, ImageRenderer, HeadingRenderer, VideoRenderer, ButtonRenderer } from './Sections/Renderers';
 import { SocialRenderer, AccordionRenderer, PostCardRenderer, ColumnsRenderer, LinksRenderer, BoxRenderer } from './Sections/ComplexRenderers';
@@ -7,7 +8,7 @@ import { ConversionPanel, PointList, ProblemChecklist, SpeechBubbleRenderer, Pri
 import { SectionWrapper } from './Sections/SectionWrapper';
 import { TYPE_ALIASES } from '../../utils/componentRegistry';
 import { normalizeSectionForRender } from '../../utils/normalization';
-import { getImgUrl } from '../../utils/helpers';
+import { getImgUrl, getDesignTheme } from '../../utils/helpers';
 
 // Map of all available renderers
 export const renderers = {
@@ -17,6 +18,8 @@ export const renderers = {
         const isRight = section.imagePosition === 'right';
         const isMobile = viewMode === 'mobile';
         const imgUrl = getImgUrl(section.image);
+        const design = section.design || 'standard';
+        const theme = getDesignTheme(design); // Requires import update
 
         // Text Styles Logic
         let textClasses = "";
@@ -24,24 +27,45 @@ export const renderers = {
         if (section.textShadow === 'strong') textClasses += " drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)]";
 
         let containerClasses = "";
-        if (section.textBackdrop === 'blur') containerClasses += " backdrop-blur-md bg-white/10 p-6 rounded-xl border border-white/20 shadow-lg";
-        if (section.textBackdrop === 'white') containerClasses += " bg-white/90 backdrop-blur text-gray-800 p-6 rounded-xl shadow-lg";
-        if (section.textBackdrop === 'black') containerClasses += " bg-black/70 backdrop-blur text-white p-6 rounded-xl shadow-lg";
+        if (section.textBackdrop === 'blur') containerClasses += " backdrop-blur-md bg-white/10 p-6 md:p-10 border border-white/20 shadow-lg";
+        if (section.textBackdrop === 'white') containerClasses += " bg-white/95 backdrop-blur text-gray-800 p-6 md:p-10 shadow-xl";
+        if (section.textBackdrop === 'black') containerClasses += " bg-black/80 backdrop-blur text-white p-6 md:p-10 shadow-xl";
+
+        // Default container if no backdrop but theme needs it or just spacing
+        if (!containerClasses) containerClasses += " py-4";
 
         return (
             <SectionWrapper section={section} globalPadding={globalPadding}>
-                <div className={`flex flex-col ${isMobile ? '' : 'md:flex-row'} gap-10 items-center`}>
-                    <div className={`w-full ${isMobile ? '' : 'md:w-1/2'} ${!isMobile && isRight ? 'md:order-2' : ''}`}>
+                <div className={clsx("flex flex-col items-center", isMobile ? "gap-8" : "md:flex-row gap-12 lg:gap-20")}>
+                    <div className={clsx("w-full transition-all duration-500", isMobile ? "" : "md:w-1/2", !isMobile && isRight && "md:order-2")}>
                         {imgUrl ? (
-                            <img src={imgUrl} alt={section.title} className="w-full h-auto rounded-lg shadow-lg object-cover aspect-[4/3]" />
+                            <div className={clsx(
+                                "overflow-hidden shadow-2xl transition-transform hover:scale-[1.01]",
+                                design === 'luxury' && "border border-amber-500/20"
+                            )} style={{ borderRadius: theme.radius }}>
+                                <img src={imgUrl} alt={section.title} className="w-full h-auto object-cover aspect-[4/3]" />
+                            </div>
                         ) : (
-                            <div className="w-full h-auto aspect-[4/3] bg-gray-200 flex items-center justify-center rounded-lg text-gray-400">No Image</div>
+                            <div className="w-full h-auto aspect-[4/3] bg-gray-100 flex items-center justify-center text-gray-400 font-black shadow-inner"
+                                style={{ borderRadius: theme.radius }}>
+                                IMAGE CONTENT
+                            </div>
                         )}
                     </div>
-                    <div className={`w-full ${isMobile ? '' : 'md:w-1/2'} ${!isMobile && isRight ? 'md:order-1 md:pr-10' : (isMobile ? '' : 'md:pl-10')}`}>
-                        <div className={containerClasses}>
-                            <h3 className={`font-medium tracking-widest mb-6 leading-tight ${textClasses}`} style={{ fontSize: `${fontSize.sectionTitle}rem` }}>{section.title}</h3>
-                            <p className={`leading-loose whitespace-pre-wrap font-light ${textClasses}`} style={{ fontSize: `${fontSize.body}rem` }}>{section.content}</p>
+                    <div className={clsx("w-full", isMobile ? "" : "md:w-1/2", !isMobile && isRight ? "md:order-1" : "")}>
+                        <div className={clsx(containerClasses)} style={section.textBackdrop ? { borderRadius: theme.radius } : {}}>
+                            {(section.title || section.heading) && (
+                                <h3 className={clsx("font-bold mb-6 leading-tight tracking-tight", textClasses)}
+                                    style={{ fontSize: `${fontSize.sectionTitle * 1.1}rem`, color: theme.text }}>
+                                    {section.title || section.heading}
+                                </h3>
+                            )}
+                            <div className={clsx("w-12 h-1 mb-8 opacity-50", isMobile ? "mx-auto" : "")}
+                                style={{ backgroundColor: theme.text }}></div>
+                            <p className={clsx("leading-loose whitespace-pre-wrap opacity-80", textClasses)}
+                                style={{ fontSize: `${fontSize.body}rem` }}>
+                                {section.content || section.text}
+                            </p>
                         </div>
                     </div>
                 </div>

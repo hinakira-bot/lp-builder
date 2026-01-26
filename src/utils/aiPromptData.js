@@ -220,3 +220,55 @@ export const DESIGN_RECOMMENDATIONS = {
         speech_bubble: "dialogue"
     }
 };
+
+/**
+ * トーンに基づいた標準カラーパレットの定義 (ChatGPT案)
+ */
+export const TONE_COLOR_MAPPING = {
+    "healing": { primary: "#789781", secondary: "#f1f5f2", accent: "#d4a373" }, // 癒やし・自然
+    "professional": { primary: "#1a365d", secondary: "#f7fafc", accent: "#ed8936" }, // 信頼・ビジネス
+    "active": { primary: "#e53e3e", secondary: "#fff5f5", accent: "#ecc94b" }, // 活気・スポーツ
+    "luxury": { primary: "#2d3748", secondary: "#ffffff", accent: "#b7791f" }, // 高級・洗練
+    "cute": { primary: "#ed64a6", secondary: "#fff5f7", accent: "#f6ad55" }, // かわいい・ポップ
+    "modern": { primary: "#2d3748", secondary: "#edf2f7", accent: "#4a5568" }, // モダン・無機質
+    "warm": { primary: "#c05621", secondary: "#fffaf0", accent: "#f6ad55" }, // 温かみ・アットホーム
+    "default": { primary: "#3182ce", secondary: "#f7fafc", accent: "#3182ce" }
+};
+
+/**
+ * セクション種別 × トーン による画像カテゴリマトリクス (ChatGPT案)
+ */
+export const SECTION_TONE_IMAGE_MATRIX = {
+    // ヒーロー
+    hero: {
+        healing: "forest,nature,spa",
+        professional: "office,city,business",
+        active: "sport,fitness,energy",
+        luxury: "abstract,gold,interior",
+        cute: "illustration,colorful,happy",
+        default: "technology,working"
+    },
+    // スタッフ紹介
+    staff: {
+        professional: "corporate,portrait,business-person",
+        healing: "therapist,smiling-person",
+        active: "trainer,athlete",
+        default: "portrait,smiling-face"
+    },
+    // お客様の声 (アバター)
+    review: {
+        professional: "business,man,woman,portrait",
+        cute: "avatar,illustration,young",
+        default: "person,face,smile"
+    },
+    // ギャラリー / イメージテキスト
+    image_text: {
+        healing: "eco,green,calm",
+        professional: "success,teamwork,technology",
+        active: "running,challenge,gym",
+        luxury: "jewelry,hotel,texture",
+        default: "lifestyle,product"
+    },
+    // 汎用
+    default: "business,abstract,lifestyle"
+};

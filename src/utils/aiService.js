@@ -1,7 +1,7 @@
 // src/utils/aiService.js
 
 import { SECTION_REGISTRY, ALLOWED_SECTION_TYPES, TYPE_ALIASES } from './componentRegistry';
-import { SECTION_DESIGN_CATALOG, DESIGN_RECOMMENDATIONS } from './aiPromptData';
+import { SECTION_DESIGN_CATALOG, DESIGN_RECOMMENDATIONS, TONE_COLOR_MAPPING, SECTION_TONE_IMAGE_MATRIX } from './aiPromptData';
 import { unsplashService } from './unsplashService';
 
 export const GEMINI_MODEL = "gemini-2.5-pro";
@@ -48,13 +48,137 @@ const UNSPLASH_LIBRARY = {
     ]
 };
 
+/**
+ * UnsplashのURLから写真固有のIDを抽出し、一一性を判定するためのキーを返す (修正版)
+ */
+const _getUnsplashPhotoKey = (url) => {
+    if (!url || typeof url !== 'string') return null;
+    try {
+        const u = new URL(url);
+        // /photo-XXXXXX の形式からIDを抽出
+        const m = u.pathname.match(/\/photo-([^/]+)/);
+        if (m && m[1]) return `unsplash:${m[1]}`;
+        // それ以外（source.unsplash等）はホストとパスで判定
+        return `${u.host}${u.pathname}`;
+    } catch {
+        // パース失敗時は安全のため文字列の一部をキーにする
+        return url.slice(0, 80);
+    }
+};
+
+/**
+ * 画像データを {url, alt} 形式に正規化する (Renderer受取強化用)
+ */
+const _normalizeImage = (img) => {
+    if (!img) return null;
+    if (typeof img === 'string') return { url: img.trim(), alt: '' };
+    if (typeof img === 'object') {
+        const url = img.url || img.src || img.href;
+        if (!url || typeof url !== 'string') return null;
+        return { url: url.trim(), alt: img.alt || '' };
+    }
+    return null;
+};
+
+/**
+ * 画像が有効（URLが存在し、httpで始まる）か判定する
+ */
+const _hasValidImage = (img) => {
+    const n = _normalizeImage(img);
+    return !!(n?.url && n.url.startsWith('http'));
+};
+
+/**
+ * 画像設定に基づいて実際のURLを取得し、重複排除を行う一元化ロジック (修正版)
+ */
+const _processImageConfig = async (config, index = 0, usedImageKeys = new Set(), retry = 0) => {
+    const MAX_RETRY = 6;
+    if (!config) return null;
+
+    const keywords = config.keywords?.trim();
+    const category = config.category || 'default';
+    const mode = config.mode || 'library';
+
+    // 1) AI Generation (DALL-E 3)
+    if (mode === 'generate' || mode === 'ai') {
+        try {
+            const openaiKey = aiService.getOpenAIKey();
+            if (!openaiKey) throw new Error("API_KEY_MISSING_OPENAI");
+
+            const aiKeywords = (index > 0 || retry > 0) ? `${keywords} variation ${index} ${retry}` : keywords;
+            const res = await aiService.generateImageOpenAI(openaiKey, aiKeywords, "photorealistic");
+            if (res?.url) {
+                const photoKey = _getUnsplashPhotoKey(res.url);
+                if (!usedImageKeys.has(photoKey)) {
+                    usedImageKeys.add(photoKey);
+                    return res.url;
+                }
+            }
+        } catch (e) {
+            console.warn("[processImageConfig] AI Gen failed, fallback to library", e);
+            return _processImageConfig({ ...config, mode: 'library' }, index, usedImageKeys, retry);
+        }
+    }
+
+    // 2) Unsplash API (キーワード検索)
+    if (keywords) {
+        const searchKeywords = retry > 0 ? `${keywords} variant ${retry} ${Math.floor(Math.random() * 1000)}` : keywords;
+        const apiUrl = await aiService._getUnsplashImageUrlByKeywords(searchKeywords, { w: 1200, q: 80 });
+
+        if (apiUrl) {
+            const key = _getUnsplashPhotoKey(apiUrl);
+            if (!usedImageKeys.has(key)) {
+                usedImageKeys.add(key);
+                console.log(`[processImageConfig] Unique -> ${apiUrl.substring(0, 80)}... (key: ${key})`);
+                return apiUrl;
+            }
+
+            console.warn(`[processImageConfig] Duplicate(photoKey) -> ${key}. Retrying... (${retry}/${MAX_RETRY})`);
+
+            if (retry < MAX_RETRY) {
+                return await _processImageConfig(config, index, usedImageKeys, retry + 1);
+            }
+        }
+    }
+
+    // 3) Fallback library (最後の手段)
+    const candidates = UNSPLASH_LIBRARY[category] || UNSPLASH_LIBRARY.default || [];
+    const baseUrl = candidates[index % Math.max(1, candidates.length)];
+    const sig = `${Date.now()}-${Math.floor(Math.random() * 100000)}`;
+    const fallbackUrl = baseUrl.includes('?') ? `${baseUrl}&sig=${sig}` : `${baseUrl}?sig=${sig}`;
+
+    const fallbackKey = _getUnsplashPhotoKey(fallbackUrl);
+    usedImageKeys.add(fallbackKey);
+    console.log(`[processImageConfig] Fallback -> ${fallbackUrl} (key: ${fallbackKey})`);
+    return fallbackUrl;
+};
+
 export const aiService = {
     GEMINI_MODEL: GEMINI_MODEL,
 
-    getApiKey: () => localStorage.getItem('lp_builder_ai_key'),
-    setApiKey: (key) => localStorage.setItem('lp_builder_ai_key', key),
-    getOpenAIKey: () => localStorage.getItem('lp_builder_openai_key'),
-    setOpenAIKey: (key) => localStorage.setItem('lp_builder_openai_key', key),
+    // --- API KEY HANDLING (sessionStorage based for security) ---
+    setApiKey(key) {
+        if (!key || !key.startsWith('AIza')) {
+            throw new Error('無効なAPIキー形式です（AIzaで始まる必要があります）');
+        }
+        sessionStorage.setItem('gemini_api_key', key);
+        console.log('[aiService] API key saved to sessionStorage');
+    },
+
+    getApiKey() {
+        return sessionStorage.getItem('gemini_api_key');
+    },
+
+    clearApiKey() {
+        sessionStorage.removeItem('gemini_api_key');
+        console.log('[aiService] API key cleared');
+    },
+
+    hasApiKey() {
+        return !!sessionStorage.getItem('gemini_api_key');
+    },
+    getOpenAIKey: () => sessionStorage.getItem('lp_builder_openai_key'),
+    setOpenAIKey: (key) => sessionStorage.setItem('lp_builder_openai_key', key),
 
     // ------------------------------------------------------------
     // Unsplash API (確定URL = images.unsplash.com) を優先取得するヘルパー
@@ -99,6 +223,49 @@ export const aiService = {
             console.warn('[Unsplash API] search failed, fallback to source.unsplash.com', e);
             return null;
         }
+    },
+
+    /**
+     * トーンキーワード案(配列)から最適なカラーパレットを選択する (修正版)
+     */
+    selectColorsByTone: (toneKeywords = []) => {
+        if (!Array.isArray(toneKeywords) || toneKeywords.length === 0) {
+            return TONE_COLOR_MAPPING.default;
+        }
+
+        const tones = Object.keys(TONE_COLOR_MAPPING);
+        // 各トーンをチェック
+        for (const tone of toneKeywords) {
+            if (typeof tone !== 'string') continue;
+            const match = tones.find(t => tone.toLowerCase().includes(t.toLowerCase()) || t === tone);
+            if (match) return TONE_COLOR_MAPPING[match];
+        }
+
+        return TONE_COLOR_MAPPING.default;
+    },
+
+    /**
+     * セクションタイプとトーンの掛け合わせで画像カテゴリを決定する (修正版)
+     */
+    selectImageCategoryByToneAndType: (type, toneKeywords = []) => {
+        const tones = Object.keys(TONE_COLOR_MAPPING);
+        let activeTone = "default";
+
+        if (Array.isArray(toneKeywords)) {
+            for (const tone of toneKeywords) {
+                if (typeof tone !== 'string') continue;
+                const match = tones.find(t => tone.toLowerCase().includes(t.toLowerCase()) || t === tone);
+                if (match) {
+                    activeTone = match;
+                    break;
+                }
+            }
+        }
+
+        const matrix = SECTION_TONE_IMAGE_MATRIX[type] || SECTION_TONE_IMAGE_MATRIX.default;
+        if (typeof matrix === 'string') return matrix;
+
+        return matrix[activeTone] || matrix.default || SECTION_TONE_IMAGE_MATRIX.default;
     },
 
     // Gemini prompt optimization
@@ -699,32 +866,47 @@ ${JSON.stringify(visualsData, null, 2)}
                 return null;
             }
 
-            if (ALLOWED_SECTION_TYPES.includes(s.type)) {
-                return s;
+            let type = s.type;
+            if (TYPE_ALIASES[type]) {
+                console.warn(`[AI Repair] Converted alias '${type}' to '${TYPE_ALIASES[type]}'`);
+                type = TYPE_ALIASES[type];
             }
 
-            if (TYPE_ALIASES[s.type]) {
-                console.warn(`[AI Repair] Converted alias '${s.type}' to '${TYPE_ALIASES[s.type]}'`);
-                return { ...s, type: TYPE_ALIASES[s.type] };
+            if (!ALLOWED_SECTION_TYPES.includes(type)) {
+                console.warn(`[AI Repair] Invalid type '${type}', falling back to 'text'`);
+                type = 'text';
             }
 
-            console.warn(`[AI Repair] Applying design defaults to section ${s.id}`);
+            // Apply design defaults based on type
+            let design = s.design;
+            if (!design) {
+                if (type === 'pricing') design = 'modern';
+                else if (type === 'review') design = 'bubble';
+                else if (type === 'staff') design = 'stylish';
+                else if (type === 'process') design = 'cards';
+                else design = 'simple';
+            }
 
             const repaired = {
                 ...s,
-                type: s.type || 'text',
+                type,
+                design,
                 pt: s.pt || 'pt-24',
-                pb: s.pb || 'pb-24',
-                design: s.design || (s.type === 'pricing' ? 'modern' : s.type === 'review' ? 'bubble' : 'simple')
+                pb: s.pb || 'pb-24'
             };
 
-            if (ALLOWED_SECTION_TYPES.includes(repaired.type)) return repaired;
-            return { ...repaired, type: 'text', content: s.content || "Content Error" };
+            // スタッフセクション専用のデフォルト値
+            if (type === 'staff') {
+                repaired.imgSize = s.imgSize || 128;
+                repaired.textScale = s.textScale || 1.0;
+            }
+
+            return repaired;
         }).filter(s => s);
     },
 
-    // Helper: Finalize Images (キーワード検索優先 + 背景画像自動判定)
-    _finalizeImages: async (visualsResult, designData, globalImageMode = 'library') => {
+    // Helper: Finalize Images (キーワード検索優先 + 背景画像自動判定 - 一元化版)
+    _finalizeImages: async (visualsResult, designData, globalImageMode = 'library', usedImageKeys = new Set()) => {
         const data = { ...designData, ...visualsResult };
 
         const defaultImageConfig = (section) => ({
@@ -732,71 +914,19 @@ ${JSON.stringify(visualsData, null, 2)}
             keywords: `${section.type} ${section.title || section.heading || ''}`.trim()
         });
 
-        const processImageConfig = async (config, index = 0) => {
-            if (!config) return null;
-            const mode = config.mode || globalImageMode;
-
-            if (mode === 'library') {
-                // keywords がある場合：Unsplash API(確定URL) を最優先
-                if (config.keywords) {
-                    console.log(`[Image] Using keyword search: "${config.keywords}" (Unsplash API preferred)`);
-
-                    const apiUrl = await aiService._getUnsplashImageUrlByKeywords(config.keywords, { w: 1600, q: 80 });
-                    if (apiUrl) {
-                        console.log(`[Image] Unsplash API resolved: ${apiUrl.substring(0, 80)}...`);
-                        return apiUrl;
-                    }
-
-                    const category = UNSPLASH_LIBRARY[config.category] ? config.category : 'default';
-                    const candidates = UNSPLASH_LIBRARY[category];
-                    const fallback = candidates[index % candidates.length];
-                    console.log(`[Image] Fallback (library) resolved: ${fallback}`);
-                    return fallback;
-                }
-
-                // keywordsが無い場合のみ固定ライブラリから選択
-                const category = UNSPLASH_LIBRARY[config.category] ? config.category : 'default';
-                const candidates = UNSPLASH_LIBRARY[category];
-                return candidates[index % candidates.length];
-            }
-
-            if (mode === 'generate' || mode === 'ai') {
-                try {
-                    const openaiKey = aiService.getOpenAIKey();
-                    if (!openaiKey) throw new Error("API_KEY_MISSING_OPENAI");
-
-                    const keywords = index > 0 ? `${config.keywords} variation ${index}` : config.keywords;
-                    const res = await aiService.generateImageOpenAI(openaiKey, keywords, "photorealistic");
-                    return res?.url || null;
-                } catch (e) {
-                    console.warn("Image Gen Failed, fallback", e);
-                    if (config.keywords) {
-                        const apiUrl = await aiService._getUnsplashImageUrlByKeywords(config.keywords, { w: 1600, q: 80 });
-                        if (apiUrl) return apiUrl;
-
-                        const category = UNSPLASH_LIBRARY[config.category] ? config.category : 'default';
-                        const candidates = UNSPLASH_LIBRARY[category] || UNSPLASH_LIBRARY['default'];
-                        return candidates[index % candidates.length];
-                    }
-                    const candidates = UNSPLASH_LIBRARY[config.category || 'default'] || UNSPLASH_LIBRARY['default'];
-                    return candidates[index % candidates.length];
-                }
-            }
-
-            return null;
-        };
-
-        // Process Sections with Forced Generation Logic
-        const sections = await Promise.all(data.sections.map(async (s) => {
+        // Process Sections with Forced Generation Logic (一元化された _processImageConfig を使用)
+        const sections = await Promise.all(data.sections.map(async (s, index) => {
             const rule = SECTION_REGISTRY[s.type] || {};
             const catalogInfo = SECTION_DESIGN_CATALOG[s.type];
             const newStyle = { ...(s.style || {}) };
-            let newImage = { ...(s.image || {}) };
+
+            // Rendererが拾いやすいように正規化
+            let newImage = _normalizeImage(s.image) || {};
 
             // 1. Forced Background Image (if required by rule)
             if (rule.bgImageRequired && !s.bgImage && !newStyle.bgImage) {
                 console.log(`[Forced Image] Generating background for ${s.type}`);
-                const bgUrl = await processImageConfig(s.imageConfig || defaultImageConfig(s));
+                const bgUrl = await _processImageConfig(s.imageConfig || defaultImageConfig(s), index, usedImageKeys);
                 if (bgUrl) {
                     s.bgType = 'image';
                     s.bgValue = bgUrl;
@@ -807,16 +937,11 @@ ${JSON.stringify(visualsData, null, 2)}
                 }
             }
 
-            // AIの幻覚対策
-            if (s.image?.src && !s.image?.url) {
-                newImage = { ...s.image, url: s.image.src };
-            }
-
             // 2. Forced Section Image (if required by rule)
             const needsMainImage = rule.imageRequired || catalogInfo?.imageRequired;
             if (needsMainImage && !newImage.url) {
                 console.log(`[Forced Image] Generating section image for ${s.type}`);
-                const imageUrl = await processImageConfig(s.imageConfig || defaultImageConfig(s));
+                const imageUrl = await _processImageConfig(s.imageConfig || defaultImageConfig(s), index, usedImageKeys);
                 if (imageUrl) {
                     newImage = { url: imageUrl, alt: s.imageConfig?.keywords || s.title || '' };
                 }
@@ -830,7 +955,7 @@ ${JSON.stringify(visualsData, null, 2)}
 
             // Existing logic for explicit imageConfig
             if (s.imageConfig && !newImage.url && (needsMainImage || shouldUseBgImage)) {
-                const imageUrl = await processImageConfig(s.imageConfig);
+                const imageUrl = await _processImageConfig(s.imageConfig, index, usedImageKeys);
 
                 if (imageUrl) {
                     if (shouldUseBgImage || s.bgType === 'image') {
@@ -857,20 +982,14 @@ ${JSON.stringify(visualsData, null, 2)}
             };
         }));
 
-        // Process Hero
-        if (data.heroConfig?.image?.src && !data.heroConfig?.image?.url) {
-            data.heroConfig.image.url = data.heroConfig.image.src;
-        }
-
+        // Heroの正規化
         let heroImageFallback = data.heroImageFallback;
         if (data.heroConfig?.imageConfig) {
-            const heroUrl = await processImageConfig(data.heroConfig.imageConfig);
+            const heroUrl = await _processImageConfig(data.heroConfig.imageConfig, 0, usedImageKeys);
             if (heroUrl) {
                 heroImageFallback = heroUrl;
                 if (data.heroConfig) data.heroConfig.bgImage = heroUrl;
             }
-        } else if (data.heroConfig?.bgImage) {
-            heroImageFallback = data.heroConfig.bgImage;
         }
 
         return { ...data, sections, heroImageFallback };
@@ -881,6 +1000,9 @@ ${JSON.stringify(visualsData, null, 2)}
         console.log("[AI Pipeline] Starting 5-Stage Professional Process...");
 
         try {
+            // ✅ 画像URL重複管理用Set (修正版: 写真IDベース)
+            const usedImageKeys = new Set();
+
             const strategy = await aiService.generateStrategy(prompt, tuning);
             console.log("[Phase 1] Strategy:", strategy.strategy.toneKeywords);
 
@@ -888,55 +1010,75 @@ ${JSON.stringify(visualsData, null, 2)}
             console.log("[Phase 2] Selected sections:", sitemap.sections.map(s => s.type));
 
             const design = await aiService.generateDesignArchitecture(sitemap, strategy);
+
+            // ✅ トーンに基づいた配色を補助的に適用
+            const toneColors = aiService.selectColorsByTone(strategy.strategy.toneKeywords);
+            if (design.design) {
+                design.design.colors = {
+                    ...toneColors,
+                    ...design.design.colors
+                };
+            }
+
             console.log("[Phase 3] Designs:", design.sections.map(s => ({
                 type: s.type,
                 design: s.design,
                 bgColor: s.backgroundColor
             })));
 
-            const visuals = await aiService.generateVisuals(design, prompt, tuning?.imageMode || 'library');
-            console.log("[Phase 4] Images:", visuals.sections.map(s => ({
-                type: s.type,
-                hasImageConfig: !!s.imageConfig
-            })));
+            // ✅ 画像カテゴリの最適化
+            const visualsInput = {
+                ...design,
+                sections: design.sections.map(s => {
+                    if (s.imageConfig) {
+                        const optimizedCategory = aiService.selectImageCategoryByToneAndType(s.type, strategy.strategy.toneKeywords);
+                        s.imageConfig.category = s.imageConfig.category || optimizedCategory;
+                    }
+                    return s;
+                })
+            };
 
-            const finalData = await aiService.generateCopywriting(visuals, prompt, strategy);
-            console.log("[Phase 5] Final sections:", finalData.sections.map(s => s.type));
+            const visuals = await aiService.generateVisuals(visualsInput, prompt, tuning?.imageMode || 'library');
+            console.log("[Phase 4] Images config resolved.");
 
-            // ✅ 正規化: speech_bubble の bubbles を items に寄せる（画像配布の対象にする）
+            // ✅ 明示的に画像URLの確定と重複排除を実行 (usedImageKeys を渡す)
+            const finalizedVisuals = await aiService._finalizeImages(visuals, design, tuning?.imageMode || 'library', usedImageKeys);
+
+            const finalData = await aiService.generateCopywriting(finalizedVisuals, prompt, strategy);
+            console.log("[Phase 5] Copywriting complete.");
+
+            // ✅ speech_bubble 等の正規化 (bubbles -> items)
             finalData.sections = (finalData.sections || []).map((s) => {
                 if (!s) return s;
-
-                // bubbles -> items へ正規化
                 if (!s.items && Array.isArray(s.bubbles)) {
-                    return {
-                        ...s,
-                        items: s.bubbles.map(b => ({
-                            ...b,
-                            image: (b?.image && typeof b.image === 'object' && b.image.url)
-                                ? { url: b.image.url, alt: b.image.alt || b.name || '' }
-                                : (typeof b?.image === 'string' && b.image)
-                                    ? { url: b.image, alt: b.name || '' }
-                                    : undefined
-                        }))
-                    };
+                    return { ...s, items: s.bubbles };
                 }
-
                 return s;
             });
 
-            // ✅ ここで items への画像配布
+            // ✅ Phase 5の後に items への画像配布 (重複排除Setを継続使用)
             console.log("[Post-Phase 5] Starting item image distribution...");
             try {
-                finalData.sections = await aiService._distributeItemImages(finalData.sections);
-                // 最終正規化: 全てのアイテム画像をオブジェクト形式に統一
-                finalData.sections = aiService._normalizeItemImageShape(finalData.sections);
-                console.log("[Post-Phase 5] Item image distribution and normalization complete!");
+                finalData.sections = await aiService._distributeItemImages(finalData.sections, usedImageKeys);
+                console.log("[Post-Phase 5] Item image distribution complete!");
             } catch (distError) {
                 console.error("[Post-Phase 5] ERROR during item distribution:", distError);
             }
 
-            // 正規化処理
+            // ✅ 全ての画像データを最終正規化 (Rendererが確実に拾えるように)
+            finalData.heroConfig = {
+                ...finalData.heroConfig,
+                bgImage: finalData.heroConfig?.bgImage || finalData.heroImageFallback || null,
+            };
+
+            const cleanSections = finalData.sections.map((s) => ({
+                ...s,
+                image: _normalizeImage(s.image),
+                items: Array.isArray(s.items)
+                    ? s.items.map((it) => ({ ...it, image: _normalizeImage(it.image) }))
+                    : s.items
+            }));
+
             // 最終的なUI用オブジェクトの構築
             const normalized = {
                 siteTitle: finalData.siteTitle,
@@ -945,10 +1087,10 @@ ${JSON.stringify(visualsData, null, 2)}
                 textColor: finalData.design?.colors?.text || '#2d2d2d',
                 accentColor: finalData.design?.colors?.accent || '#3b82f6',
                 fontFamily: finalData.design?.typography?.fontFamily || 'sans',
-                // Heroデータの優先順位を整理
+
                 heroTitle: finalData.heroConfig?.title || finalData.siteTitle,
                 heroSubtitle: finalData.heroConfig?.subtitle || '',
-                heroUrl: finalData.heroConfig?.bgImage || finalData.heroImageFallback,
+                heroUrl: finalData.heroConfig?.bgImage,
                 heroType: finalData.heroConfig?.type || 'image',
                 heroHeight: finalData.heroConfig?.heroHeight || 90,
                 heroWidth: finalData.heroConfig?.heroWidth || 100,
@@ -956,12 +1098,11 @@ ${JSON.stringify(visualsData, null, 2)}
                 heroBlur: finalData.heroConfig?.blur || 0,
                 heroPositionX: finalData.heroConfig?.positionX || 50,
                 heroPositionY: finalData.heroConfig?.positionY || 50,
-                heroImageFallback: finalData.heroImageFallback,
-                sections: aiService._validateAndRepairSections(finalData.sections)
+
+                sections: aiService._validateAndRepairSections(cleanSections)
             };
 
             console.log("[Generate LP] Complete! Sections:", normalized.sections.map(s => s.type));
-
             return normalized;
 
         } catch (error) {
@@ -970,244 +1111,65 @@ ${JSON.stringify(visualsData, null, 2)}
         }
     },
 
-    // Helper: Phase 5後に items に画像を配布（items / bubbles 両対応 + imageオブジェクト統一）
-    _distributeItemImages: async (sections) => {
-        console.log("[_distributeItemImages] Starting... sections count:", sections?.length || 0);
+    /**
+     * 各セクションの items に対して必要な画像を配布する (一元化版)
+     */
+    _distributeItemImages: async (sections, usedImageKeys = new Set()) => {
+        if (!Array.isArray(sections)) return sections;
 
-        const usedUrls = new Set();
-
-        const processImageConfig = async (config, index = 0, retryUnique = 0) => {
-            if (!config) {
-                console.warn("[processImageConfig] No config provided");
-                return null;
-            }
-
-            const keywords = config.keywords;
-            if (keywords) {
-                // To get unique images, we append a seed or retry count to the keywords
-                const uniqueKeywords = retryUnique > 0 ? `${keywords} variant ${retryUnique} ${Math.floor(Math.random() * 1000)}` : keywords;
-                console.log(`[processImageConfig] Keyword search: "${uniqueKeywords}" (Unsplash API)`);
-
-                const apiUrl = await aiService._getUnsplashImageUrlByKeywords(uniqueKeywords, { w: 1200, q: 80 });
-                if (apiUrl && !usedUrls.has(apiUrl)) {
-                    console.log(`[processImageConfig] Unsplash API resolved -> ${apiUrl.substring(0, 80)}...`);
-                    usedUrls.add(apiUrl);
-                    return apiUrl;
-                }
-
-                // If the URL was already used and we haven't retried too many times, try again with more specific keywords
-                if (retryUnique < 2 && apiUrl) {
-                    return processImageConfig(config, index, retryUnique + 1);
-                }
-
-                // Library Fallback with cache buster seed (index based)
-                const category = UNSPLASH_LIBRARY[config.category] ? config.category : 'default';
-                const candidates = UNSPLASH_LIBRARY[category] || UNSPLASH_LIBRARY.default;
-                let fallback = candidates[index % candidates.length];
-
-                // Add unique cache buster if possible
-                if (fallback.includes('?')) {
-                    fallback += `&sig=${index}-${Math.floor(Math.random() * 1000)}`;
-                }
-
-                console.log(`[processImageConfig] Fallback (library) -> ${fallback}`);
-                return fallback;
-            }
-
-            const category = UNSPLASH_LIBRARY[config.category] ? config.category : 'default';
-            const candidates = UNSPLASH_LIBRARY[category];
-            let fallback = candidates[index % candidates.length];
-            if (fallback.includes('?')) {
-                fallback += `&sig=${index}-${Math.floor(Math.random() * 1000)}`;
-            }
-            return fallback;
-        };
-
-        const hasImage = (img) => {
-            if (!img) return false;
-            if (typeof img === 'string') return img.trim().length > 0;
-            if (typeof img === 'object' && img !== null) return !!(img.url || img.src);
-            return false;
-        };
-
-        const normalizeImageObj = (img, fallbackAlt = '') => {
-            if (!img) return undefined;
-            if (typeof img === 'string') return { url: img, alt: fallbackAlt };
-            if (typeof img === 'object' && img.url) return { url: img.url, alt: img.alt || fallbackAlt };
-            if (typeof img === 'object' && img.src) return { url: img.src, alt: img.alt || fallbackAlt };
-            return undefined;
-        };
-
-        const processedSections = await Promise.all(sections.map(async (s, sectionIdx) => {
-            console.log(`[_distributeItemImages] Processing section ${sectionIdx + 1}/${sections.length}: ${s.type}`);
-
+        return await Promise.all(sections.map(async (s, sectionIdx) => {
             const catalogInfo = SECTION_DESIGN_CATALOG[s.type];
+            // 画像が必要なセクションか判定
+            if (!catalogInfo?.itemsImageRequired) return s;
 
-            if (!catalogInfo) {
-                console.warn(`[_distributeItemImages] No catalog info for type: ${s.type}`);
-                return s;
-            }
-
-            console.log(`[_distributeItemImages] ${s.type} - itemsImageRequired:`, catalogInfo.itemsImageRequired);
-            console.log(`[_distributeItemImages] ${s.type} - has items:`, !!s.items);
-            console.log(`[_distributeItemImages] ${s.type} - items count:`, s.items?.length || 0);
-
-            // 対象配列を決める：items があれば items、なければ bubbles
+            // itemsまたはbubblesを取得
             const itemsArray = Array.isArray(s.items) ? s.items : (Array.isArray(s.bubbles) ? s.bubbles : null);
-
-            if (!catalogInfo.itemsImageRequired) {
-                console.log(`[_distributeItemImages] ${s.type} - skipping (no itemsImageRequired)`);
-                return s;
-            }
-
-            if (!itemsArray) {
-                console.log(`[_distributeItemImages] ${s.type} - skipping (no items/bubbles array)`);
-                return s;
-            }
-
-            // imageConfig がない場合はスキップ
-            if (!s.imageConfig) {
-                console.warn(`[Items Images] ${s.type} needs images but has no imageConfig`);
-                return s;
-            }
+            if (!itemsArray) return s;
 
             console.log(`[Items Images] Processing ${itemsArray.length} items for ${s.type}`);
 
             const newItems = await Promise.all(itemsArray.map(async (item, idx) => {
                 const label = item?.title || item?.name || `item${idx + 1}`;
 
-                if (hasImage(item?.image)) {
-                    console.log(`[Items Images] ${s.type} ${label} - already has image (normalize only)`);
-                    return {
-                        ...item,
-                        image: normalizeImageObj(item.image, label)
-                    };
+                // 既存の画像が有効ならそのまま（正規化は適用）
+                if (_hasValidImage(item.image)) {
+                    return { ...item, image: _normalizeImage(item.image) };
                 }
 
-                console.log(`[Items Images] ${s.type} ${label} - generating image...`);
+                // 無効または欠損なら生成
+                if (!s.imageConfig) return item;
 
-                const itemImgUrl = await processImageConfig({
-                    ...s.imageConfig,
-                    keywords: s.imageConfig?.keywords
-                        ? `${s.imageConfig.keywords} variation ${idx + 1}`
-                        : undefined
-                }, idx + 1);
+                const url = await _processImageConfig(
+                    { ...s.imageConfig, keywords: `${s.imageConfig.keywords || ''} detail ${idx + 1}`.trim() },
+                    (sectionIdx + 1) * 10 + idx,
+                    usedImageKeys
+                );
 
-                return {
-                    ...item,
-                    image: itemImgUrl ? { url: itemImgUrl, alt: label } : undefined
-                };
+                return { ...item, image: _normalizeImage(url) || { url, alt: label } };
             }));
 
-            const withImages = newItems.filter(i => hasImage(i.image)).length;
-            console.log(`[Items Images] ${s.type}: ${withImages}/${newItems.length} items now have images`);
-
-            const out = { ...s, items: newItems };
-            if (Array.isArray(s.bubbles)) {
-                out.bubbles = newItems;
-            }
-
-            return out;
+            const result = { ...s, items: newItems };
+            if (Array.isArray(s.bubbles)) result.bubbles = newItems;
+            return result;
         }));
-
-        console.log("[_distributeItemImages] Complete!");
-        return processedSections;
     },
 
-    // 最終正規化: 全てのアイテム画像をオブジェクト形式に統一
-    _normalizeItemImageShape: (sections) => {
-        if (!Array.isArray(sections)) return [];
-        return sections.map((s) => {
-            if (!s) return s;
-
-            const normItems = Array.isArray(s.items)
-                ? s.items.map((it) => {
-                    if (!it) return it;
-
-                    const url =
-                        typeof it.image === "string"
-                            ? it.image
-                            : it.image?.url || it.image?.src;
-
-                    if (!url) return it;
-
-                    return {
-                        ...it,
-                        image: {
-                            url,
-                            alt: it.image?.alt || it.title || it.name || s.title || s.type || "image"
-                        }
-                    };
-                })
-                : s.items;
-
-            return { ...s, items: normItems };
-        });
-    },
-
-    // Single Component Generation
+    // Single Component Generation (Simple Wrapper)
     generateHeroVisual: async (heroData, imageMode = 'library') => {
         const apiKey = aiService.getApiKey();
         const modeInstruction = imageMode === 'ai' ? `"mode": "generate"` : `"mode": "library"`;
 
-        const systemPrompt = `あなたはプロのアートディレクターです。
-提供された「メインビジュアル(Hero)」の情報に基づき、最適な画像を選定してください。
-
-【利用可能な画像カテゴリ】
-- salon, business, gym, cafe, corporate, restaurant, education, tech, default
-
-【出力ルール】
-JSONのみを返してください。
-{
-  "imageConfig": {
-     ${modeInstruction},
-     "category": "適切なカテゴリ",
-     "keywords": "english keywords"
-  }
-}`;
+        const systemPrompt = `あなたはプロのアートディレクターです。Hero画像の選定情報をJSONで返してください。`;
         const userInput = `Title: ${heroData.title}\nSubtitle: ${heroData.subtitle}`;
 
         try {
             const result = await aiService._callGemini(apiKey, systemPrompt, userInput);
-            const config = result.imageConfig;
-
-            if (config.mode === 'library') {
-                if (config.keywords) {
-                    const apiUrl = await aiService._getUnsplashImageUrlByKeywords(config.keywords);
-                    if (apiUrl) return apiUrl;
-
-                    const category = UNSPLASH_LIBRARY[config.category] ? config.category : 'default';
-                    const candidates = UNSPLASH_LIBRARY[category] || UNSPLASH_LIBRARY.default;
-                    return candidates[Math.floor(Math.random() * candidates.length)];
-                }
-                const category = UNSPLASH_LIBRARY[config.category] ? config.category : 'default';
-                const candidates = UNSPLASH_LIBRARY[category];
-                return candidates[Math.floor(Math.random() * candidates.length)];
-            } else {
-                console.log("Generating Single Hero Image via AI...");
-                try {
-                    const openaiKey = aiService.getOpenAIKey();
-                    if (!openaiKey) throw new Error("OpenAI API Key Missing");
-
-                    const res = await aiService.generateImageOpenAI(openaiKey, config.keywords, "photorealistic");
-                    return res?.url || null;
-                } catch (e) {
-                    console.warn("Manual AI Gen failed, fallback to library");
-                    if (config.keywords) {
-                        const apiUrl = await aiService._getUnsplashImageUrlByKeywords(config.keywords);
-                        if (apiUrl) return apiUrl;
-
-                        const category = UNSPLASH_LIBRARY[config.category] ? config.category : 'default';
-                        const candidates = UNSPLASH_LIBRARY[category] || UNSPLASH_LIBRARY.default;
-                        return candidates[Math.floor(Math.random() * candidates.length)];
-                    }
-                    const candidates = UNSPLASH_LIBRARY['default'];
-                    return candidates[Math.floor(Math.random() * candidates.length)];
-                }
-            }
+            const config = result.imageConfig || { category: 'default', keywords: heroData.title };
+            // 単発生成でも一応Setを作るがここでは使い捨て
+            return await _processImageConfig({ ...config, mode: imageMode }, 0, new Set());
         } catch (e) {
             console.error("Hero Visual Gen Failed", e);
-            throw e;
+            return UNSPLASH_LIBRARY.default[0];
         }
     }
 };

@@ -1,7 +1,7 @@
 /* eslint-disable */
 import React, { useEffect, useRef } from 'react';
 import { ChevronRight, Plus } from 'lucide-react';
-import { getYouTubeId, getImgUrl } from '../../../utils/helpers';
+import { getYouTubeId, getImgUrl, getDesignTheme } from '../../../utils/helpers';
 import { clsx } from 'clsx';
 import { SectionWrapper } from './SectionWrapper';
 
@@ -92,10 +92,12 @@ export const SocialRenderer = ({ section, viewMode }) => {
     // Backward compatibility: If no items but has single platform/url
     const items = section.items || (section.url ? [{ id: 'default', platform: section.platform || 'twitter', url: section.url }] : []);
 
+    const itemSpacing = section.itemSpacing || section.gap || 32;
+
     return (
         <SectionWrapper section={section}>
-            <div className="max-w-6xl mx-auto px-6">
-                <div className={`grid grid-cols-1 ${gridClass}`} style={gapStyle}>
+            <div className="px-6">
+                <div className={`grid grid-cols-1 ${gridClass}`} style={{ gap: itemSpacing }}>
                     {items.map(item => (
                         <div key={item.id} className="flex justify-center overflow-hidden w-full">
                             <SocialEmbedPreview platform={item.platform} url={item.url} />
@@ -107,44 +109,34 @@ export const SocialRenderer = ({ section, viewMode }) => {
     );
 };
 
-export const AccordionRenderer = ({ section }) => {
-    const design = section.design || 'simple';
+export const AccordionRenderer = ({ section, accentColor: globalAccent }) => {
+    const design = section.design || 'standard';
+    const theme = getDesignTheme(design);
+    const accent = globalAccent || theme.primary;
+    const isSangoLine = ['earth', 'gentle', 'standard', 'modern'].includes(design);
 
     return (
         <SectionWrapper section={section}>
-            <div className="max-w-3xl mx-auto flex flex-col gap-4">
+            <div className="flex flex-col mx-auto" style={{ gap: section.itemSpacing || 16, maxWidth: section.contentWidth || 800 }}>
                 {section.items?.map(item => (
                     <details
                         key={item.id}
                         className={clsx(
                             "group overflow-hidden transition-all duration-300",
-                            design === 'simple' && "border border-current/10 rounded-lg bg-white/5",
-                            design === 'flat' && "border-b border-current/10 bg-transparent rounded-none",
-                            design === 'card' && "bg-white/5 backdrop-blur-sm shadow-sm rounded-xl border border-white/10 hover:shadow-md"
+                            isSangoLine ? "rounded-[1.5rem] bg-white border border-gray-100 shadow-sm" : "rounded-lg border border-gray-100 bg-gray-50 hover:bg-white"
                         )}
                     >
-                        <summary className={clsx(
-                            "flex justify-between items-center font-medium cursor-pointer list-none select-none",
-                            design === 'simple' && "p-5",
-                            design === 'flat' && "p-4 px-0 hover:opacity-70 transition-opacity",
-                            design === 'card' && "p-6"
-                        )}>
-                            <span className="text-lg">{item.title || item.question || item.q}</span>
-                            <span className={clsx(
-                                "transition-transform duration-300 w-6 h-6 flex items-center justify-center rounded-full",
-                                "group-open:rotate-180",
-                                design === 'card' ? "bg-white/10" : ""
+                        <summary className="flex justify-between items-center font-bold cursor-pointer list-none select-none p-5 md:p-6">
+                            <span className="text-base md:text-lg pr-4">{item.title || item.question || item.q}</span>
+                            <div className={clsx(
+                                "flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 group-open:rotate-180",
+                                isSangoLine ? "bg-gray-50 text-gray-400" : "bg-white shadow-sm"
                             )}>
-                                <ChevronRight size={18} className="rotate-90" />
-                            </span>
+                                <ChevronRight size={18} className="rotate-90" style={{ color: isSangoLine ? undefined : accent }} />
+                            </div>
                         </summary>
-                        <div className={clsx(
-                            "text-sm opacity-80 leading-loose whitespace-pre-wrap",
-                            design === 'simple' && "p-5 pt-0 pb-6 border-t border-current/5", // Added pb-6 and kept pt-0 but added margin top via child or just spacing? User asked for MORE top margin
-                            design === 'flat' && "pb-6 animate-fadeIn",
-                            design === 'card' && "p-6 pt-0 text-base"
-                        )}>
-                            <div className="pt-2"> {/* Inner wrapper to ensure spacing */}
+                        <div className="px-6 pb-6 animate-fadeIn">
+                            <div className="pt-4 border-t border-gray-100 opacity-70 leading-relaxed whitespace-pre-wrap">
                                 {item.text || item.content || item.description || item.answer || item.a}
                             </div>
                         </div>
@@ -160,7 +152,7 @@ export const PostCardRenderer = ({ section, viewMode }) => {
     const body = section.excerpt || section.text || section.content || "";
     return (
         <SectionWrapper section={section}>
-            <div className="max-w-3xl mx-auto">
+            <div className="px-6">
                 <a href={section.url} target="_blank" rel="noopener noreferrer" className={clsx("flex gap-6 p-6 bg-white/5 backdrop-blur-sm border border-current/10 rounded-xl hover:shadow-lg transition-all duration-300 group", isMobile ? "flex-col" : "flex-col md:flex-row")}>
                     <div className={clsx("w-full aspect-video flex-shrink-0 overflow-hidden rounded-md", isMobile ? "" : "md:w-48 md:aspect-square")}>
                         {getImgUrl(section.image) && getImgUrl(section.image).trim().length > 0 ? (
@@ -181,158 +173,105 @@ export const PostCardRenderer = ({ section, viewMode }) => {
 };
 
 
-export const BoxRenderer = ({ section, children }) => {
-    const design = section.design || 'simple'; // simple, sticky, ribbon, gradient, glass, comic, dashed, solid
+export const BoxRenderer = ({ section, children, accentColor: globalAccent }) => {
+    const design = section.design || 'standard';
+    const theme = getDesignTheme(design);
+    const accent = globalAccent || theme.primary;
+    const isSangoLine = ['earth', 'gentle', 'standard', 'modern'].includes(design);
 
-    // Base Styles
-    let containerClass = "text-center relative transition-all duration-300 ";
-    let titleClass = "font-bold text-lg mb-4";
-    let contentClass = "leading-loose whitespace-pre-wrap font-light";
+    let containerClass = "relative transition-all duration-300 p-8 md:p-12 ";
 
-    const boxColor = section.boxColor || '#3b82f6';
+    if (design === 'comic') {
+        containerClass += "bg-white border-4 border-black text-gray-900 shadow-[8px_8px_0px_0px_black]";
+    } else if (design === 'neon') {
+        containerClass += "bg-black text-white border-2 rounded-xl";
+    } else if (design === 'glass') {
+        containerClass += "backdrop-blur-md bg-white/40 border-2 border-white shadow-xl rounded-[2rem]";
+    } else {
+        containerClass += isSangoLine ? "rounded-[2.5rem] bg-white shadow-xl border border-gray-50" : "rounded-xl bg-gray-50 border border-gray-200";
+    }
+
     const boxStyle = {
-        borderColor: boxColor,
-        boxShadow: design === 'neon' ? `0 0 20px ${boxColor}, inset 0 0 10px ${boxColor}` : (design === 'comic' ? `8px 8px 0px 0px ${boxColor}` : undefined),
-        borderStyle: design === 'dashed' ? 'dashed' : (design === 'double' ? 'double' : 'solid'),
+        borderColor: (design === 'comic' || design === 'glass') ? undefined : accent,
+        borderStyle: section.design === 'dashed' ? 'dashed' : 'solid',
         paddingTop: section.pTop !== undefined ? `${section.pTop}px` : undefined,
         paddingBottom: section.pBottom !== undefined ? `${section.pBottom}px` : undefined,
-        paddingLeft: section.pLeft !== undefined ? `${section.pLeft}px` : undefined,
-        paddingRight: section.pRight !== undefined ? `${section.pRight}px` : undefined,
     };
-
-    // Design specific container classes
-    if (design === 'gradient') {
-        containerClass += "p-8 rounded-2xl bg-gradient-to-br from-blue-500/10 via-purple-500/10 to-pink-500/10 border border-white/50";
-    } else if (design === 'glass') {
-        containerClass += "p-8 rounded-2xl backdrop-blur-md bg-white/40 border shadow-lg";
-    } else if (design === 'comic') {
-        containerClass += "p-8 bg-white border-4 border-black text-gray-900";
-    } else if (design === 'dashed') {
-        containerClass += "p-8 bg-white border-4 rounded-xl";
-    } else if (design === 'solid') {
-        containerClass += "p-8 bg-white border-4 rounded-lg";
-    } else if (design === 'double') {
-        containerClass += "p-8 bg-white border-4 border-double rounded-xl";
-    } else if (design === 'neon') {
-        containerClass += "p-8 bg-black/90 text-white border-2 rounded-xl";
-    }
 
     return (
         <SectionWrapper section={section}>
             <div className={containerClass} style={boxStyle}>
-                {/* Sticky Tape Decor */}
-                {design === 'sticky' && (
-                    <div className="absolute -top-6 left-1/2 transform -translate-x-1/2 w-32 h-8 bg-yellow-200/80 rotate-[-2deg] shadow-sm backdrop-blur-sm z-20"></div>
-                )}
-
-                {/* Ribbon Decor */}
-                {design === 'ribbon' && section.title && (
-                    <div className="absolute -top-10 left-1/2 transform -translate-x-1/2 bg-red-600 text-white px-8 py-2 shadow-lg z-20">
-                        <h4 className="font-bold tracking-widest text-sm uppercase">{section.title}</h4>
-                        <div className="absolute top-0 right-full border-[16px] border-transparent border-r-red-600 border-b-red-800"></div>
-                        <div className="absolute top-0 left-full border-[16px] border-transparent border-l-red-600 border-b-red-800"></div>
+                {section.title && (
+                    <div className={clsx("mb-6", design === 'comic' ? "text-left" : "text-center")}>
+                        <h4 className="text-xl md:text-2xl font-black">{section.title}</h4>
+                        <div className={clsx("w-12 h-1 mt-4", design === 'comic' ? "" : "mx-auto")} style={{ backgroundColor: accent }}></div>
                     </div>
                 )}
-
-                {/* Content or Children */}
-                {children ? (
-                    <div className={`space-y-6 ${design === 'ribbon' ? 'pt-6' : ''}`}>
-                        {children}
-                    </div>
-                ) : (
-                    <>
-                        {design !== 'ribbon' && section.title && <h4 className={titleClass}>{section.title}</h4>}
-                        <p className={contentClass}>{section.content}</p>
-                    </>
-                )}
+                <div className="leading-loose whitespace-pre-wrap opacity-80">
+                    {children || section.content}
+                </div>
             </div>
         </SectionWrapper>
     );
 };
 
-export const ColumnsRenderer = ({ section, viewMode }) => {
+export const ColumnsRenderer = ({ section, viewMode, accentColor: globalAccent }) => {
     const isMobile = viewMode === 'mobile';
+    const design = section.design || 'standard';
+    const theme = getDesignTheme(design);
+    const accent = globalAccent || theme.primary;
+    const isSangoLine = ['earth', 'gentle', 'standard', 'modern'].includes(design);
+
     const gridClass = isMobile ? 'grid-cols-1' : (section.columnCount === 4 ? 'md:grid-cols-4' : (section.columnCount === 3 ? 'md:grid-cols-3' : (section.columnCount === 2 ? 'md:grid-cols-2' : 'grid-cols-1')));
-    // Use user-defined gap or default to 32px (2rem) which corresponds to gap-8
-    const gapStyle = { gap: `${section.gap !== undefined ? section.gap : 32}px` };
+    const itemSpacing = section.itemSpacing || section.gap || 32;
 
     return (
         <SectionWrapper section={section}>
-            <div className={`grid grid-cols-1 ${gridClass}`} style={gapStyle}>
+            <div className={`grid grid-cols-1 ${gridClass}`} style={{ gap: itemSpacing }}>
                 {section.items?.map((item, idx) => {
                     const key = item.id ?? item._id ?? `${section.id || 'section'}-${idx}`;
                     const imgUrl = getImgUrl(item.image);
-                    // text/content/description 両対応
                     const body = item.text ?? item.content ?? item.description ?? "";
 
                     return (
-                        <div key={key} className="flex flex-col space-y-4">
-                            {section.colType === 'card' && (
-                                <>
-                                    <div className="aspect-[4/3] w-full overflow-hidden rounded-lg bg-gray-100">
-                                        {(imgUrl && imgUrl.trim().length > 0) ? (
-                                            <img
-                                                src={imgUrl}
-                                                alt={item.title || 'image'}
-                                                className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
-                                                loading="lazy"
-                                            />
-                                        ) : (
-                                            <div className="w-full h-full flex items-center justify-center text-xs opacity-50">
-                                                No image
-                                            </div>
-                                        )}
-                                    </div>
-                                    <div>
-                                        <h4 className="text-lg font-medium mb-1">{item.title}</h4>
-                                        <p className="text-sm opacity-70 leading-relaxed text-xs whitespace-pre-wrap">
-                                            {body}
-                                        </p>
-                                    </div>
-                                </>
-                            )}
-                            {section.colType === 'text' && (
-                                <div className="p-6 bg-white/5 rounded-lg border border-current/10 h-full">
-                                    <h4 className="text-lg font-bold mb-2">{item.title}</h4>
-                                    <p className="text-sm opacity-80 leading-relaxed whitespace-pre-wrap">
-                                        {body}
-                                    </p>
-                                </div>
-                            )}
-                            {section.colType === 'image' && (
-                                <div className="aspect-square w-full overflow-hidden rounded-lg shadow-sm bg-gray-100">
-                                    {(imgUrl && imgUrl.trim().length > 0) ? (
-                                        <img
-                                            src={imgUrl}
-                                            alt={item.title || 'image'}
-                                            className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
-                                            loading="lazy"
-                                        />
+                        <div key={key} className="flex flex-col group">
+                            {(section.colType === 'card' || section.colType === 'image') && (
+                                <div className={clsx(
+                                    "w-full overflow-hidden mb-5 transition-all shadow-lg group-hover:shadow-2xl group-hover:-translate-y-1",
+                                    section.colType === 'card' ? "aspect-[4/3]" : "aspect-square",
+                                    isSangoLine ? "rounded-[2rem]" : "rounded-xl"
+                                )}>
+                                    {imgUrl ? (
+                                        <img src={imgUrl} alt={item.title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
                                     ) : (
-                                        <div className="w-full h-full flex items-center justify-center text-xs opacity-50">
-                                            No image
-                                        </div>
+                                        <div className="w-full h-full bg-gray-100 flex items-center justify-center text-[10px] text-gray-400 font-bold">GRID IMAGE</div>
                                     )}
                                 </div>
                             )}
-                            {section.colType === 'social' && (
-                                <div className="flex justify-center overflow-hidden">
-                                    <SocialEmbedPreview platform={item.platform} url={item.url} />
-                                </div>
-                            )}
+
                             {section.colType === 'video' && (
-                                <div className="aspect-video w-full rounded-lg overflow-hidden bg-black shadow">
+                                <div className={clsx(
+                                    "aspect-video w-full overflow-hidden shadow-xl mb-5",
+                                    isSangoLine ? "rounded-[2rem]" : "rounded-xl"
+                                )}>
                                     {getYouTubeId(item.url) ? (
-                                        <iframe
-                                            width="100%"
-                                            height="100%"
-                                            src={`https://www.youtube.com/embed/${getYouTubeId(item.url)}`}
-                                            frameBorder="0"
-                                            allowFullScreen
-                                        />
+                                        <iframe width="100%" height="100%" src={`https://www.youtube.com/embed/${getYouTubeId(item.url)}`} frameBorder="0" allowFullScreen />
                                     ) : (
                                         <video src={item.url} controls className="w-full h-full object-cover" />
                                     )}
+                                </div>
+                            )}
+
+                            {(section.colType === 'card' || section.colType === 'text') && (
+                                <div className={clsx(section.colType === 'text' && "p-8 h-full transition-all " + (isSangoLine ? "rounded-[2rem] bg-white shadow-xl border border-gray-50" : "rounded-xl bg-gray-50 border border-gray-100 hover:bg-white hover:shadow-xl"))}>
+                                    <h4 className="text-xl font-bold mb-3">{item.title}</h4>
+                                    <p className="text-sm opacity-60 leading-relaxed whitespace-pre-wrap">{body}</p>
+                                </div>
+                            )}
+
+                            {section.colType === 'social' && (
+                                <div className="flex justify-center overflow-hidden">
+                                    <SocialEmbedPreview platform={item.platform} url={item.url} />
                                 </div>
                             )}
                         </div>
@@ -343,15 +282,31 @@ export const ColumnsRenderer = ({ section, viewMode }) => {
     );
 };
 
-export const LinksRenderer = ({ section }) => {
+export const LinksRenderer = ({ section, accentColor: globalAccent }) => {
+    const design = section.design || 'standard';
+    const theme = getDesignTheme(design);
+    const accent = globalAccent || theme.primary;
+    const isSangoLine = ['earth', 'gentle', 'standard', 'modern'].includes(design);
+    const itemSpacing = section.itemSpacing || 12;
+
     return (
         <SectionWrapper section={section}>
-            <div className="max-w-xl mx-auto space-y-3">
+            <div className="flex flex-col mx-auto" style={{ gap: itemSpacing, maxWidth: section.contentWidth || 600 }}>
                 {section.links?.map(link => (
-                    <a key={link.id} href={link.url} target="_blank" rel="noopener noreferrer" className="block w-full bg-white/5 backdrop-blur-sm border border-current/10 p-4 rounded-xl flex items-center justify-between hover:bg-white/10 transition-colors group">
-                        <div>
-                            <div className="font-bold">{link.label}</div>
-                            {link.subtext && <div className="text-xs opacity-70 mt-1">{link.subtext}</div>}
+                    <a key={link.id} href={link.url} target="_blank" rel="noopener noreferrer"
+                        className={clsx(
+                            "block w-full p-5 flex items-center justify-between transition-all duration-300 group shadow-sm",
+                            isSangoLine ? "rounded-full bg-white border border-gray-100 hover:shadow-lg" : "rounded-xl bg-gray-50 border border-gray-200 hover:bg-white hover:shadow-xl"
+                        )}>
+                        <div className="flex items-center gap-4">
+                            <div className="w-2 h-2 rounded-full" style={{ backgroundColor: accent }}></div>
+                            <div>
+                                <div className="font-bold">{link.label}</div>
+                                {link.subtext && <div className="text-[10px] opacity-40 mt-1 uppercase tracking-widest">{link.subtext}</div>}
+                            </div>
+                        </div>
+                        <div className="w-8 h-8 rounded-full flex items-center justify-center bg-gray-50 group-hover:bg-gray-100 transition-colors">
+                            <ChevronRight size={16} className="text-gray-400" />
                         </div>
                     </a>
                 ))}

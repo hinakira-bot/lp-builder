@@ -190,18 +190,7 @@ export const ContentPanel = ({ data, setData, setActiveSectionId }) => {
 
     return (
         <div className="space-y-8 animate-fadeIn">
-            {/* Hero Text */}
-            <section>
-                <h2 className="text-sm font-bold text-white mb-4 flex items-center gap-2"><Type size={16} className="text-blue-400" /> メインビジュアル文字</h2>
-                <div className="bg-gray-800/30 p-4 rounded-xl border border-gray-700/50 space-y-4">
-                    <InputGroup label="メインコピー">
-                        <TextInput value={data.heroTitle} onChange={(val) => setData({ ...data, heroTitle: val })} />
-                    </InputGroup>
-                    <InputGroup label="サブコピー">
-                        <TextArea value={data.heroSubtitle} onChange={(val) => setData({ ...data, heroSubtitle: val })} rows={2} />
-                    </InputGroup>
-                </div>
-            </section>
+
 
             {/* DYNAMIC SECTIONS */}
             <section>

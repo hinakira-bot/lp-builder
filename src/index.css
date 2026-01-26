@@ -16,6 +16,11 @@
     background-image: radial-gradient(#333 1px, transparent 1px);
     background-size: 20px 20px;
   }
+
+  @keyframes shine {
+    0% { left: -100%; }
+    100% { left: 100%; }
+  }
 }
 
 @layer utilities {

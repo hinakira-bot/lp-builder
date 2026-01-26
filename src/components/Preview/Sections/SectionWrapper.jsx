@@ -52,15 +52,23 @@ export const SectionWrapper = ({ section, children, className, globalPadding = 2
     // 3. Layout Logic
     const hasGlobalPadding = globalPadding > 0;
     const paddingXStyle = { paddingLeft: `${globalPadding}px`, paddingRight: `${globalPadding}px` };
-    const containerWidthClass = hasGlobalPadding ? "max-w-5xl mx-auto" : "max-w-none";
-    const innerMaxWidth = isBoxed || section.type === 'full_width' ? 'w-full' : `w-full ${containerWidthClass}`;
+
+    // Use numeric contentWidth if available, otherwise fallback to default max-w-5xl (approx 1024px)
+    const containerStyle = {
+        ...paddingXStyle,
+        maxWidth: section.contentWidth ? `${section.contentWidth}px` : (hasGlobalPadding ? '1024px' : 'none'),
+        marginLeft: 'auto',
+        marginRight: 'auto'
+    };
+
+    const innerMaxWidth = isBoxed || section.type === 'full_width' ? 'w-full' : 'w-full';
 
     return (
         <section
             id={`section-${section.id}`}
             className={clsx(
                 "relative overflow-hidden transition-all duration-300",
-                section.pt || (!isBoxed ? 'py-20' : ''),
+                section.pt || (!isBoxed ? 'py-4' : ''),
                 section.pb,
                 className
             )}
@@ -75,15 +83,15 @@ export const SectionWrapper = ({ section, children, className, globalPadding = 2
 
             <div className="relative z-10">
                 {isBoxed ? (
-                    <div className="w-full max-w-5xl mx-auto px-6">
+                    <div className="w-full max-w-5xl mx-auto">
                         <div className={clsx(boxClasses, boxPadding)} style={boxStyle}>
-                            <div className={innerMaxWidth} style={paddingXStyle}>
+                            <div className={innerMaxWidth} style={containerStyle}>
                                 {children}
                             </div>
                         </div>
                     </div>
                 ) : (
-                    <div className={innerMaxWidth} style={paddingXStyle}>
+                    <div className={innerMaxWidth} style={containerStyle}>
                         {children}
                     </div>
                 )}

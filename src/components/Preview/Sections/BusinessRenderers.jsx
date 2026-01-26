@@ -1,589 +1,1209 @@
 /* eslint-disable */
 import React from 'react';
 import { clsx } from 'clsx';
-import { ShoppingCart, MessageCircle, ExternalLink, Check, Sparkles, Crown, Star, Medal, Award, X } from 'lucide-react';
-import { getImgUrl } from '../../../utils/helpers';
+import { ShoppingCart, MessageCircle, ExternalLink, Check, Sparkles, Crown, Star, Medal, Award, X, ArrowRight } from 'lucide-react';
+import { getImgUrl, getDesignTheme } from '../../../utils/helpers';
 import { SectionWrapper } from './SectionWrapper';
 
-export const ConversionPanel = ({ section, accentColor }) => {
-    // Default buttons if none provided
-    const buttons = section.buttons || [
-        { id: 1, label: 'Amazonで購入する', url: '#', color: 'orange', icon: 'cart' },
-        { id: 2, label: '楽天で購入する', url: '#', color: 'red', icon: 'cart' }
-    ];
+export const ConversionPanel = ({ section, viewMode, accentColor: globalAccent }) => {
+    const isMobile = viewMode === 'mobile';
+    const design = section.design || 'standard';
+    const theme = getDesignTheme(design);
+    const accent = globalAccent || theme.primary;
 
-    const isSticky = section.isSticky || false;
+    // --- Design Flags ---
+    const isSango = ['gentle', 'standard', 'modern'].includes(design); // Pop & Round
+    const isEarth = design === 'earth'; // Natural & Hand-drawn
+    const isSwell = ['masculine', 'stylish'].includes(design); // Sharp & Cool
+    const isLuxury = design === 'luxury'; // Elegant & Gold
+    const isCyber = design === 'cyber'; // Future & Neon
 
-    // Helper to get button style based on color name
-    const getButtonStyle = (color) => {
-        switch (color) {
-            case 'orange': return 'bg-gradient-to-r from-orange-400 to-orange-500 text-white border-orange-600 shadow-orange-200';
-            case 'red': return 'bg-gradient-to-r from-red-500 to-red-600 text-white border-red-700 shadow-red-200';
-            case 'green': return 'bg-gradient-to-r from-green-500 to-green-600 text-white border-green-700 shadow-green-200';
-            case 'blue': return 'bg-gradient-to-r from-blue-500 to-blue-600 text-white border-blue-700 shadow-blue-200';
-            case 'black': return 'bg-gradient-to-r from-gray-800 to-black text-white border-gray-900 shadow-gray-400';
-            case 'accent': return ''; // Handled by inline style
-            default: return 'bg-white text-gray-800 border-gray-200';
-        }
+    // Prepare buttons
+    const buttons = (section.buttons && section.buttons.length > 0)
+        ? section.buttons
+        : [{ label: section.buttonLabel || "CONTACT US", url: section.url || "#", color: 'accent', icon: 'arrow' }];
+
+    const getBtnColor = (colorName) => {
+        const colors = {
+            orange: '#f97316',
+            red: '#ef4444',
+            green: '#06c755',
+            blue: '#3b82f6',
+            black: '#1f2937',
+            accent: accent
+        };
+        return colors[colorName] || colorName || accent;
     };
 
-    const getDynamicStyle = (color) => {
-        if (color === 'accent') {
-            return {
-                backgroundColor: accentColor || '#D4AF37',
-                color: '#fff',
-                borderColor: 'rgba(0,0,0,0.1)',
-                boxShadow: `0 4px 14px 0 ${accentColor}40`
-            };
-        }
-        return {};
+    const getBtnIcon = (iconName) => {
+        if (iconName === 'cart') return <ShoppingCart size={20} />;
+        if (iconName === 'line') return <MessageCircle size={20} />;
+        if (iconName === 'link') return <ExternalLink size={20} />;
+        return <ArrowRight size={20} className={clsx("transition-transform", isSango || isEarth ? "group-hover:translate-x-1" : "")} />;
     };
-
-    const getIcon = (iconName) => {
-        switch (iconName) {
-            case 'cart': return <ShoppingCart size={20} />;
-            case 'line': return <MessageCircle size={20} />;
-            default: return <ExternalLink size={20} />;
-        }
-    };
-
-    const Content = () => (
-        <div className={clsx(
-            "w-full max-w-md mx-auto p-4 space-y-3",
-            isSticky ? "bg-white/90 backdrop-blur-md shadow-inner border-t border-gray-100" : ""
-        )}>
-            {section.title && (
-                <p className="text-center text-xs font-bold text-gray-500 mb-2 uppercase tracking-wider">
-                    {section.title}
-                </p>
-            )}
-            <div className="flex flex-col gap-3">
-                {buttons.map((btn, idx) => (
-                    <a
-                        key={idx}
-                        href={btn.url}
-                        className={clsx(
-                            "flex items-center justify-center gap-3 w-full py-4 px-6 rounded-xl font-bold text-lg shadow-lg transform transition-transform active:scale-95 hover:-translate-y-0.5 border-b-4",
-                            getButtonStyle(btn.color)
-                        )}
-                        style={getDynamicStyle(btn.color)}
-                    >
-                        {getIcon(btn.icon)}
-                        <span>{btn.label}</span>
-                    </a>
-                ))}
-            </div>
-            {section.microCopy && (
-                <p className="text-center text-[10px] text-gray-400 mt-2">
-                    {section.microCopy}
-                </p>
-            )}
-        </div>
-    );
 
     return (
         <SectionWrapper section={section}>
-            <Content />
-        </SectionWrapper>
+            {/* Explicitly using isMobile for padding to avoid previewer issues */}
+            <div className={clsx(isMobile ? "px-0 py-6" : "px-6 py-20")}>
+                <div
+                    className={clsx(
+                        "mx-auto overflow-hidden relative isolate transition-all",
+                        // 1. SANGO (Pop)
+                        isSango && (isMobile
+                            ? "rounded-[2rem] p-4 text-center shadow-[0_10px_40px_-10px_rgba(0,0,0,0.1)] border-white border-4 ring-1 ring-gray-100"
+                            : "rounded-[3rem] p-16 text-center shadow-[0_10px_40px_-10px_rgba(0,0,0,0.1)] border-white border-4 ring-1 ring-gray-100"),
+                        // 2. EARTH (Natural)
+                        isEarth && (isMobile
+                            ? "rounded-[1.5rem] p-4 text-center shadow-lg border-2 border-dashed border-[#8d6e63] bg-[#fffcf5]"
+                            : "rounded-[2rem] p-16 text-center shadow-lg border-2 border-dashed border-[#8d6e63] bg-[#fffcf5]"),
+                        // 3. SWELL (Cool)
+                        isSwell && (isMobile
+                            ? "rounded-sm p-4 text-center bg-white border border-gray-100 shadow-xl"
+                            : "rounded-sm p-20 text-center bg-white border border-gray-100 shadow-xl"),
+                        // 4. LUXURY (Elegant - Navy/Black/Gold)
+                        isLuxury && (isMobile
+                            ? "p-4 text-center bg-gradient-to-br from-[#020617] to-[#0f172a] text-white border border-[#ca8a04]/30 shadow-2xl relative"
+                            : "p-20 text-center bg-gradient-to-br from-[#020617] to-[#0f172a] text-white border border-[#ca8a04]/30 shadow-2xl relative"),
+                        // 5. CYBER (Tech)
+                        isCyber && (isMobile
+                            ? "p-6 text-center bg-[#0f172a] border border-cyan-500 shadow-[0_0_20px_rgba(6,182,212,0.15)]"
+                            : "p-20 text-center bg-[#0f172a] border-y border-cyan-500 shadow-[inset_0_0_100px_rgba(6,182,212,0.05)]")
+                    )}
+                    style={{
+                        maxWidth: section.contentWidth || 896, ...(isSango ? {
+                            backgroundColor: '#ffffff',
+                            backgroundImage: `radial-gradient(${accent}15 2px, transparent 2px), radial-gradient(${accent}10 1px, transparent 1px)`,
+                            backgroundSize: '32px 32px, 16px 16px',
+                            backgroundPosition: '0 0, 16px 16px'
+                        } : isCyber ? {
+                            backgroundImage: `linear-gradient(rgba(6,182,212,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(6,182,212,0.1) 1px, transparent 1px)`,
+                            backgroundSize: '40px 40px'
+                        } : {})
+                    }}>
+
+                    {/* SWELL: Stylish background decorations */}
+                    {isSwell && (
+                        <>
+                            <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-gray-50 to-transparent -z-10 rounded-bl-full opacity-50"></div>
+                            <div className="absolute bottom-0 left-0 w-32 h-32 border-t border-r border-gray-100 -z-10"></div>
+                        </>
+                    )}
+
+                    {/* EARTH: Washi texture overlay */}
+                    {isEarth && (
+                        <div className="absolute inset-0 opacity-[0.03] mix-blend-multiply pointer-events-none" style={{ backgroundImage: `url('https://www.transparenttextures.com/patterns/cream-paper.png')` }}></div>
+                    )}
+
+                    {/* Luxury: Gold accents and particles */}
+                    {isLuxury && (
+                        <>
+                            {/* Inner border for that premium feel */}
+                            <div className="absolute inset-2 border border-[#ca8a04]/20 pointer-events-none" />
+                            {/* Subtle gold glow */}
+                            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-1/2 h-1 bg-gradient-to-r from-transparent via-[#ca8a04] to-transparent opacity-50 shadow-[0_0_15px_#ca8a04]" />
+                            {/* Background texture/particles */}
+                            <div className="absolute inset-0 opacity-10 pointer-events-none"
+                                style={{
+                                    backgroundImage: 'radial-gradient(circle, #fcd34d 1px, transparent 1px)',
+                                    backgroundSize: '32px 32px'
+                                }}
+                            />
+                        </>
+                    )}
+
+                    {/* Cyber: Glitch lines */}
+                    {isCyber && (
+                        <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-transparent via-cyan-500/5 to-transparent opacity-50"></div>
+                    )}
+
+                    <h3 className={clsx(
+                        isMobile ? "text-xl font-black mb-3 leading-snug relative block" : "text-4xl font-black mb-8 leading-tight relative inline-block",
+                        isSango && "text-gray-800",
+                        isEarth && (isMobile ? "text-[#5d4037]" : "text-[#5d4037] tracking-widest"),
+                        isSwell && (isMobile ? "text-gray-900 border-b-2 pb-2 inline-block" : "text-gray-900 border-b-2 pb-2"),
+                        isLuxury && (isMobile
+                            ? "text-transparent bg-clip-text bg-gradient-to-b from-[#fcd34d] to-[#ca8a04] font-serif font-normal"
+                            : "text-transparent bg-clip-text bg-gradient-to-b from-[#fcd34d] to-[#ca8a04] font-serif tracking-widest font-normal"),
+                        isCyber && "text-cyan-400 font-mono tracking-tighter"
+                    )} style={{
+                        ...(isSwell ? { borderColor: accent } : {}),
+                        textShadow: section.bgType === 'image' ? '2px 2px 0 #fff, -2px -2px 0 #fff, 2px -2px 0 #fff, -2px 2px 0 #fff, 0 2px 0 #fff, 0 -2px 0 #fff, 2px 0 0 #fff, -2px 0 0 #fff' : undefined
+                    }}>
+                        {section.title || "Ready to get started?"}
+                        {isSango && (
+                            <span className="absolute -bottom-2 left-0 w-full h-3 opacity-30 -rotate-1 rounded-full" style={{ backgroundColor: accent }}></span>
+                        )}
+                        {isEarth && (
+                            <svg className="absolute -bottom-3 left-0 w-full h-3 text-[#8d6e63] opacity-30" preserveAspectRatio="none" viewBox="0 0 100 10"><path d="M0 5 Q 50 10 100 5" stroke="currentColor" strokeWidth="2" fill="none" /></svg>
+                        )}
+                    </h3>
+
+                    <p className={clsx(
+                        isMobile ? "mb-3 leading-relaxed mx-auto max-w-xl text-sm" : "mb-2 leading-loose mx-auto max-w-xl text-base",
+                        isLuxury ? "text-gray-300 font-serif tracking-wide" : (isCyber ? "text-cyan-200/70 font-mono" : (isEarth ? "text-[#795548]" : "text-gray-600"))
+                    )}>{section.content || section.text || "今すぐ無料体験にお申し込みいただき、ビジネスを加速させましょう。"}</p>
+
+                    <div className={clsx("flex flex-wrap justify-center gap-3 md:gap-4", isMobile ? "flex-col w-full px-4" : "")}>
+                        {buttons.map((btn, i) => {
+                            const btnColor = getBtnColor(btn.color);
+                            return (
+                                <a key={i} href={btn.url || "#"} className={clsx(
+                                    "inline-flex items-center justify-center gap-2 font-black tracking-widest transition-all duration-300 group relative whitespace-nowrap",
+                                    !isMobile && "md:gap-3",
+                                    isMobile ? "px-6 py-4 text-sm w-full" : "px-10 py-5 text-lg w-auto min-w-[280px]",
+                                    // 1. SANGO
+                                    isSango && "rounded-full text-white transform active:translate-y-1 active:shadow-none",
+                                    // 2. EARTH
+                                    isEarth && "rounded-[1rem] text-white border-2 border-white/20 hover:-rotate-1",
+                                    // 3. SWELL
+                                    isSwell && "rounded-sm text-white overflow-hidden hover:brightness-110 shadow-md hover:shadow-lg",
+                                    // 4. LUXURY (Gold Gradient)
+                                    isLuxury && "text-[#020617] bg-gradient-to-b from-[#fcd34d] to-[#d97706] hover:to-[#fcd34d] shadow-[0_0_20px_rgba(202,138,4,0.3)] hover:shadow-[0_0_30px_rgba(202,138,4,0.5)] border-none",
+                                    // 5. CYBER
+                                    isCyber && "bg-cyan-950/80 text-cyan-400 border border-cyan-400 hover:bg-cyan-400 hover:text-cyan-950 hover:shadow-[0_0_20px_rgba(34,211,238,0.6)] font-mono",
+
+                                    (buttons.length > 1 && !isMobile) ? "min-w-[280px]" : "w-auto"
+                                )} style={{
+                                    boxShadow: isSango ? `0 6px 0 ${btnColor}cc, 0 12px 12px -2px rgba(0,0,0,0.15)` : (
+                                        isEarth ? `3px 3px 0 rgba(93, 64, 55, 0.2)` : undefined
+                                    ),
+                                    backgroundColor: (isSango || isSwell || isEarth) ? btnColor : undefined,
+                                }}>
+                                    {isSwell && (
+                                        <div className="absolute top-0 -left-full w-1/2 h-full bg-white/20 skew-x-[-20deg] group-hover:animate-[shine_0.75s_infinite]"></div>
+                                    )}
+
+                                    <span className="relative z-10 flex items-center gap-2">
+                                        {getBtnIcon(btn.icon)}
+                                        {btn.label || "CONTACT US"}
+                                    </span>
+                                </a>
+                            );
+                        })}
+                    </div>
+                    {section.microCopy && (
+                        <p className={clsx("mt-6 text-xs font-bold opacity-50", isCyber && "text-cyan-600")}>{section.microCopy}</p>
+                    )}
+                </div>
+            </div>
+        </SectionWrapper >
     );
 };
 
-export const PointList = ({ section, viewMode }) => {
+export const PointList = ({ section, viewMode, accentColor: globalAccent }) => {
     const isMobile = viewMode === 'mobile';
-    const design = section.design || 'alternating';
-    const badgeText = section.badgeText || 'POINT';
-    const badgeColor = section.badgeColor || '#facc15';
-
-    const Badge = ({ index, className }) => (
-        <div className={clsx("bg-yellow-400 text-black font-bold py-1 px-4 shadow-lg z-10 skew-x-[-10deg]", className)} style={{ backgroundColor: badgeColor }}>
-            <span className="block skew-x-[10deg] text-sm tracking-wider">{badgeText} {String(index + 1).padStart(2, '0')}</span>
-        </div>
-    );
+    const design = section.design || 'standard';
+    const theme = getDesignTheme(design);
 
     const items = section.items || [];
+    const contentWidth = section.contentWidth || 1000;
+    const baseAccent = section.badgeColor || globalAccent || theme.primary;
 
-    if (design === 'cards') {
-        return (
-            <SectionWrapper section={section}>
-                <div className={`grid gap-8 max-w-6xl mx-auto px-6 py-12 ${isMobile ? 'grid-cols-1' : 'grid-cols-3'}`}>
-                    {items.map((item, index) => (
-                        <div key={item.id || index} className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden group hover:translate-y-1 transition-transform">
-                            <div className="relative h-48 overflow-hidden">
-                                <div className="absolute top-0 right-0 p-4">
-                                    <Badge index={index} className="!py-1 !px-3 !text-xs !shadow-md !skew-x-0 !rounded text-white" />
+    // --- Design Flags ---
+    const isSango = ['gentle', 'standard', 'modern'].includes(design);
+    const isEarth = design === 'earth';
+    const isSwell = ['masculine', 'stylish'].includes(design);
+    const isLuxury = design === 'luxury';
+    const isCyber = design === 'cyber';
+
+    return (
+        <SectionWrapper section={section}>
+            <div className={clsx("mx-auto", isMobile ? "px-4 py-10" : "px-6 py-16")} style={{ maxWidth: contentWidth }}>
+                <div className={clsx(
+                    "grid",
+                    (isMobile || section.layout === 'vertical') ? "grid-cols-1" : "grid-cols-3"
+                )} style={{ gap: `${section.itemSpacing || (isMobile ? 24 : 48)}px` }}>
+                    {items.map((item, index) => {
+                        const displayNumber = String(index + 1).padStart(2, '0');
+                        const itemAccent = item.color || baseAccent;
+                        const isVertical = section.layout === 'vertical';
+
+                        return (
+                            <div key={item.id || index} className={clsx(
+                                "flex group transition-all duration-500 relative",
+                                isVertical && !isMobile ? "flex-row items-center gap-12 text-left" : "flex-col",
+                                !isVertical && isSango && "items-center text-center",
+                                !isVertical && isSwell && "items-start text-left",
+                                !isVertical && isEarth && "items-center text-center"
+                            )}>
+                                {/* IMAGE / ICON AREA */}
+                                <div className={clsx(
+                                    "relative transition-all duration-500 shrink-0",
+                                    isVertical && !isMobile ? "w-1/3 mb-0" : "w-full mb-6",
+
+                                    // 1. SANGO (Pop)
+                                    isSango && "rounded-[2.5rem] overflow-visible group-hover:-translate-y-2",
+
+                                    // 2. SWELL (Cool)
+                                    isSwell && "rounded overflow-hidden shadow-sm group-hover:shadow-xl group-hover:-translate-y-1",
+
+                                    // 3. EARTH (Natural)
+                                    isEarth && "rounded-[3rem] overflow-visible border-2 border-dashed border-gray-200 p-2 group-hover:rotate-1",
+
+                                    // 4. LUXURY
+                                    isLuxury && "rounded-lg overflow-hidden border border-[#ca8a04]/20 shadow-lg group-hover:border-[#ca8a04]/60",
+
+                                    // 5. CYBER
+                                    isCyber && "rounded-xl overflow-hidden border border-cyan-500/30 bg-[#0f172a] group-hover:shadow-[0_0_20px_rgba(6,182,212,0.3)]"
+                                )}>
+                                    {/* NUMBER BADGE */}
+                                    <div className={clsx(
+                                        "absolute z-30 pointer-events-none transition-transform duration-500",
+                                        isSango && "top-0 left-0 -translate-x-2 -translate-y-2 group-hover:scale-110",
+                                        isSwell && "bottom-0 right-0 translate-x-1/4 translate-y-1/4",
+                                        isEarth && "top-0 right-0 translate-x-1/4 -translate-y-1/4",
+                                        isLuxury && "top-4 left-4",
+                                        isCyber && "top-0 left-0 bg-cyan-500/10 px-3 py-1 border-b border-r border-cyan-500/30"
+                                    )}>
+                                        {isSango && (
+                                            <div className="w-12 h-12 rounded-full flex items-center justify-center text-white font-black text-sm shadow-[0_4px_0_rgba(0,0,0,0.1)] border-4 border-white" style={{ backgroundColor: itemAccent }}>
+                                                {index + 1}
+                                            </div>
+                                        )}
+                                        {isSwell && (
+                                            <div className="text-[60px] font-black text-gray-900/5 leading-none tracking-tighter group-hover:text-gray-900/10">
+                                                {displayNumber}
+                                            </div>
+                                        )}
+                                        {isEarth && (
+                                            <div className="w-10 h-10 rounded-full flex items-center justify-center text-white text-xs font-bold transform -rotate-12 shadow-sm" style={{ backgroundColor: '#8d6e63' }}>
+                                                {index + 1}
+                                            </div>
+                                        )}
+                                        {isLuxury && (
+                                            <div className="text-[10px] font-bold tracking-[0.3em] text-white/90 bg-black/40 backdrop-blur-sm px-3 py-1 border border-white/20 uppercase">
+                                                Point {index + 1}
+                                            </div>
+                                        )}
+                                        {isCyber && <span className="text-[10px] font-mono text-cyan-400">P{displayNumber}</span>}
+                                    </div>
+
+                                    {/* ACTUAL IMAGE */}
+                                    <div className={clsx(
+                                        "relative aspect-[4/3] w-full bg-gray-50 flex items-center justify-center overflow-hidden",
+                                        isSango && "rounded-[2.5rem] shadow-lg border-4 border-white",
+                                        isEarth && "rounded-[2.5rem]"
+                                    )}>
+                                        {getImgUrl(item.image) ? (
+                                            <img src={getImgUrl(item.image)} alt={item.title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
+                                        ) : (
+                                            <div className="flex flex-col items-center gap-2 opacity-30 group-hover:opacity-50 transition-opacity">
+                                                <Star size={32} />
+                                                <span className="text-[10px] font-black tracking-widest uppercase">Feature</span>
+                                            </div>
+                                        )}
+
+                                        {/* Luxury Overlay */}
+                                        {isLuxury && <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />}
+                                    </div>
                                 </div>
-                                {getImgUrl(item.image) ? (
-                                    <img src={getImgUrl(item.image)} alt={item.title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
-                                ) : (
-                                    <div className="w-full h-full bg-gray-100 flex items-center justify-center text-xs opacity-50">No Image</div>
+
+                                {/* TEXT AREA */}
+                                <div className={clsx("flex-1", isSango && "px-2")}>
+                                    <h3 className={clsx(
+                                        "font-bold mb-3 transition-colors",
+                                        isSango && "text-xl",
+                                        isSwell && "text-lg md:text-xl border-l-4 pl-4 uppercase tracking-wider",
+                                        isEarth && "text-lg text-[#5d4037] font-serif",
+                                        isLuxury && "text-xl font-serif text-gray-800 tracking-wide",
+                                        isCyber && "text-lg font-mono text-cyan-400 uppercase"
+                                    )} style={isSwell ? { borderLeftColor: itemAccent } : { color: isEarth ? undefined : theme.text }}>
+                                        {item.title}
+                                    </h3>
+                                    <p className={clsx(
+                                        "text-sm leading-relaxed",
+                                        isSango && "text-gray-600",
+                                        isSwell && "text-gray-500 font-medium",
+                                        isEarth && "text-[#5d4037]/70 italic",
+                                        isLuxury && "text-gray-600 font-serif leading-loose",
+                                        isCyber && "text-cyan-100/60 font-mono"
+                                    )}>
+                                        {item.desc || item.content || item.text}
+                                    </p>
+                                </div>
+                            </div>
+                        );
+                    })}
+                </div>
+            </div>
+        </SectionWrapper>
+    );
+};
+
+export const ProblemChecklist = ({ section, viewMode, accentColor: globalAccent }) => {
+    const isMobile = viewMode === 'mobile';
+    const design = section.design || 'standard';
+    const theme = getDesignTheme(design);
+    const accent = globalAccent || theme.primary;
+
+    // --- Design Flags ---
+    const isSango = ['gentle', 'standard', 'modern'].includes(design);
+    const isEarth = design === 'earth';
+    const isSwell = ['masculine', 'stylish'].includes(design);
+    const isLuxury = design === 'luxury';
+    const isCyber = design === 'cyber';
+
+    return (
+        <SectionWrapper section={section} globalPadding={isMobile ? 0 : 24}>
+            <div className={clsx("w-full py-0 mx-auto", isMobile ? "px-4" : "px-16")} style={{ maxWidth: isMobile ? 'none' : (section.contentWidth || 768) }}>
+                {/* --- HEADER --- */}
+                <div className="text-center mb-10">
+                    <h2 className={clsx(
+                        "font-black tracking-tighter leading-tight mx-auto",
+                        isMobile ? "text-base" : "text-xl md:text-3xl",
+                        isLuxury && "font-serif text-[#ca8a04]",
+                        isCyber && "font-mono text-cyan-400 italic uppercase",
+                        isEarth && "text-[#5d4037] font-serif",
+                        !isLuxury && !isCyber && !isEarth && "text-gray-900"
+                    )} style={{
+                        textShadow: section.bgType === 'image' ? '2px 2px 0 #fff, -2px -2px 0 #fff, 2px -2px 0 #fff, -2px 2px 0 #fff, 0 2px 0 #fff, 0 -2px 0 #fff, 2px 0 0 #fff, -2px 0 0 #fff' : undefined
+                    }}>
+                        {section.title || "こんなお悩みありませんか？"}
+                    </h2>
+                </div>
+
+                {/* --- ITEMS --- */}
+                <div className={clsx(
+                    "grid",
+                    isSango && "md:gap-larger"
+                )} style={{ gap: `${section.itemSpacing || (isMobile ? 4 : 16)}px` }}>
+                    {(section.items || []).map((item, i) => (
+                        <div key={i}
+                            className={clsx(
+                                "flex items-start gap-4 transition-all duration-300 relative group",
+
+                                // 1. SANGO (Pop Bubble)
+                                isSango && (isMobile ? "bg-white rounded-[1.2rem] py-2 px-2 shadow-md border border-gray-100" : "bg-white rounded-[2rem] p-4 shadow-[0_8px_30px_-10px_rgba(0,0,0,0.1)] border border-gray-100 hover:shadow-xl hover:-translate-y-1"),
+
+                                // 2. SWELL (Clean Card)
+                                isSwell && (isMobile ? "bg-white py-2 px-2 shadow-sm border border-gray-100 flex items-center" : "bg-white p-4 shadow-sm border border-gray-100 flex items-center hover:shadow-md"),
+
+                                // 3. EARTH (Natural Dashed)
+                                isEarth && (isMobile ? "bg-[#fffcf5] py-2 px-2 rounded-[1.2rem] border-2 border-dashed border-[#8d6e63]/30" : "bg-[#fffcf5] p-4 rounded-[2rem] border-2 border-dashed border-[#8d6e63]/30 hover:border-[#8d6e63]/50"),
+
+                                // 4. LUXURY (Elegant Dark)
+                                isLuxury && (isMobile ? "bg-gradient-to-r from-[#0f172a] to-[#1e293b] py-2 px-2 border border-[#ca8a04]/20 text-white" : "bg-gradient-to-r from-[#0f172a] to-[#1e293b] p-4 border border-[#ca8a04]/20 text-white shadow-xl hover:border-[#ca8a04]/60"),
+
+                                // 5. CYBER (Digital Error)
+                                isCyber && (isMobile ? "bg-[#0f172a] py-2 px-2 border-l-4 border-cyan-500" : "bg-[#0f172a] p-4 border-l-4 border-cyan-500 shadow-[inset_0_0_20px_rgba(6,182,212,0.05)] hover:bg-[#16203a]")
+                            )}
+                        >
+                            {/* Checkmark / Icon */}
+                            <div className="flex-shrink-0 mt-0.5">
+                                <div className={clsx(
+                                    "flex items-center justify-center transition-transform group-hover:scale-110",
+                                    isSango && (isMobile ? "w-6 h-6 text-white rounded-full shadow-sm" : "w-8 h-8 rounded-full shadow-md text-white"),
+                                    isSwell && "w-6 h-6",
+                                    isEarth && (isMobile ? "w-7 h-7 border-2 border-[#8d6e63]/30 rounded-full text-[#8d6e63]" : "w-10 h-10 border-2 border-[#8d6e63]/30 rounded-full text-[#8d6e63]"),
+                                    isLuxury && "w-6 h-6 bg-[#ca8a04]/10 rounded border border-[#ca8a04]/30 text-[#ca8a04]",
+                                    isCyber && "w-6 h-6 text-red-500"
+                                )} style={isSango ? { backgroundColor: accent } : (isSwell ? { color: accent } : {})}>
+                                    {isCyber ? <X size={isMobile ? 16 : 20} strokeWidth={4} /> : <Check size={isMobile ? 14 : (isSango ? 18 : (isSwell ? 20 : 24))} strokeWidth={4} />}
+                                </div>
+                            </div>
+
+                            {/* Text */}
+                            <div className="flex-1">
+                                <p className={clsx(
+                                    "font-bold leading-relaxed",
+                                    isMobile ? "text-sm" : "text-base",
+                                    isLuxury ? "font-serif text-gray-100 tracking-wide" : (isCyber ? "font-mono text-cyan-50 tracking-tighter" : (isEarth ? "text-[#5d4037]" : "text-gray-700"))
+                                )}>
+                                    {item.text || item.content || item.title}
+                                </p>
+                            </div>
+
+                            {/* SWELL Decor */}
+                            {isSwell && (
+                                <div className="absolute right-6 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-10 transition-opacity">
+                                    <Check size={60} />
+                                </div>
+                            )}
+                        </div>
+                    ))}
+                </div>
+
+                {/* --- FOOTER (SOULTION) --- */}
+                {section.footerText && (
+                    <div className="mt-1 text-center relative pt-2">
+                        {/* Decorative Line */}
+                        <div className={clsx(
+                            "absolute top-0 left-1/2 -translate-x-1/2 w-24 h-1 rounded-full opacity-30",
+                            isSango && "bg-yellow-400",
+                            isLuxury && "bg-[#ca8a04]",
+                            isCyber && "bg-cyan-500 shadow-[0_0_10px_#06b6d4]",
+                            !isSango && !isLuxury && !isCyber && "bg-gray-200"
+                        )} />
+
+                        <p className={clsx(
+                            "font-black tracking-tighter leading-tight inline-block",
+                            isMobile ? "text-2xl" : "text-4xl",
+                            isSango && "text-red-500",
+                            isLuxury && "text-transparent bg-clip-text bg-gradient-to-b from-[#fcd34d] to-[#ca8a04] font-serif",
+                            isCyber && "text-cyan-400 font-mono italic uppercase shadow-cyan-400/50",
+                            isEarth && "text-[#5d4037] font-serif",
+                            !isLuxury && !isCyber && !isEarth && !isSango && "text-gray-900"
+                        )} style={{
+                            textShadow: section.bgType === 'image' ? '2px 2px 0 #fff, -2px -2px 0 #fff, 2px -2px 0 #fff, -2px 2px 0 #fff, 0 2px 0 #fff, 0 -2px 0 #fff, 2px 0 0 #fff, -2px 0 0 #fff' : undefined
+                        }}>
+                            {section.footerText}
+                        </p>
+
+                        {isSango && (
+                            <div className="mt-4 flex justify-center gap-1 opacity-40">
+                                {[1, 2, 3].map(i => <Star key={i} size={20} fill="#facc15" stroke="none" className={i === 2 ? "scale-125" : ""} />)}
+                            </div>
+                        )}
+                    </div>
+                )}
+            </div>
+        </SectionWrapper>
+    );
+};
+
+export const SpeechBubbleRenderer = ({ section, viewMode, accentColor: globalAccent }) => {
+    const isMobile = viewMode === 'mobile';
+    const design = section.design || 'standard';
+    const theme = getDesignTheme(design);
+    const isSangoLine = ['earth', 'gentle', 'standard', 'modern'].includes(design);
+
+    return (
+        <SectionWrapper section={section}>
+            <div className="px-6 py-12 mx-auto" style={{ maxWidth: section.contentWidth || 800 }}>
+                <div className="flex flex-col gap-8 md:gap-12">
+                    {items.map((item, i) => {
+                        const isRight = item.position === 'right' || section.align === 'right' || (section.align === undefined && i % 2 !== 0);
+                        const imgUrl = getImgUrl(item.image) || getImgUrl(section.characterImage);
+
+                        return (
+                            <div key={i} className={clsx("flex gap-6 items-start", isRight ? "flex-row-reverse" : "flex-row")}>
+                                <div className="flex flex-col items-center gap-2 flex-shrink-0">
+                                    <div className={clsx(
+                                        "w-14 h-14 md:w-20 md:h-20 overflow-hidden bg-white",
+                                        isSangoLine ? "rounded-full shadow-md border-[3px] border-white" : "rounded-lg shadow-sm border border-gray-200"
+                                    )}>
+                                        {imgUrl ? (
+                                            <img src={imgUrl} alt={item.name} className="w-full h-full object-cover" />
+                                        ) : (
+                                            <div className="w-full h-full flex items-center justify-center text-[10px] text-gray-400 font-bold bg-gray-50">ICON</div>
+                                        )}
+                                    </div>
+                                    <span className="text-xs font-bold opacity-60 max-w-[5rem] truncate text-center">{item.name || section.characterName || "Name"}</span>
+                                </div>
+
+                                <div className={clsx(
+                                    "relative p-6 md:p-8 max-w-2xl",
+                                    isSangoLine ? "rounded-[2rem] bg-white border border-gray-100 shadow-sm" : "rounded-lg bg-gray-50 border border-gray-200",
+                                    isRight ? (isSangoLine ? "rounded-tr-none" : "rounded-tr-none") : (isSangoLine ? "rounded-tl-none" : "rounded-tl-none")
                                 )}
-                            </div>
-                            <div className="p-6">
-                                <h3 className="text-lg font-bold mb-3 pb-2 border-b-2 inline-block" style={{ borderBottomColor: badgeColor }}>{item.title}</h3>
-                                <p className="text-sm text-gray-600 leading-relaxed">{item.desc || item.content || item.text}</p>
-                            </div>
-                        </div>
-                    ))}
-                </div>
-            </SectionWrapper>
-        );
-    }
-
-    if (design === 'simple') {
-        return (
-            <SectionWrapper section={section}>
-                <div className="space-y-12 max-w-3xl mx-auto px-6 py-12">
-                    {items.map((item, index) => (
-                        <div key={item.id || index} className="bg-white rounded-2xl p-6 md:p-8 shadow-sm border border-gray-100 flex flex-col items-start gap-4">
-                            <div className="flex items-center gap-4 w-full border-b border-gray-100 pb-4 mb-2">
-                                <div className="flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center text-white font-bold shadow-md" style={{ backgroundColor: badgeColor }}>
-                                    {index + 1}
-                                </div>
-                                <h3 className="text-xl font-bold flex-1">{item.title}</h3>
-                            </div>
-                            <div className="flex flex-col md:flex-row gap-6 w-full">
-                                <div className="w-full md:w-1/3 flex-shrink-0">
-                                    {getImgUrl(item.image) ? (
-                                        <img src={getImgUrl(item.image)} alt={item.title} className="w-full h-40 object-cover rounded-lg shadow-sm" />
-                                    ) : (
-                                        <div className="w-full h-40 bg-gray-100 rounded-lg flex items-center justify-center text-xs opacity-50">No Image</div>
-                                    )}
-                                </div>
-                                <p className="text-gray-600 flex-1 leading-relaxed text-sm md:text-base">{item.desc || item.content || item.text}</p>
-                            </div>
-                        </div>
-                    ))}
-                </div>
-            </SectionWrapper>
-        );
-    }
-
-    return (
-        <SectionWrapper section={section}>
-            <div className="space-y-16 max-w-5xl mx-auto px-6 py-12">
-                {items.map((item, index) => {
-                    const isEven = index % 2 === 1;
-                    return (
-                        <div key={item.id || index} className={`flex flex-col ${isMobile ? '' : 'md:flex-row'} gap-8 items-center ${!isMobile && isEven ? 'md:flex-row-reverse' : ''}`}>
-                            <div className={`w-full ${isMobile ? '' : 'md:w-1/2'} relative group`}>
-                                <div className="absolute -top-4 -left-4">
-                                    <Badge index={index} />
-                                </div>
-                                <div className="overflow-hidden rounded-xl shadow-lg border-4 border-white">
-                                    {getImgUrl(item.image) ? (
-                                        <img src={getImgUrl(item.image)} alt={item.title} className="w-full h-auto object-cover transform transition-transform duration-500 group-hover:scale-110" />
-                                    ) : (
-                                        <div className="aspect-[4/3] bg-gray-100 flex items-center justify-center text-xs opacity-50">No image</div>
-                                    )}
+                                    style={{
+                                        backgroundColor: bubbleColor
+                                    }}
+                                >
+                                    <div className={clsx("absolute top-8 w-4 h-4 transform rotate-45 border-inherit bg-inherit border-t border-l",
+                                        isRight ? "-right-2 border-r border-b border-t-0 border-l-0" : "-left-2")}
+                                    ></div>
+                                    <p className="leading-loose whitespace-pre-wrap relative z-10 text-gray-700">{item.text || item.content || section.text}</p>
                                 </div>
                             </div>
-                            <div className={`w-full ${isMobile ? '' : 'md:w-1/2'} space-y-4`}>
-                                <h3 className="text-2xl font-bold border-b-2 pb-2 inline-block" style={{ borderBottomColor: badgeColor }}>{item.title}</h3>
-                                <p className="text-gray-600 leading-relaxed font-light">{item.desc || item.content || item.text}</p>
-                            </div>
-                        </div>
-                    );
-                })}
-            </div>
-        </SectionWrapper>
-    );
-};
-
-export const ProblemChecklist = ({ section, viewMode }) => {
-    const isMobile = viewMode === 'mobile';
-
-    return (
-        <SectionWrapper section={section}>
-            <div className={`py-12 ${isMobile ? 'px-4' : 'px-6'} bg-gray-800 text-white relative overflow-hidden`}>
-                <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] mix-blend-overlay"></div>
-
-                <div className="max-w-2xl mx-auto relative z-10">
-                    <div className={`text-center ${isMobile ? 'mb-6' : 'mb-10'}`}>
-                        <span className="bg-red-600 text-white px-4 py-1 text-xs font-bold rounded-full mb-4 inline-block tracking-widest">CHECK LIST</span>
-                        <h2 className={`${isMobile ? 'text-xl' : 'text-2xl md:text-3xl'} font-bold tracking-wider leading-relaxed text-white`}>
-                            {section.title || "こんなお悩みありませんか？"}
-                        </h2>
-                    </div>
-
-                    <div className={`bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl ${isMobile ? 'p-4' : 'p-6 md:p-10'} shadow-2xl space-y-4`}>
-                        {section.items.map((item, i) => (
-                            <div key={i} className={`flex items-start ${isMobile ? 'gap-3' : 'gap-4'} p-3 border-b border-white/10 last:border-0 hover:bg-white/5 transition-colors rounded-lg text-white`}>
-                                <div className={`bg-red-500 rounded-full ${isMobile ? 'p-0.5' : 'p-1'} flex-shrink-0 mt-0.5`}>
-                                    <X className="text-white" size={isMobile ? 14 : 16} strokeWidth={3} />
-                                </div>
-                                <p className={`font-medium ${isMobile ? 'text-base' : 'text-lg'} leading-snug`}>{item.text || item.content || item.title}</p>
-                            </div>
-                        ))}
-                    </div>
+                        );
+                    })}
                 </div>
             </div>
         </SectionWrapper>
     );
 };
 
-export const SpeechBubbleRenderer = ({ section, viewMode }) => {
+
+export const PricingRenderer = ({ section, viewMode, accentColor: globalAccent }) => {
     const isMobile = viewMode === 'mobile';
-    const isCharRight = section.align !== 'left';
-    const bubbleColor = section.bubbleColor || '#ffffff';
-    const textColor = section.textColor || '#333333';
-    const charImg = getImgUrl(section.characterImage || section.image);
+    const design = section.design || 'standard';
+    const theme = getDesignTheme(design);
+    const baseAccent = section.accentColor || globalAccent || theme.accent || theme.primary;
+    const items = section.plans || section.items || [];
+    const hasManyItems = items.length >= 3;
+
+    // --- Design Flags ---
+    const isSango = ['gentle', 'standard', 'modern'].includes(design); // Pop & Round
+    const isEarth = design === 'earth'; // Natural & Hand-drawn
+    const isSwell = ['masculine', 'stylish'].includes(design); // Sharp & Cool
+    const isLuxury = design === 'luxury'; // Elegant & Gold
+    const isCyber = design === 'cyber'; // Future & Neon
 
     return (
         <SectionWrapper section={section}>
-            <div className={`flex items-start gap-4 ${isMobile ? 'px-2' : 'max-w-3xl mx-auto px-6'} ${isCharRight ? 'justify-end' : 'justify-start'}`}>
-
-                {!isCharRight && (
-                    <div className="flex-shrink-0 flex flex-col items-center gap-1">
-                        <div className="w-16 h-16 md:w-20 md:h-20 rounded-full overflow-hidden border-2 border-white shadow-md bg-gray-200">
-                            {charImg ? (
-                                <img src={charImg} alt="Speaker" className="w-full h-full object-cover" />
-                            ) : (
-                                <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs text-center font-bold p-1">No Img</div>
-                            )}
-                        </div>
-                        {section.characterName && <p className="text-[10px] text-center text-gray-500 font-bold">{section.characterName}</p>}
+            <div className={clsx(isMobile ? "px-4 py-16" : "px-4 py-12 mx-auto")} style={{ maxWidth: section.contentWidth || 1100 }}>
+                {section.title && (
+                    <div className="text-center mb-12">
+                        <h3 className={clsx(
+                            "font-black mb-4",
+                            isMobile ? "text-xl" : "text-3xl",
+                            isSwell && "text-gray-800 font-bold",
+                            isLuxury && "text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-amber-600 font-serif",
+                            isEarth && "text-[#5d4037] tracking-widest",
+                            isCyber && "text-cyan-400 font-mono"
+                        )}>{section.title}</h3>
+                        <div className="w-12 h-1 mx-auto rounded-full" style={{ backgroundColor: baseAccent }}></div>
                     </div>
                 )}
 
-                <div className="relative max-w-[70%]">
-                    <div
-                        className="p-4 md:p-6 rounded-2xl shadow-sm text-sm md:text-base leading-relaxed whitespace-pre-wrap border border-gray-100"
-                        style={{ backgroundColor: bubbleColor, color: textColor }}
-                    >
-                        {section.text || section.content}
-                    </div>
+                <div className={clsx(
+                    "grid gap-4 md:gap-6 items-stretch",
+                    isMobile ? "grid-cols-1" : (items.length === 2 ? "grid-cols-2 max-w-2xl mx-auto" : "grid-cols-3")
+                )}>
+                    {items.map((plan, i) => {
+                        const isRecommended = plan.recommended || plan.featured || plan.isFeatured;
+                        // Each plan might override color
+                        const planAccent = plan.color || baseAccent;
 
-                    <div className={`absolute top-6 w-0 h-0 border-8 border-transparent ${isCharRight ? '-right-4 border-l-white' : '-left-4 border-r-white'}`}
-                        style={isCharRight ? { borderLeftColor: bubbleColor } : { borderRightColor: bubbleColor }}></div>
-                </div>
+                        // Sanitize price and period to avoid duplicate symbols
+                        const displayPrice = String(plan.price || '').replace(/[¥￥]/g, '').trim();
+                        const displayPeriod = String(plan.period || '').replace(/[\/\／]/g, '').trim();
 
-                {isCharRight && (
-                    <div className="flex-shrink-0 flex flex-col items-center gap-1">
-                        <div className="w-16 h-16 md:w-20 md:h-20 rounded-full overflow-hidden border-2 border-white shadow-md bg-gray-200">
-                            {charImg ? (
-                                <img src={charImg} alt="Speaker" className="w-full h-full object-cover" />
-                            ) : (
-                                <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs text-center font-bold p-1">No Img</div>
-                            )}
-                        </div>
-                        {section.characterName && <p className="text-[10px] text-center text-gray-500 font-bold">{section.characterName}</p>}
-                    </div>
-                )}
-            </div>
-        </SectionWrapper>
-    );
-};
+                        return (
+                            <div key={i}
+                                className={clsx(
+                                    "flex flex-col relative transition-all duration-300 bg-white group",
 
-export const PricingRenderer = ({ section, viewMode, accentColor }) => {
-    const isMobile = viewMode === 'mobile';
-    const plans = section.plans || [];
-    const design = section.design || 'modern';
+                                    // 1. SANGO (Pop)
+                                    isSango && clsx(
+                                        "rounded-[2.5rem] border-4 border-white shadow-xl overflow-visible",
+                                        isRecommended ? "ring-4 ring-sky-100 translate-y-[-8px] z-10" : "hover:shadow-2xl hover:-translate-y-2",
+                                        !isRecommended && "mt-0 md:mt-4"
+                                    ),
 
-    const getPlanIcon = (iconName) => {
-        if (iconName === 'crown') return <Crown size={14} />;
-        if (iconName === 'star') return <Star size={14} />;
-        if (iconName === 'medal') return <Medal size={14} />;
-        if (iconName === 'award') return <Award size={14} />;
-        return <Sparkles size={14} />;
-    };
+                                    // 2. EARTH (Natural)
+                                    isEarth && clsx(
+                                        "rounded-3xl overflow-hidden border-0",
+                                        isRecommended ? "shadow-lg scale-105 z-10" : "shadow hover:shadow-md",
+                                        !isRecommended && "mt-0 md:mt-4",
+                                        // Varied earth tones based on index if no specific color is set
+                                        i % 3 === 0 && "bg-[#edf7ed]", // Pale Green
+                                        i % 3 === 1 && "bg-[#fff8e1]", // Pale Beige
+                                        i % 3 === 2 && "bg-[#fce4ec]"  // Pale Pink
+                                    ),
 
-    const containerClasses = clsx(
-        "max-w-7xl mx-auto px-6 py-12",
-        design === 'horizontal' ? "flex flex-col gap-6 max-w-4xl" :
-            clsx("grid gap-8", isMobile ? "grid-cols-1" : (plans.length === 2 ? "md:grid-cols-2 max-w-4xl" : "md:grid-cols-3"))
-    );
+                                    // 3. SWELL (Cool)
+                                    isSwell && clsx(
+                                        "rounded border bg-white overflow-hidden",
+                                        isRecommended ? "shadow-xl border-gray-300 scale-105 z-10 pt-2" : "shadow-sm border-gray-100 hover:shadow-lg",
+                                        // SWELL: Add significant margin if recommended for pop effect
+                                        isRecommended && "mt-0"
+                                    ),
 
-    return (
-        <SectionWrapper section={section}>
-            <div className={containerClasses}>
-                {plans.map((plan) => {
-                    const planAccentColor = plan.color || accentColor || '#3b82f6';
-                    const planTextColor = plan.textColor || '#ffffff';
-                    const isFeatured = plan.isFeatured;
+                                    // 4. LUXURY
+                                    isLuxury && clsx(
+                                        "rounded-lg border border-[#ca8a04]/30 bg-gradient-to-b from-[#0f172a] to-[#020617] text-white overflow-hidden",
+                                        isRecommended ? "shadow-[0_0_30px_rgba(202,138,4,0.3)] scale-105 z-10" : "hover:border-[#ca8a04]/60"
+                                    ),
 
-                    return (
-                        <div key={plan.id} className={clsx(
-                            "relative flex flex-col p-8 transition-all duration-300 rounded-3xl overflow-hidden bg-white shadow-xl border border-gray-100",
-                            isFeatured && "ring-4 scale-105 z-10"
-                        )} style={isFeatured ? { ringColor: planAccentColor } : {}}>
+                                    // 5. CYBER
+                                    isCyber && clsx(
+                                        "rounded-xl border border-cyan-500/30 bg-[#0f172a] text-cyan-50 overflow-hidden",
+                                        isRecommended ? "shadow-[0_0_30px_rgba(6,182,212,0.2)] border-cyan-400 scale-105 z-10" : "hover:border-cyan-400/60"
+                                    )
+                                )}
+                                style={isEarth ? {} : {
+                                    borderColor: (isSwell && isRecommended) ? '#1e293b' : undefined,
+                                }}
+                            >
+                                {/* --- RECOMMENDED BADGE (Floating Top Right) --- */}
+                                {isRecommended && (
+                                    <div className="absolute top-0 right-0 z-30 pointer-events-none">
+                                        {/* SANGO: Puffy Badge - Shifted to the edge/corner */}
+                                        {isSango && (
+                                            <div className="mt-2 mr-2 px-4 py-1 rounded-full bg-yellow-400 text-slate-800 text-[10px] font-black tracking-widest shadow-lg transform rotate-12 border-2 border-white translate-x-1 -translate-y-1">
+                                                RECOMMENDED
+                                            </div>
+                                        )}
+                                        {/* SWELL: Stylish Label */}
+                                        {isSwell && (
+                                            <div className="bg-[#1e293b] text-white text-[9px] font-bold tracking-[0.2em] px-4 py-1.5 shadow-md flex items-center gap-1">
+                                                <Star size={10} fill="currentColor" />
+                                                RECOMMENDED
+                                            </div>
+                                        )}
+                                        {/* EARTH: Simple Right Top */}
+                                        {isEarth && (
+                                            <div className="mt-2 mr-2 px-3 py-1 bg-[#8d6e63] text-white text-[9px] font-bold tracking-widest rounded shadow-sm">
+                                                RECOMMENDED
+                                            </div>
+                                        )}
+                                        {/* LUXURY: Gold line */}
+                                        {isLuxury && (
+                                            <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-transparent via-[#ffd700] to-transparent"></div>
+                                        )}
+                                    </div>
+                                )}
 
-                            {isFeatured && (
-                                <div className="absolute top-0 left-0 w-full h-2" style={{ backgroundColor: planAccentColor }}></div>
-                            )}
+                                {/* --- HEADER AREA --- */}
+                                <div className={clsx(
+                                    "text-center relative",
+                                    isSango ? "p-8 bg-sky-100 rounded-t-[2.2rem]" : (hasManyItems ? "p-4" : "p-6"),
+                                    isSwell && (isRecommended ? "pt-12 pb-6" : "py-8"),
+                                    isEarth && "pt-10"
+                                )}>
 
-                            <div className="mb-6">
-                                <h4 className="text-[11px] font-black uppercase tracking-[0.2em] text-gray-400 mb-2 flex items-center gap-2">
-                                    {plan.icon && getPlanIcon(plan.icon)}
-                                    {plan.name}
-                                </h4>
-                                <div className="flex items-baseline gap-1">
-                                    <span className="text-3xl font-black text-gray-900">{plan.price}</span>
-                                    {plan.period && <span className="text-sm text-gray-400 font-bold">/{plan.period}</span>}
+                                    <h4 className={clsx(
+                                        "font-bold mb-4 tracking-widest",
+                                        hasManyItems ? "text-[10px]" : "text-xs",
+                                        isSango ? "text-sky-900" : (isLuxury ? "text-amber-400" : "text-gray-500"),
+                                        isSwell && "font-serif text-gray-800 uppercase tracking-[0.2em]",
+                                        isEarth && "text-[#5d4037]"
+                                    )}>
+                                        {plan.name || plan.title}
+                                    </h4>
+
+                                    <div className={clsx("flex justify-center items-center gap-1 mb-2", isSango && "text-sky-900")}>
+                                        <div className={clsx(
+                                            "font-black tracking-tighter shrink-0 flex items-baseline gap-1",
+                                            isMobile ? "text-2xl" : (hasManyItems ? "text-2xl md:text-3xl" : "text-3xl md:text-4xl"),
+                                            isSwell && clsx("font-serif text-gray-900 leading-none", hasManyItems ? "text-3xl md:text-4xl" : "text-4xl md:text-5xl"),
+                                            isLuxury && "font-serif text-[#f59e0b]",
+                                            isCyber && "font-mono text-cyan-400",
+                                            isEarth && "text-[#5d4037]"
+                                        )} style={{
+                                            ...((!isSango && !isSwell && !isLuxury && !isCyber && !isEarth) ? { color: planAccent } : {}),
+                                            fontSize: section.priceScale ? `${section.priceScale * 100}%` : undefined
+                                        }}>
+                                            <span className={clsx("font-black opacity-80", isSwell ? "text-3xl" : "text-xl md:text-2xl")}>¥</span>
+                                            {displayPrice}
+                                        </div>
+                                        {displayPeriod && (
+                                            <span className="text-xs opacity-40 font-bold self-end mb-1">
+                                                / {displayPeriod}
+                                            </span>
+                                        )}
+                                    </div>
+                                    <p className={clsx(
+                                        "text-[10px] opacity-60 leading-relaxed min-h-[1.5em] mt-2 px-2",
+                                        isSango ? "text-sky-800/70" : "text-gray-400",
+                                        isEarth && "text-[#5d4037]/70"
+                                    )}>{plan.desc || plan.description}</p>
+                                </div>
+
+                                {/* --- CONTENT AREA --- */}
+                                <div className={clsx(
+                                    "p-6 pt-0 flex-1 flex flex-col",
+                                    isSango && "bg-white pt-8 rounded-b-[2.2rem]",
+                                    isSwell && "px-6 pb-8 pt-4",
+                                    hasManyItems && "p-4"
+                                )}>
+                                    <ul className={clsx("space-y-3 mb-8 flex-1", (isSwell || isSango) ? "px-2" : "px-0")}>
+                                        {(plan.features || []).map((feature, fIdx) => (
+                                            <li key={fIdx} className="flex items-start gap-2 text-sm leading-snug">
+                                                <div className={clsx(
+                                                    "flex-shrink-0 flex items-center justify-center mt-1",
+                                                    isSango ? "w-4 h-4 rounded-full bg-yellow-400 text-white shadow-sm" : "w-4 h-4",
+                                                    isEarth && "text-[#5d4037]",
+                                                    isSwell && "text-blue-900 bg-blue-50/50 rounded-full w-4 h-4",
+                                                    isLuxury && "text-amber-500",
+                                                    isCyber && "text-cyan-400"
+                                                )} style={(isSango || isSwell || isEarth) ? {} : { backgroundColor: planAccent }}>
+                                                    <Check size={isSango ? 8 : 10} strokeWidth={isSango ? 4 : 3} />
+                                                </div>
+                                                <span className={clsx(
+                                                    "font-medium tracking-wide",
+                                                    hasManyItems ? "text-xs pt-0.5" : "text-sm pt-0.5",
+                                                    isLuxury ? "text-gray-300" : "text-gray-600",
+                                                    isEarth && "text-[#5d4037]/80"
+                                                )}>{typeof feature === 'string' ? feature : feature.text}</span>
+                                            </li>
+                                        ))}
+                                    </ul>
+
+                                    {plan.showButton !== false && (
+                                        <div className="text-center">
+                                            <a href={plan.url || section.url || '#'} className={clsx(
+                                                "inline-block w-full py-3 px-4 font-bold transition-all relative overflow-hidden group/btn text-xs tracking-widest",
+
+                                                // 1. SANGO (Puffy)
+                                                isSango && "rounded-full bg-sky-400 text-white shadow-[0_4px_0_#0ea5e9] active:translate-y-1 active:shadow-none hover:bg-sky-300",
+
+                                                // 2. EARTH (Natural)
+                                                isEarth && "rounded-[1rem] bg-[#8d6e63] text-white hover:opacity-90 shadow-md",
+
+                                                // 3. SWELL (Ghost vs Filled)
+                                                isSwell && clsx(
+                                                    "rounded border py-3 text-xs transition-all duration-500",
+                                                    isRecommended
+                                                        ? "bg-[#1e293b] border-[#1e293b] text-white hover:opacity-90"
+                                                        : "bg-white border-gray-800 text-gray-800 hover:bg-gray-800 hover:text-white"
+                                                ),
+
+                                                // 4. LUXURY (Gold)
+                                                isLuxury && "border border-[#ca8a04] text-[#ca8a04] hover:bg-[#ca8a04] hover:text-black rounded",
+
+                                                // 5. CYBER (Neon)
+                                                isCyber && "border border-cyan-400 text-cyan-400 hover:bg-cyan-400 hover:text-black shadow-[0_0_15px_rgba(34,211,238,0.3)] rounded"
+                                            )} style={(!isSango && !isEarth && !isSwell && !isLuxury && !isCyber) ? { backgroundColor: planAccent } : {}}>
+                                                {isSwell && (
+                                                    <div className="absolute top-0 -left-full w-[200%] h-full bg-gradient-to-r from-transparent via-white/60 to-transparent -skew-x-12 group-hover/btn:animate-[shine_0.8s_infinite] pointer-events-none"></div>
+                                                )}
+                                                <span className="relative z-10 flex w-full justify-center items-center gap-2">
+                                                    {plan.buttonLabel || plan.buttonText || "SELECT PLAN"}
+                                                    <ArrowRight size={12} className={clsx("transition-transform", (isSwell || isSango) && "group-hover/btn:translate-x-1")} />
+                                                </span>
+                                            </a>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
-
-                            <ul className="flex-1 space-y-4 mb-8">
-                                {(plan.features || []).map((feature, i) => (
-                                    <li key={i} className="flex items-start gap-3 text-sm text-gray-600">
-                                        <Check size={14} strokeWidth={4} style={{ color: planAccentColor }} className="mt-0.5 flex-shrink-0" />
-                                        <span>{feature}</span>
-                                    </li>
-                                ))}
-                            </ul>
-
-                            <a href={plan.url || '#'} className="w-full py-4 rounded-xl font-bold text-center transition-all hover:scale-105"
-                                style={{ backgroundColor: planAccentColor, color: planTextColor }}>
-                                {plan.buttonText || '申し込む'}
-                            </a>
-                        </div>
-                    );
-                })}
+                        );
+                    })}
+                </div>
             </div>
         </SectionWrapper>
     );
 };
 
-export const ProcessRenderer = ({ section, viewMode, accentColor: globalAccent }) => {
+export const ProcessRenderer = ({ section, viewMode, fontSize, accentColor: globalAccent }) => {
     const isMobile = viewMode === 'mobile';
-    const accentColor = section.accentColor || globalAccent || '#3b82f6';
-    const design = section.design || 'cards';
+    const design = section.design || 'standard';
+    const theme = getDesignTheme(design);
     const steps = section.steps || section.items || [];
 
-    if (design === 'cards') {
-        return (
-            <SectionWrapper section={section}>
-                <div className="max-w-6xl mx-auto px-6 py-12">
-                    <div className={clsx("grid gap-8", isMobile ? "grid-cols-1" : "grid-cols-3")}>
-                        {steps.map((step, i) => {
-                            const imgUrl = getImgUrl(step.image);
-                            return (
-                                <div key={i} className="flex flex-col bg-white rounded-2xl p-6 shadow-sm border border-gray-100 hover:shadow-xl transition-shadow relative overflow-hidden group">
-                                    <div className="absolute top-0 left-0 w-full h-1" style={{ backgroundColor: accentColor }}></div>
-                                    <div className="flex justify-between items-start mb-4">
-                                        <span className="text-4xl font-black opacity-10" style={{ color: accentColor }}>{String(i + 1).padStart(2, '0')}</span>
-                                        <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold" style={{ backgroundColor: accentColor }}>
-                                            {i + 1}
-                                        </div>
-                                    </div>
-                                    {imgUrl && (
-                                        <div className="mb-4 h-32 rounded-lg overflow-hidden border border-gray-100">
-                                            <img src={imgUrl} alt={step.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
-                                        </div>
-                                    )}
-                                    <h4 className="font-bold text-lg mb-3 text-gray-800">{step.title}</h4>
-                                    <p className="text-gray-600 text-sm leading-relaxed">{step.desc || step.content || step.text}</p>
-                                </div>
-                            );
-                        })}
-                    </div>
-                </div>
-            </SectionWrapper>
-        );
-    }
+    // --- Theme-specific default indicator colors ---
+    const getThemeDefaultColor = () => {
+        if (design === 'cyber') return '#06b6d4';
+        if (design === 'luxury') return '#c5a059';
+        if (design === 'earth') return '#7c8a71';
+        if (design === 'masculine' || design === 'stylish') return '#1e293b';
+        if (['gentle', 'standard', 'modern'].includes(design)) return '#3b82f6'; // SANGO Blue
+        return theme.primary;
+    };
+
+    const accent = section.accentColor || globalAccent || getThemeDefaultColor();
+
+    // --- Design Flags ---
+    const isSango = ['gentle', 'standard', 'modern'].includes(design);
+    const isEarth = design === 'earth';
+    const isSwell = ['masculine', 'stylish'].includes(design);
+    const isLuxury = design === 'luxury';
+    const isCyber = design === 'cyber';
+
+    const textScale = section.textScale || 1.0;
+    const itemSpacing = section.itemSpacing || (isMobile ? 32 : 64);
 
     return (
         <SectionWrapper section={section}>
-            <div className="max-w-3xl mx-auto px-6 py-12">
-                <div className="space-y-6">
-                    {steps.map((step, i) => {
-                        const imgUrl = getImgUrl(step.image);
-                        return (
-                            <div key={i} className="flex gap-4 md:gap-6 items-start group">
-                                <div className="flex flex-col items-center pt-2 font-bold text-white">
-                                    <div className="w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center shadow-lg" style={{ backgroundColor: accentColor }}>
+            <div className="px-6 py-10 md:py-16 mx-auto" style={{ maxWidth: section.contentWidth || 1000 }}>
+                {section.title && (
+                    <div className="text-center mb-10 md:mb-16">
+                        <h3 className={clsx(
+                            "font-black mb-4",
+                            isMobile ? "text-2xl" : "text-4xl",
+                            isLuxury && "font-serif text-transparent bg-clip-text bg-gradient-to-b from-[#fcd34d] to-[#ca8a04]",
+                            isCyber && "font-mono text-cyan-400 tracking-tighter uppercase",
+                            isSwell && "tracking-tighter",
+                            isEarth && "font-serif text-[#5d4037]"
+                        )}>{section.title}</h3>
+                        <div className={clsx("w-12 h-1.5 mx-auto rounded-full")} style={{ backgroundColor: accent }}></div>
+                    </div>
+                )}
+
+                <div className="flex flex-col" style={{ gap: `${itemSpacing}px` }}>
+                    {steps.map((step, i) => (
+                        <div key={i} className={clsx(
+                            "flex items-center gap-6 md:gap-10 lg:gap-12",
+                            isMobile ? "flex-col" : (i % 2 === 1 ? "flex-row-reverse" : "flex-row")
+                        )}>
+                            {/* Text Content */}
+                            <div className="flex-1 w-full space-y-2 md:space-y-4">
+                                <div className="flex items-center gap-4">
+                                    <div className={clsx(
+                                        "w-10 h-10 md:w-14 md:h-14 flex-shrink-0 flex items-center justify-center text-white font-black",
+                                        isSango || isEarth ? "rounded-full shadow-lg" : "rounded-lg",
+                                        isSwell && "rounded-sm"
+                                    )} style={{ backgroundColor: accent, fontSize: isMobile ? '1.25rem' : '1.5rem' }}>
                                         {i + 1}
                                     </div>
-                                    {i !== (steps.length - 1) && (
-                                        <div className="w-0.5 h-full bg-gray-200 min-h-[40px] my-2"></div>
-                                    )}
+                                    <div className="flex flex-col">
+                                        <span className={clsx(
+                                            "text-[10px] font-black tracking-widest uppercase opacity-40",
+                                            isCyber && "font-mono text-cyan-500/60",
+                                            isLuxury && "font-serif text-[#ca8a04]/60"
+                                        )}>Step {String(i + 1).padStart(2, '0')}</span>
+                                        <div className="h-0.5 w-8 rounded-full opacity-30" style={{ backgroundColor: accent }}></div>
+                                    </div>
                                 </div>
-                                <div className="bg-white p-5 md:p-6 rounded-2xl shadow-sm border border-gray-100 flex-1 hover:shadow-md transition-shadow relative">
-                                    <div className="absolute top-6 -left-2 w-4 h-4 bg-white transform rotate-45 border-l border-b border-gray-100"></div>
-                                    {imgUrl && (
-                                        <div className="mb-4 h-40 overflow-hidden rounded-xl border border-gray-100">
-                                            <img src={imgUrl} alt={step.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                                        </div>
-                                    )}
-                                    <h4 className="font-bold text-lg mb-2 text-gray-800">{step.title}</h4>
-                                    <p className="text-gray-600 text-sm leading-relaxed">{step.desc || step.content || step.text}</p>
-                                </div>
+
+                                <h4 className={clsx(
+                                    "font-black leading-tight",
+                                    isLuxury && "font-serif",
+                                    isCyber && "font-mono text-cyan-400",
+                                    isEarth && "font-serif text-[#5d4037]"
+                                )} style={{
+                                    fontSize: `${(isMobile ? 1.5 : 2.25) * textScale}rem`,
+                                    color: theme.text
+                                }}>
+                                    {step.title}
+                                </h4>
+
+                                <p className={clsx(
+                                    "opacity-80 leading-loose",
+                                    isLuxury && "font-serif",
+                                    isCyber && "font-mono text-cyan-100/70",
+                                    isEarth && "text-[#795548]"
+                                )} style={{
+                                    fontSize: `${(isMobile ? 0.875 : 1.125) * textScale}rem`,
+                                    color: theme.text
+                                }}>
+                                    {step.content || step.desc || step.text}
+                                </p>
                             </div>
-                        );
-                    })}
+
+                            {/* Image Content */}
+                            <div className="flex-1 w-full relative group">
+                                <div className={clsx(
+                                    "overflow-hidden shadow-2xl transition-all duration-500 group-hover:scale-[1.02] bg-gray-50",
+                                    isSango ? "rounded-[3rem]" : (isSwell ? "rounded-none" : "rounded-3xl"),
+                                    isLuxury && "border border-[#ca8a04]/20",
+                                    isCyber && "border border-cyan-500/30 shadow-[0_0_30px_rgba(6,182,212,0.1)]"
+                                )}
+                                    style={{
+                                        aspectRatio: '16/10'
+                                    }}>
+                                    {getImgUrl(step.image) ? (
+                                        <img src={getImgUrl(step.image)} alt={step.title} className="w-full h-full object-cover" />
+                                    ) : (
+                                        <div className="w-full h-full flex items-center justify-center text-[10px] text-gray-400 font-black bg-gray-100/50">STEP IMAGE</div>
+                                    )}
+
+                                    {/* Glass Overlay for Luxury/Cyber */}
+                                    {(isLuxury || isCyber) && (
+                                        <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent pointer-events-none" />
+                                    )}
+                                </div>
+
+                                {/* Large Decorative Number in background */}
+                                <div className={clsx(
+                                    "absolute font-black opacity-[0.03] leading-none select-none pointer-events-none transition-all duration-700 group-hover:opacity-[0.07]",
+                                    i % 2 === 0 ? "-left-12 -top-12" : "-right-12 -top-12",
+                                    isCyber && "font-mono text-cyan-500",
+                                    isSwell && "font-bold"
+                                )} style={{ fontSize: isMobile ? '8rem' : '15rem', color: accent }}>
+                                    {i + 1}
+                                </div>
+
+                                {/* SWELL / Luxury Corner Decoration */}
+                                {isSwell && (
+                                    <div className="absolute -bottom-4 -right-4 w-24 h-24 border-b-2 border-r-2 opacity-20 pointer-events-none" style={{ borderColor: accent }} />
+                                )}
+                                {isLuxury && (
+                                    <div className="absolute -top-2 -left-2 w-12 h-12 border-t border-l border-[#ca8a04]/40 pointer-events-none" />
+                                )}
+                            </div>
+                        </div>
+                    ))}
                 </div>
             </div>
         </SectionWrapper>
     );
 };
 
-export const StaffRenderer = ({ section, viewMode }) => {
+export const StaffRenderer = ({ section, viewMode, accentColor: globalAccent }) => {
     const isMobile = viewMode === 'mobile';
+    const design = section.design || 'standard';
+    const theme = getDesignTheme(design);
     const members = section.members || section.items || [];
+    const accent = globalAccent || theme.primary;
+
+    // Design Flags
+    const isSango = ['gentle', 'standard', 'modern'].includes(design);
+    const isEarth = design === 'earth';
+    const isSwell = ['masculine', 'stylish'].includes(design);
+    const isLuxury = design === 'luxury';
+    const isCyber = design === 'cyber';
+
+    const cols = section.cols || 3;
+    const colsMobile = section.colsMobile || 1;
+    const imgSize = section.imgSize || 128;
+
     return (
         <SectionWrapper section={section}>
-            <div className={clsx("grid gap-6 max-w-5xl mx-auto px-6 py-12", isMobile ? "grid-cols-2" : "grid-cols-4")}>
-                {members.map((member, i) => {
-                    const imgUrl = getImgUrl(member.image);
-                    return (
-                        <div key={i} className="flex flex-col items-center text-center group">
-                            <div className="w-24 h-24 md:w-32 md:h-32 rounded-full overflow-hidden mb-4 shadow-lg border-4 border-white relative bg-gray-100">
-                                {imgUrl ? (
-                                    <img src={imgUrl} alt={member.name} className="w-full h-full object-cover" />
+            <div className={clsx("mx-auto", isMobile ? "px-4 py-10" : "px-6 py-16")} style={{ maxWidth: section.contentWidth || 1000 }}>
+                {section.title && (
+                    <div className="text-center mb-12 md:mb-20">
+                        <h3 className={clsx(
+                            "font-black mb-6 leading-tight",
+                            isMobile ? "text-2xl" : "text-4xl",
+                            isLuxury && "font-serif text-transparent bg-clip-text bg-gradient-to-b from-[#fcd34d] to-[#ca8a04]",
+                            isCyber && "font-mono text-cyan-400 tracking-widest uppercase drop-shadow-[0_0_10px_rgba(34,211,238,0.8)]",
+                            isSwell && "tracking-tighter text-[#0f172a]",
+                            isEarth && "font-serif text-[#5d4037]"
+                        )}>{section.title}</h3>
+                        <div className={clsx("w-16 h-1 mx-auto rounded-full", isCyber && "shadow-[0_0_15px_cyan]")} style={{ backgroundColor: isCyber ? '#06b6d4' : accent }}></div>
+                    </div>
+                )}
+
+                <div
+                    className="grid gap-8 md:gap-12 transition-all"
+                    style={{
+                        gridTemplateColumns: `repeat(${isMobile ? colsMobile : cols}, minmax(0, 1fr))`
+                    }}
+                >
+                    {members.map((member, i) => (
+                        <div key={i} className={clsx(
+                            "flex flex-col items-center text-center group relative transition-all duration-300",
+                            // Theme Container Styles
+                            isSango && "hover:-translate-y-2",
+                            isSwell && "bg-white p-6 md:p-8 border border-gray-100 shadow-lg hover:shadow-xl hover:-translate-y-1 rounded-sm",
+                            isLuxury && "pb-6 border-b border-[#ca8a04]/20 hover:border-[#ca8a04] transition-colors",
+                            isCyber && "bg-black/50 p-6 border border-cyan-900/50 hover:border-cyan-400 hover:shadow-[0_0_20px_rgba(6,182,212,0.3)] hover:bg-cyan-950/30 clip-path-polygon relative overflow-hidden",
+                            isEarth && "bg-[#fffcf5] p-6 rounded-[2rem] border-2 border-[#d7ccc8] hover:border-[#8d6e63]"
+                        )}>
+                            {/* Card Decoration for Cyber */}
+                            {isCyber && (
+                                <>
+                                    <div className="absolute top-0 left-0 w-2 h-2 border-t border-l border-cyan-500"></div>
+                                    <div className="absolute top-0 right-0 w-2 h-2 border-t border-r border-cyan-500"></div>
+                                    <div className="absolute bottom-0 left-0 w-2 h-2 border-b border-l border-cyan-500"></div>
+                                    <div className="absolute bottom-0 right-0 w-2 h-2 border-b border-r border-cyan-500"></div>
+                                </>
+                            )}
+
+                            {/* Image Container */}
+                            <div
+                                className={clsx(
+                                    "overflow-hidden mb-6 relative z-10 transition-all duration-500",
+                                    isSango && "rounded-full shadow-lg border-4 border-white ring-4 ring-opacity-20 bg-white",
+                                    isSwell && "rounded-none w-full aspect-square grayscale group-hover:grayscale-0 mb-8 object-top shadow-md",
+                                    isLuxury && "rounded-full border border-[#ca8a04]/40 p-1 bg-gradient-to-br from-black to-gray-900 shadow-[0_4px_20px_rgba(0,0,0,0.4)]",
+                                    isCyber && "rounded-none clip-path-hexagon border-2 border-cyan-500/30 group-hover:border-cyan-400 group-hover:shadow-[0_0_15px_cyan]",
+                                    isEarth && "rounded-[30%_70%_70%_30%/30%_30%_70%_70%] border-4 border-[#fffcf5] shadow-md group-hover:border-[#efebe9] transition-all"
+                                )}
+                                style={{
+                                    width: isSwell ? '100%' : imgSize,
+                                    height: isSwell ? 'auto' : imgSize,
+                                    ...(isSango ? { '--tw-ring-color': accent } : {})
+                                }}
+                            >
+                                {getImgUrl(member.image) ? (
+                                    <img
+                                        src={getImgUrl(member.image)}
+                                        alt={member.name}
+                                        className={clsx(
+                                            "w-full h-full object-cover transition-transform duration-700",
+                                            !isSwell && "group-hover:scale-110",
+                                            isLuxury && "rounded-full",
+                                            isSwell && "h-64 md:h-72 object-center"
+                                        )}
+                                    />
                                 ) : (
-                                    <div className="w-full h-full flex items-center justify-center text-gray-400 text-[10px] font-bold p-1">No Img</div>
+                                    <div className={clsx(
+                                        "w-full h-full flex items-center justify-center text-[10px] font-bold",
+                                        isCyber ? "bg-cyan-950 text-cyan-400" : "bg-gray-100 text-gray-400",
+                                        isSwell && "h-64 bg-gray-50"
+                                    )}>STAFF</div>
                                 )}
                             </div>
-                            <h4 className="font-bold text-gray-800 text-sm md:text-base">{member.name}</h4>
-                            <p className="text-blue-500 text-[10px] md:text-xs font-bold uppercase tracking-wider mb-2">{member.role || member.position}</p>
-                            {(member.desc || member.bio) && <p className="text-gray-500 text-[10px] md:text-xs leading-relaxed">{member.desc || member.bio}</p>}
+
+                            {/* Name & Role */}
+                            <h4 className={clsx(
+                                "font-bold mb-2 leading-tight",
+                                isMobile ? "text-lg" : "text-xl",
+                                isLuxury && "font-serif text-[#fcd34d]",
+                                isCyber && "font-mono text-cyan-300 tracking-wider",
+                                isSwell && "tracking-widest text-gray-800 text-base",
+                                isEarth && "font-serif text-[#5d4037] text-2xl"
+                            )}>{member.name}</h4>
+
+                            {member.role && (
+                                <span className={clsx(
+                                    "text-[10px] font-bold tracking-widest uppercase mb-4 inline-block",
+                                    isSango && "py-1 px-3 rounded-full text-white shadow-sm",
+                                    isSwell && "text-gray-400 mb-6",
+                                    isLuxury && "text-[#ca8a04]",
+                                    isCyber && "text-cyan-600 font-mono border border-cyan-900 px-2 py-0.5 bg-black",
+                                    isEarth && "text-[#8d6e63] border-b border-[#8d6e63] pb-0.5"
+                                )} style={{
+                                    backgroundColor: isSango ? accent : undefined
+                                }}>
+                                    {member.role}
+                                </span>
+                            )}
+
+                            {/* Description */}
+                            <p className={clsx(
+                                "text-sm leading-relaxed",
+                                isSango && "text-gray-600",
+                                isSwell && "text-gray-500 text-xs text-justify",
+                                isLuxury && "text-gray-400 font-serif",
+                                isCyber && "text-cyan-100/70 font-mono text-xs",
+                                isEarth && "text-[#795548]"
+                            )}>
+                                {member.desc || member.bio}
+                            </p>
                         </div>
-                    );
-                })}
+                    ))}
+                </div>
             </div>
         </SectionWrapper>
     );
 };
 
-export const FAQRenderer = ({ section, viewMode }) => {
+export const FAQRenderer = ({ section, viewMode, accentColor: globalAccent }) => {
     const isMobile = viewMode === 'mobile';
-    const design = section.design || 'simple';
+    const design = section.design || 'standard';
+    const theme = getDesignTheme(design);
     const items = section.items || [];
+    const accent = globalAccent || theme.primary;
 
-    return (
-        <SectionWrapper section={section}>
-            <div className="max-w-3xl mx-auto px-6 py-12 space-y-4">
-                {items.map((item, i) => (
-                    <details key={i} className="group bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden open:ring-2 open:ring-blue-100 transition-all">
-                        <summary className="flex items-center justify-between p-4 md:p-6 cursor-pointer list-none bg-gray-50/50 hover:bg-gray-50 transition-colors">
-                            <h4 className="font-bold text-gray-800 text-sm md:text-base flex items-center gap-3">
-                                <span className="text-blue-500 font-black">Q.</span>
-                                {item.q || item.question}
-                            </h4>
-                            <span className="text-gray-400 transition-transform group-open:rotate-180">▼</span>
-                        </summary>
-                        <div className="p-4 md:p-6 pt-0 text-sm text-gray-600 leading-relaxed border-t border-gray-100/50">
-                            <div className="pt-4 flex gap-3">
-                                <span className="font-bold text-red-500 flex-shrink-0">A.</span>
-                                <div>{item.a || item.answer}</div>
-                            </div>
-                        </div>
-                    </details>
-                ))}
-            </div>
-        </SectionWrapper>
-    );
-};
+    // Toggle State (Internal state for accordion)
+    const [openIndex, setOpenIndex] = React.useState(null);
+    const disableAccordion = section.disableAccordion === true;
 
-export const ComparisonRenderer = ({ section, viewMode }) => {
-    const isMobile = viewMode === 'mobile';
-    const headers = section.headers || section.companies || ['項目', '当社', '他社A', '他社B'];
-    const rows = section.rows || [];
+    // Design Flags
+    const isSango = ['gentle', 'standard', 'modern'].includes(design);
+    const isSwell = ['masculine', 'stylish'].includes(design);
+    const isLuxury = design === 'luxury';
+    const isCyber = design === 'cyber';
+    const isEarth = design === 'earth';
 
-    const renderCell = (cell) => {
-        if (cell === '◎') return <div className="text-red-500 font-black text-lg">◎</div>;
-        if (cell === '◯' || cell === '○') return <div className="text-red-500 font-bold text-lg">◯</div>;
-        if (cell === '△') return <div className="text-yellow-500 font-bold text-lg">△</div>;
-        if (cell === '×') return <div className="text-blue-300 font-bold text-lg">×</div>;
-        return <span className="text-gray-600 font-medium">{cell}</span>;
+    const toggle = (i) => {
+        if (disableAccordion) return;
+        setOpenIndex(openIndex === i ? null : i);
     };
 
     return (
         <SectionWrapper section={section}>
-            <div className="max-w-5xl mx-auto px-4 md:px-6 py-12 overflow-x-auto">
-                <table className="w-full bg-white rounded-xl overflow-hidden shadow-lg border-collapse">
-                    <thead>
-                        <tr className="bg-gray-800 text-white text-sm">
-                            {headers.map((h, i) => {
-                                const isUs = i === 1;
-                                return (
-                                    <th key={i} className={clsx("p-4 text-center whitespace-nowrap", isUs && "bg-blue-600")}>
-                                        {h}
-                                    </th>
-                                );
-                            })}
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {rows.map((row, rI) => {
-                            const cells = Array.isArray(row) ? row : (row.values || []);
-                            const label = Array.isArray(row) ? row[0] : row.label;
-                            const actualValues = Array.isArray(row) ? row : [label, ...cells];
-
-                            return (
-                                <tr key={rI} className="border-b border-gray-100 hover:bg-blue-50/30 transition-colors">
-                                    {actualValues.map((cell, cI) => (
-                                        <td key={cI} className={clsx("p-4 text-center text-sm", cI === 0 && "text-left font-bold bg-gray-50/50 pl-6", cI === 1 && "bg-blue-50/20")}>
-                                            {cI === 0 ? cell : renderCell(cell)}
-                                        </td>
-                                    ))}
-                                </tr>
-                            );
-                        })}
-                    </tbody>
-                </table>
-            </div>
-        </SectionWrapper>
-    );
-};
-
-export const AccessRenderer = ({ section, viewMode }) => {
-    const isMobile = viewMode === 'mobile';
-    const address = section.address || section.location || "住所が設定されていません";
-    const mapUrl = `https://maps.google.com/maps?q=${encodeURIComponent(address)}&t=&z=15&ie=UTF8&iwloc=&output=embed`;
-
-    return (
-        <SectionWrapper section={section}>
-            <div className={clsx("max-w-5xl mx-auto px-6 py-12 flex flex-col gap-8", !isMobile && "md:flex-row")}>
-                <div className={clsx("w-full min-h-[300px] bg-gray-200 rounded-2xl overflow-hidden shadow-lg border border-gray-100 relative order-1", !isMobile && "md:w-1/2")}>
-                    <iframe
-                        src={mapUrl}
-                        width="100%"
-                        height="100%"
-                        frameBorder="0"
-                        className="absolute inset-0 w-full h-full"
-                        loading="lazy"
-                    ></iframe>
-                </div>
-
-                <div className={clsx("w-full space-y-6 flex flex-col justify-center order-2", !isMobile && "md:w-1/2 md:pl-8")}>
-                    <h3 className="text-2xl font-black border-l-4 border-blue-600 pl-4">{section.title || "ACCESS"}</h3>
-                    <div className="space-y-4 text-sm text-gray-600">
-                        <p className="flex items-start gap-3"><span className="font-bold min-w-[4em]">住所</span><span>{address}</span></p>
-                        {section.hours && <p className="flex items-start gap-3"><span className="font-bold min-w-[4em]">営業時間</span><span>{section.hours}</span></p>}
-                        {section.tel && <p className="flex items-start gap-3"><span className="font-bold min-w-[4em]">電話番号</span><span>{section.tel}</span></p>}
+            <div className={clsx("mx-auto", isMobile ? "px-4 py-10" : "px-6 py-16")} style={{ maxWidth: section.contentWidth || 800 }}>
+                {section.title && (
+                    <div className="text-center mb-12 md:mb-16">
+                        <h3 className={clsx(
+                            "font-black mb-6 leading-tight",
+                            isMobile ? "text-2xl" : "text-3xl",
+                            isLuxury && "font-serif text-transparent bg-clip-text bg-gradient-to-b from-[#fcd34d] to-[#ca8a04]",
+                            isCyber && "font-mono text-cyan-400 tracking-widest uppercase drop-shadow-[0_0_10px_rgba(34,211,238,0.8)]",
+                            isSwell && "tracking-tighter text-[#0f172a]",
+                            isEarth && "font-serif text-[#5d4037]"
+                        )}>{section.title}</h3>
+                        <div className={clsx("w-12 h-1 mx-auto rounded-full", isCyber && "shadow-[0_0_15px_cyan]")} style={{ backgroundColor: isCyber ? '#06b6d4' : accent }}></div>
                     </div>
-                </div>
-            </div>
-        </SectionWrapper>
-    );
-};
+                )}
 
-export const ReviewRenderer = ({ section, viewMode }) => {
-    const isMobile = viewMode === 'mobile';
-    const items = section.items || section.reviews || [];
-    const design = section.design || 'card';
+                <div className={clsx("space-y-6", isCyber && "relative")}>
+                    {/* Cyber Grid Background */}
+                    {isCyber && (
+                        <div className="absolute inset-0 z-0 pointer-events-none opacity-20"
+                            style={{
+                                backgroundImage: 'linear-gradient(rgba(6,182,212,0.3) 1px, transparent 1px), linear-gradient(90deg, rgba(6,182,212,0.3) 1px, transparent 1px)',
+                                backgroundSize: '20px 20px',
+                                margin: '-20px'
+                            }}>
+                        </div>
+                    )}
 
-    return (
-        <SectionWrapper section={section}>
-            <div className="max-w-6xl mx-auto px-6 py-12">
-                <div className={clsx("grid gap-6", isMobile ? "grid-cols-1" : "grid-cols-2 lg:grid-cols-3")}>
                     {items.map((item, i) => {
-                        const imgUrl = getImgUrl(item.image);
+                        const isOpen = disableAccordion || openIndex === i;
                         return (
-                            <div key={i} className={clsx("bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col h-full")}>
-                                <div className="flex gap-0.5 text-yellow-400 mb-3">
-                                    {[...Array(5)].map((_, s) => (
-                                        <Star key={s} size={14} fill={(item.rating || 5) > s ? 'currentColor' : 'none'} className={(item.rating || 5) <= s ? 'text-gray-300' : ''} />
-                                    ))}
-                                </div>
-                                <p className="text-gray-600 text-sm leading-relaxed mb-6 flex-1 italic">"{item.text || item.content || item.comment}"</p>
-                                <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 rounded-full overflow-hidden bg-gray-200">
-                                        {imgUrl ? <img src={imgUrl} alt={item.name} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-[10px] text-gray-400">No Img</div>}
+                            <div key={i} className={clsx(
+                                "relative transition-all duration-300 z-10",
+                                // Container Styles
+                                isSango && "bg-white rounded-2xl shadow-sm border border-gray-100 hover:shadow-md",
+                                isSwell && "bg-white border border-[#1e293b]/20 rounded-sm hover:shadow-md hover:border-[#1e293b]/40",
+                                isLuxury && "bg-[#0f172a] border border-[#ca8a04]/30 rounded-lg overflow-hidden",
+                                isCyber && "bg-black/80 border border-cyan-900/50 hover:border-cyan-400/50 transition-colors backdrop-blur-sm",
+                                isEarth && "bg-[#fffcf5] border-2 border-[#d7ccc8] rounded-[1.5rem]"
+                            )}>
+                                {/* Question Part */}
+                                <div
+                                    onClick={() => toggle(i)}
+                                    className={clsx(
+                                        "flex items-start gap-4 p-5 cursor-pointer relative select-none",
+                                        isSwell && "px-6 py-4 border-l-4 border-transparent hover:border-[#1e293b] transition-colors",
+                                        (isSango || isEarth) && "items-center"
+                                    )}
+                                >
+                                    {/* Q Icon */}
+                                    <div className={clsx(
+                                        "flex-shrink-0 flex items-center justify-center font-black",
+                                        isSango && "w-10 h-10 rounded-full text-white shadow-md text-lg",
+                                        isSwell && "text-xl font-serif italic text-blue-900",
+                                        isLuxury && "text-2xl font-serif text-[#fcd34d]",
+                                        isCyber && "w-8 h-8 rounded border border-cyan-400 text-cyan-400 text-sm shadow-[0_0_10px_rgba(34,211,238,0.5)]",
+                                        isEarth && "w-10 h-10 rounded-full bg-[#8d6e63] text-white"
+                                    )} style={{
+                                        backgroundColor: isSango ? accent : (isCyber || isLuxury || isSwell || isEarth ? undefined : accent)
+                                    }}>
+                                        Q{isSwell && "."}
                                     </div>
-                                    <div>
-                                        <h4 className="text-sm font-bold text-gray-900">{item.name || item.author}</h4>
-                                        {(item.role || item.position) && <p className="text-[10px] text-gray-500">{item.role || item.position}</p>}
+
+                                    <h4 className={clsx(
+                                        "flex-1 font-bold leading-relaxed",
+                                        isMobile ? "text-sm" : "text-base",
+                                        isLuxury && "font-serif text-gray-200",
+                                        isCyber && "font-mono text-cyan-100",
+                                        isSwell && "text-[#334155]",
+                                        isEarth && "text-[#5d4037]"
+                                    )}>
+                                        {item.q || item.question}
+                                    </h4>
+
+                                    {/* Toggle Icon (Only if Accordion ON) */}
+                                    {!disableAccordion && (
+                                        <div className={clsx(
+                                            "flex-shrink-0 transition-transform duration-300",
+                                            isOpen && "rotate-180",
+                                            isSango && "text-gray-400",
+                                            isLuxury && "text-[#ca8a04]",
+                                            isCyber && "text-cyan-400"
+                                        )}>
+                                            {isSwell ? (
+                                                <div className="relative w-4 h-4">
+                                                    <div className="absolute top-1/2 left-0 w-4 h-0.5 bg-gray-400 -translate-y-1/2"></div>
+                                                    <div className={clsx("absolute top-0 left-1/2 w-0.5 h-4 bg-gray-400 -translate-x-1/2 transition-all", isOpen && "h-0 opacity-0")}></div>
+                                                </div>
+                                            ) : (
+                                                <div className={clsx("w-6 h-6 flex items-center justify-center", isEarth && "bg-[#d7ccc8] rounded-full text-white w-5 h-5")}>
+                                                    {/* Use simple CSS arrow or Icon */}
+                                                    <svg width="12" height="8" viewBox="0 0 12 8" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                        <path d="M1 1L6 6L11 1"></path>
+                                                    </svg>
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Answer Part */}
+                                <div
+                                    className={clsx(
+                                        "overflow-hidden transition-[max-height,opacity] duration-300 ease-in-out",
+                                        isOpen ? "max-h-[500px] opacity-100" : "max-h-0 opacity-0"
+                                    )}
+                                >
+                                    <div className={clsx(
+                                        "p-5 pt-0 flex items-start gap-4",
+                                        isSwell && "px-6 pb-6",
+                                        isLuxury && "bg-[#0f172a] p-6 pt-2 border-t border-[#ca8a04]/10",
+                                        isCyber && "bg-cyan-950/20 p-5 border-t border-cyan-900/30",
+                                        isEarth && "pt-2"
+                                    )}>
+                                        {/* A Icon */}
+                                        <div className={clsx(
+                                            "flex-shrink-0 flex items-center justify-center font-black",
+                                            isSango && "w-10 h-10 rounded-full bg-gray-100 text-gray-500 text-lg",
+                                            isSwell && "text-xl font-serif italic text-red-400",
+                                            isLuxury && "text-2xl font-serif text-gray-600",
+                                            isCyber && "w-8 h-8 text-cyan-700 text-sm",
+                                            isEarth && "w-10 h-10 rounded-full border-2 border-[#d7ccc8] text-[#8d6e63]"
+                                        )}>
+                                            A{isSwell && "."}
+                                        </div>
+
+                                        <div className={clsx(
+                                            "flex-1 text-sm leading-loose whitespace-pre-wrap",
+                                            isSango && "text-gray-600",
+                                            isSwell && "text-gray-500",
+                                            isLuxury && "font-serif text-gray-400",
+                                            isCyber && "font-mono text-cyan-200/70",
+                                            isEarth && "text-[#795548]"
+                                        )}>
+                                            {item.a || item.answer}
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -594,4 +1214,494 @@ export const ReviewRenderer = ({ section, viewMode }) => {
         </SectionWrapper>
     );
 };
-export { SectionWrapper };
+
+export const ComparisonRenderer = ({ section, viewMode, accentColor: globalAccent }) => {
+    const isMobile = viewMode === 'mobile';
+    const design = section.design || 'standard';
+    const theme = getDesignTheme(design);
+
+    // --- Design Flags ---
+    const isSango = ['gentle', 'standard', 'modern'].includes(design);
+    const isEarth = design === 'earth';
+    const isSwell = ['masculine', 'stylish'].includes(design);
+    const isLuxury = design === 'luxury';
+    const isCyber = design === 'cyber';
+
+    const accent = globalAccent || theme.primary;
+
+    // Size Controls
+    const cellPadding = section.cellPadding || 16;
+    const minWidth = section.minWidth || (isMobile ? 80 : 120);
+
+    const headers = section.headers || ["項目", "自社サービス", "他社サービス"];
+    const rows = section.rows || section.items || [];
+
+    const getSymbolIcon = (val) => {
+        const value = String(val).trim();
+
+        // 1. Double Circle (◎) - Best
+        if (['◎', 'excellent'].includes(value)) {
+            return (
+                <div className="flex items-center justify-center relative">
+                    {/* Outer Ring */}
+                    <div className={clsx(
+                        "rounded-full flex items-center justify-center border-2 md:border-4",
+                        isCyber ? "border-pink-500 shadow-[0_0_10px_#ec4899]" : "border-rose-500"
+                    )} style={{
+                        width: isMobile ? 24 : 32,
+                        height: isMobile ? 24 : 32,
+                        borderColor: !isCyber ? (isLuxury ? '#d97706' : '#ef4444') : undefined
+                    }}>
+                        {/* Inner Dot */}
+                        <div className={clsx(
+                            "rounded-full",
+                            isCyber ? "bg-pink-500 shadow-[0_0_5px_#ec4899]" : "bg-rose-500"
+                        )} style={{
+                            width: isMobile ? 12 : 16,
+                            height: isMobile ? 12 : 16,
+                            backgroundColor: !isCyber ? (isLuxury ? '#d97706' : '#ef4444') : undefined
+                        }}></div>
+                    </div>
+                </div>
+            );
+        }
+
+        // 2. Circle (◯) - Good
+        if (['◯', 'o', 'ok', 'true'].includes(value)) {
+            return (
+                <div className="flex items-center justify-center">
+                    <div className={clsx(
+                        "rounded-full border-2 md:border-4",
+                        isCyber ? "border-cyan-400 shadow-[0_0_8px_cyan]" : ""
+                    )} style={{
+                        width: isMobile ? 24 : 32,
+                        height: isMobile ? 24 : 32,
+                        borderColor: isCyber ? undefined : '#3b82f6'
+                    }}></div>
+                </div>
+            );
+        }
+
+        // 3. Triangle (△) - Fair
+        if (value === '△') {
+            return (
+                <div className="flex items-center justify-center pb-1">
+                    <svg width={isMobile ? "20" : "26"} height={isMobile ? "20" : "26"} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"
+                        className={clsx(isCyber ? "text-yellow-400 drop-shadow-[0_0_5px_yellow]" : "text-yellow-500")}>
+                        <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                    </svg>
+                </div>
+            );
+        }
+
+        // 4. Cross (×) - Poor/None
+        if (['×', 'x', 'false'].includes(value)) {
+            return <X size={isMobile ? 20 : 28} strokeWidth={3} className={clsx(isCyber ? "text-gray-700" : "text-gray-300")} />;
+        }
+
+        // Text Fallback
+        return <span className={clsx("font-bold leading-tight", isMobile ? "text-[10px]" : "text-sm")} style={{ color: isCyber ? '#22d3ee' : theme.text }}>{val}</span>;
+    };
+
+    return (
+        <SectionWrapper section={section}>
+            <div className={clsx("mx-auto", isMobile ? "px-0" : "px-6 py-10 md:py-16")} style={{ maxWidth: section.contentWidth || 1000 }}>
+                {section.title && (
+                    <div className="text-center mb-8 md:mb-16 mt-8 md:mt-0 px-4">
+                        <h3 className={clsx(
+                            "font-black mb-4",
+                            isMobile ? "text-xl" : "text-3xl",
+                            isLuxury && "font-serif text-transparent bg-clip-text bg-gradient-to-b from-[#fcd34d] to-[#ca8a04]",
+                            isCyber && "font-mono text-cyan-400 tracking-widest uppercase drop-shadow-[0_0_10px_rgba(34,211,238,0.8)]",
+                            isSwell && "tracking-tighter text-[#0f172a]",
+                            isEarth && "font-serif text-[#5d4037]"
+                        )}>{section.title}</h3>
+                        <div className={clsx("w-12 h-1.5 mx-auto rounded-full", isCyber && "shadow-[0_0_15px_cyan]")} style={{ backgroundColor: isCyber ? '#06b6d4' : accent }}></div>
+                    </div>
+                )}
+
+                {/* Table Layout */}
+                <div className={clsx(
+                    "w-full relative overflow-hidden",
+                    isMobile ? "" : "rounded-xl",
+                    isSango && !isMobile && "shadow-2xl bg-white p-6",
+                    isSwell && !isMobile && "border border-gray-200 shadow-xl bg-white",
+                    isLuxury && "bg-[#0f172a] border border-[#ca8a04]/30 p-1 md:p-4",
+                    isCyber && "bg-black p-1 shadow-[0_0_50px_rgba(6,182,212,0.3)] border border-cyan-500/50 relative overflow-hidden",
+                    isEarth && !isMobile && "bg-[#fffcf5] border-2 border-[#8d6e63] rounded-[2rem] p-4"
+                )}>
+                    {/* Cyber Grid Background Effect */}
+                    {isCyber && (
+                        <div className="absolute inset-0 z-0 pointer-events-none opacity-20"
+                            style={{
+                                backgroundImage: 'linear-gradient(rgba(6,182,212,0.3) 1px, transparent 1px), linear-gradient(90deg, rgba(6,182,212,0.3) 1px, transparent 1px)',
+                                backgroundSize: '20px 20px'
+                            }}>
+                        </div>
+                    )}
+
+                    <div className="overflow-x-auto relative z-10">
+                        <table className={clsx(
+                            "w-full border-separate border-spacing-0",
+                            isSwell && "border-collapse"
+                        )}>
+                            <thead>
+                                <tr>
+                                    {headers.map((h, i) => (
+                                        <th key={i} className={clsx(
+                                            "text-center font-bold sticky top-0 z-20 transition-all border-b border-r last:border-r-0",
+                                            // SWELL Specific Header Style
+                                            isSwell ? (
+                                                i === 0 ? "bg-[#f1f5f9] text-gray-700 border-gray-300" :
+                                                    i === 1 ? "bg-[#1e293b] text-white border-[#1e293b]" : "bg-white text-gray-600 border-gray-200"
+                                            ) : (
+                                                // Other themes default
+                                                "bg-transparent border-gray-100"
+                                            ),
+
+                                            // 1st Column Sticky Logic
+                                            i === 0 ? (isMobile ? "sticky left-0 z-30" : "") : "",
+
+                                            // Mobile text adj
+                                            isMobile ? "text-[10px]" : "text-base",
+
+                                            // Earth Style
+                                            isEarth && "border-gray-300 bg-[#fffcf5]",
+
+                                            // Cyber Borders
+                                            isCyber && "border-cyan-500/30 text-cyan-400"
+                                        )} style={{
+                                            paddingTop: cellPadding,
+                                            paddingBottom: cellPadding,
+                                            paddingLeft: isMobile ? 8 : 16,
+                                            paddingRight: isMobile ? 8 : 16,
+                                            minWidth: i === 0 ? (isMobile ? 80 : 180) : minWidth,
+                                            ...(isEarth ? { borderColor: '#d7ccc8' } : {}),
+                                            // Manual bg for sticky column (Mobile)
+                                            ...(isMobile && i === 0 ? { backgroundColor: isSwell ? '#f1f5f9' : (isLuxury ? '#0f172a' : (isCyber ? 'black' : (isEarth ? '#fffcf5' : '#fff'))) } : {}),
+                                            // Cyber Sticky Glow offset
+                                            ...(isCyber && i === 0 ? { boxShadow: '2px 0 10px rgba(6,182,212,0.1)' } : {})
+                                        }}>
+                                            {/* SWELL: Simple Text */}
+                                            {isSwell && <span>{h}</span>}
+
+                                            {/* SANGO / Standard Decor */}
+                                            {isSango && (
+                                                <div className={clsx(
+                                                    "inline-block px-3 py-1 rounded-full",
+                                                    i === 1 ? "text-white shadow-md font-bold" : "text-gray-500"
+                                                )} style={i === 1 ? { backgroundColor: accent } : {}}>
+                                                    {i === 1 && <Sparkles className="inline-block mr-1 w-3 h-3 mb-0.5" />}
+                                                    {h}
+                                                </div>
+                                            )}
+
+                                            {/* Luxury Decor */}
+                                            {isLuxury && (
+                                                <span className={clsx(
+                                                    i === 1 ? "text-transparent bg-clip-text bg-gradient-to-b from-[#fcd34d] to-[#ca8a04]" : "text-gray-400"
+                                                )}>{h}</span>
+                                            )}
+
+                                            {/* Cyber Decor */}
+                                            {isCyber && (
+                                                <div className={clsx("relative inline-block", i === 1 && "px-4 py-1 border border-cyan-400 bg-cyan-900/30 skew-x-[-10deg] shadow-[0_0_10px_cyan]")}>
+                                                    <span className={clsx(
+                                                        "block skew-x-[10deg]",
+                                                        i === 1 ? "text-cyan-100 drop-shadow-[0_0_5px_white]" : "text-cyan-600"
+                                                    )}>{h}</span>
+                                                </div>
+                                            )}
+
+                                            {/* Earth Decor */}
+                                            {isEarth && (
+                                                <span className={clsx(i === 1 ? "text-[#5d4037] border-b-2 border-[#8d6e63]" : "text-[#8d6e63]")}>{h}</span>
+                                            )}
+                                        </th>
+                                    ))}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {rows.map((row, rIdx) => (
+                                    <tr key={rIdx} className={clsx("group transition-colors", isCyber ? "hover:bg-cyan-900/10" : "hover:bg-black/5")}>
+                                        {row.map((cell, cIdx) => (
+                                            <td key={cIdx} className={clsx(
+                                                "align-middle text-center border-b border-r last:border-r-0 transition-all",
+
+                                                // SWELL Body Style
+                                                isSwell ? (
+                                                    cIdx === 0 ? "bg-white font-bold text-gray-700 border-gray-300" :
+                                                        cIdx === 1 ? "bg-[#f8fafc] font-bold border-[#1e293b] border-x-2" : "bg-white text-gray-500 border-gray-200"
+                                                ) : (isCyber ? "border-cyan-900/30" : "border-gray-200"),
+
+                                                // 1st Column Sticky Logic
+                                                cIdx === 0 ? (isMobile ? "sticky left-0 z-20" : "font-bold text-gray-700") : "",
+
+                                                isMobile && cIdx === 0 && (isCyber ? "bg-black text-cyan-300" : "text-[10px] bg-white"),
+                                                !isMobile && "md:text-sm",
+
+                                                // Us Column (Cyber)
+                                                isCyber && cIdx === 1 && "bg-cyan-900/5 relative",
+
+                                                // Earth Style
+                                                isEarth && "border-[#d7ccc8] text-[#5d4037]"
+                                            )} style={{
+                                                paddingTop: cellPadding,
+                                                paddingBottom: cellPadding,
+                                                paddingLeft: isMobile ? 8 : 16,
+                                                paddingRight: isMobile ? 8 : 16,
+                                                // Manual bg for sticky column
+                                                ...(isMobile && cIdx === 0 ? { backgroundColor: isSwell ? '#fff' : (isLuxury ? '#1e293b' : (isCyber ? 'black' : (isEarth ? '#fffcf5' : '#fff'))) } : {}),
+                                                ...(isCyber && isMobile && cIdx === 0 ? { boxShadow: '2px 0 10px rgba(6,182,212,0.1)' } : {}),
+                                                ...(isSwell && rIdx === rows.length - 1 && cIdx === 1 ? { borderBottomColor: '#1e293b', borderBottomWidth: 2 } : {})
+                                            }}>
+                                                {/* Cyber Column Highlight Glow */}
+                                                {isCyber && cIdx === 1 && (
+                                                    <div className="absolute inset-0 border-x border-cyan-500/20 bg-gradient-to-b from-cyan-500/5 to-transparent pointer-events-none"></div>
+                                                )}
+
+                                                <div className="flex items-center justify-center h-full relative z-10">
+                                                    {cIdx === 0 ? (
+                                                        <span className={clsx(
+                                                            isLuxury && "font-serif text-gray-300",
+                                                            isCyber && "font-mono text-cyan-400 drop-shadow-[0_0_2px_cyan]",
+                                                            isSwell && "text-[#334155]",
+                                                            isEarth && "font-serif"
+                                                        )}>{cell}</span>
+                                                    ) : (
+                                                        getSymbolIcon(cell)
+                                                    )}
+                                                </div>
+                                            </td>
+                                        ))}
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                {isMobile && (
+                    <p className={clsx("text-center mt-3 text-[9px] animate-pulse", isCyber ? "text-cyan-500" : "text-gray-400")}>
+                        <ArrowRight className="inline w-3 h-3 mr-1" /> 横にスクロールして比較
+                    </p>
+                )}
+            </div>
+        </SectionWrapper>
+    );
+};
+
+export const AccessRenderer = ({ section, viewMode, accentColor: globalAccent }) => {
+    const isMobile = viewMode === 'mobile';
+    const design = section.design || 'standard';
+    const theme = getDesignTheme(design);
+    const address = section.address || section.location || "住所が設定されていません";
+    const mapUrl = `https://maps.google.com/maps?q=${encodeURIComponent(address)}&t=&z=15&ie=UTF8&iwloc=&output=embed`;
+    const accent = globalAccent || theme.primary;
+
+    const isSangoLine = ['earth', 'gentle', 'standard', 'modern'].includes(design);
+
+    return (
+        <SectionWrapper section={section}>
+            <div className={clsx("px-6 py-10 md:py-16 flex flex-col gap-10", !isMobile && "md:flex-row")}>
+                <div className={clsx(
+                    "w-full min-h-[350px] shadow-2xl relative overflow-hidden",
+                    !isMobile ? "md:w-1/2" : "",
+                    isSangoLine ? "rounded-[3rem]" : "rounded-lg"
+                )}>
+                    <iframe src={mapUrl} width="100%" height="100%" frameBorder="0" className="absolute inset-0 w-full h-full" loading="lazy"></iframe>
+                </div>
+
+                <div className={clsx("w-full space-y-8 flex flex-col justify-center", !isMobile && "md:w-1/2 md:pl-12")}>
+                    <div>
+                        <span className="text-[10px] font-black tracking-widest uppercase opacity-40 mb-2 block">Location Info</span>
+                        <h3 className="text-3xl font-black mb-6">{section.title || "ACCESS"}</h3>
+                        <div className="w-12 h-1 mb-8" style={{ backgroundColor: accent }}></div>
+                    </div>
+
+                    <div className="space-y-6">
+                        <div className="flex items-start gap-4">
+                            <div className="w-8 h-8 rounded-full flex items-center justify-center bg-gray-100 flex-shrink-0">
+                                <Medal size={16} className="text-gray-400" />
+                            </div>
+                            <div>
+                                <p className="text-xs font-black uppercase tracking-widest text-gray-400 mb-1">Address</p>
+                                <p className="font-bold text-gray-700">{address}</p>
+                            </div>
+                        </div>
+                        {section.hours && (
+                            <div className="flex items-start gap-4">
+                                <div className="w-8 h-8 rounded-full flex items-center justify-center bg-gray-100 flex-shrink-0">
+                                    <Sparkles size={16} className="text-gray-400" />
+                                </div>
+                                <div>
+                                    <p className="text-xs font-black uppercase tracking-widest text-gray-400 mb-1">Working Hours</p>
+                                    <p className="font-bold text-gray-700">{section.hours}</p>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            </div>
+        </SectionWrapper>
+    );
+};
+
+export const ReviewRenderer = ({ section, viewMode, accentColor: globalAccent }) => {
+    const isMobile = viewMode === 'mobile';
+    const design = section.design || 'standard';
+    const theme = getDesignTheme(design);
+    const items = section.items || section.reviews || [];
+    const accent = globalAccent || theme.primary;
+    const imagePos = section.imagePos || 'top'; // top, bottom, left
+
+    // Design Flags
+    const isSango = ['gentle', 'standard', 'modern'].includes(design);
+    const isSwell = ['masculine', 'stylish'].includes(design);
+    const isLuxury = design === 'luxury';
+    const isCyber = design === 'cyber';
+    const isEarth = design === 'earth';
+
+    // Layout Logic
+    const isVertical = imagePos === 'top' || imagePos === 'bottom';
+    const isReverse = imagePos === 'bottom'; // Image at bottom means text first, then image? Or Flex-col-reverse?
+    // Usually "Image Bottom" means Image is below text.
+
+    // Scroll Logic
+    const enableScroll = items.length >= 4;
+
+    return (
+        <SectionWrapper section={section}>
+            <div className={clsx("mx-auto", isMobile ? "px-4 py-10" : "px-6 py-16")} style={{ maxWidth: section.contentWidth || 1100 }}>
+                {section.title && (
+                    <div className="text-center mb-12 md:mb-16">
+                        <h2 className={clsx(
+                            "font-black mb-6 leading-tight",
+                            isMobile ? "text-2xl" : "text-3xl md:text-4xl",
+                            isLuxury && "font-serif text-transparent bg-clip-text bg-gradient-to-b from-[#fcd34d] to-[#ca8a04]",
+                            isCyber && "font-mono text-cyan-400 tracking-widest uppercase drop-shadow-[0_0_10px_rgba(34,211,238,0.8)]",
+                            isSwell && "tracking-tighter text-[#0f172a]",
+                            isEarth && "font-serif text-[#5d4037]"
+                        )}>{section.title}</h2>
+                        <div className={clsx("w-12 h-1 mx-auto rounded-full", isCyber && "shadow-[0_0_15px_cyan]")} style={{ backgroundColor: isCyber ? '#06b6d4' : accent }}></div>
+                    </div>
+                )}
+
+                <div
+                    className={clsx(
+                        enableScroll ? "flex overflow-x-auto pb-8 snap-x" : "grid gap-6 md:gap-8",
+                        !enableScroll && (isMobile ? "grid-cols-1" : "grid-cols-3"),
+                        enableScroll && "gap-4 md:gap-6 px-4 -mx-4 md:px-0 md:mx-0 scrollbar-hide"
+                    )}
+                >
+                    {items.map((item, i) => (
+                        <div key={i}
+                            className={clsx(
+                                "flex transition-all duration-300 relative group",
+                                enableScroll ? "flex-shrink-0 w-[85vw] md:w-[350px] snap-center" : "w-full",
+                                isVertical ? (isReverse ? "flex-col-reverse" : "flex-col") : "flex-row items-center",
+                                // Container Styles
+                                isSango && "bg-white p-6 rounded-[2rem] shadow-lg border border-gray-100 hover:-translate-y-1",
+                                isSwell && "bg-white p-6 rounded-sm border border-gray-200 shadow-sm hover:shadow-lg",
+                                isLuxury && "bg-[#0f172a] p-8 border border-[#ca8a04]/30 rounded-lg",
+                                isCyber && "bg-black/80 p-6 border border-cyan-500/30 shadow-[0_0_15px_rgba(6,182,212,0.1)] relative overflow-hidden",
+                                isEarth && "bg-[#fffcf5] p-6 border-2 border-[#d7ccc8] rounded-[1.5rem] relative"
+                            )}
+                        >
+                            {/* Cyber Glow Effect */}
+                            {isCyber && <div className="absolute top-0 right-0 w-20 h-20 bg-cyan-500/20 blur-[40px] rounded-full pointer-events-none"></div>}
+
+                            {/* Image Part */}
+                            <div className={clsx(
+                                "flex-shrink-0 relative",
+                                isVertical ? "mb-4 mx-auto" : "mr-6",
+                                isReverse && isVertical && "mt-4 mb-0",
+                                isSango && "filter drop-shadow-md",
+                                isCyber && "filter drop-shadow-[0_0_5px_cyan]"
+                            )}>
+                                <div className={clsx(
+                                    "overflow-hidden object-cover",
+                                    isVertical ? "w-20 h-20" : "w-16 h-16 md:w-20 md:h-20",
+                                    isSango && "rounded-full ring-4 ring-white",
+                                    isSwell && "rounded-full border border-gray-200",
+                                    isLuxury && "rounded-full border-2 border-[#ca8a04] p-0.5",
+                                    isCyber && "rounded-lg border border-cyan-400 mask-image-gradient",
+                                    isEarth && "rounded-[30%_70%_70%_30%_/30%_30%_70%_70%] border-2 border-[#8d6e63]",
+                                    // Default fallback style
+                                    !item.image && (item.gender === 'female' ? "bg-pink-50" : "bg-blue-50")
+                                )}>
+                                    {item.image ? (
+                                        <img src={getImgUrl(item.image)} alt={item.name} className="w-full h-full object-cover" />
+                                    ) : (
+                                        <div className={clsx(
+                                            "w-full h-full flex items-center justify-center",
+                                            item.gender === 'female' ? "text-pink-500" : "text-blue-500"
+                                        )}>
+                                            {item.gender === 'female' ? (
+                                                <svg viewBox="0 0 24 24" fill="currentColor" className="w-3/4 h-3/4">
+                                                    <path d="M12 2C9.24 2 7 4.24 7 7C7 9.4 8.7 11.4 10.9 11.9C6.8 12.6 4 15.8 4 20C4 20.6 4.4 21 5 21H19C19.6 21 20 20.6 20 20C20 15.8 17.2 12.6 13.1 11.9C15.3 11.4 17 9.4 17 7C17 4.24 14.76 2 12 2ZM8 20C8.6 16.5 11 14 12 14C13 14 15.4 16.5 16 20H8ZM12 4C13.66 4 15 5.34 15 7C15 8.66 13.66 10 12 10C10.34 10 9 8.66 9 7C9 5.34 10.34 4 12 4Z"></path>
+                                                    <path d="M16 11.5C16 12 15 13 12 13C9 13 8 12 8 11.5C8 9 9 7 9 7C9 5.34 10.34 4 12 4C13.66 4 15 5.34 15 7C15 7 16 9 16 11.5Z" opacity="0.3"></path>
+                                                </svg>
+                                            ) : (
+                                                <svg viewBox="0 0 24 24" fill="currentColor" className="w-3/4 h-3/4">
+                                                    <path d="M12 12C14.21 12 16 10.21 16 8C16 5.79 14.21 4 12 4C9.79 4 8 5.79 8 8C8 10.21 9.79 12 12 12ZM12 14C9.33 14 4 15.34 4 18V20H20V18C20 15.34 14.67 14 12 14Z"></path>
+                                                </svg>
+                                            )}
+                                        </div>
+                                    )}
+                                </div>
+                                {isSango && <div className="absolute -bottom-1 -right-1 bg-yellow-400 text-white p-1 rounded-full shadow-sm"><Sparkles size={10} /></div>}
+                            </div>
+
+                            {/* Content Part */}
+                            <div className={clsx("flex-1 min-w-0", isVertical && "text-center")}>
+                                {/* Rating */}
+                                <div className={clsx("flex gap-1 mb-3", isVertical && "justify-center")}>
+                                    {[...Array(5)].map((_, starIdx) => (
+                                        <Star key={starIdx} size={14} fill={starIdx < (item.rating || 5) ? (isLuxury ? '#ca8a04' : (isCyber ? '#22d3ee' : accent)) : 'none'}
+                                            style={{ color: starIdx < (item.rating || 5) ? (isLuxury ? '#ca8a04' : (isCyber ? '#22d3ee' : accent)) : '#e5e7eb' }} />
+                                    ))}
+                                </div>
+
+                                <div className={clsx(
+                                    "text-sm mb-4 leading-relaxed whitespace-pre-wrap",
+                                    isSango && "text-gray-600 font-medium",
+                                    isSwell && "text-gray-600",
+                                    isLuxury && "font-serif text-gray-300 italic",
+                                    isCyber && "font-mono text-cyan-200/80 text-xs",
+                                    isEarth && "text-[#5d4037]"
+                                )}>
+                                    "{item.content || item.text || item.comment}"
+                                </div>
+
+                                <div className={clsx(
+                                    "border-t pt-3",
+                                    isLuxury ? "border-[#ca8a04]/20" : (isCyber ? "border-cyan-900/50" : (isEarth ? "border-[#d7ccc8]" : "border-gray-100"))
+                                )}>
+                                    <h4 className={clsx(
+                                        "font-bold text-sm truncate",
+                                        isSwell && "text-gray-800",
+                                        isLuxury && "text-[#fcd34d] font-serif",
+                                        isCyber && "text-cyan-400 font-mono tracking-wider",
+                                        isEarth && "text-[#5d4037]"
+                                    )}>{item.name || "User Name"}</h4>
+                                    <p className={clsx(
+                                        "text-[10px] uppercase tracking-widest opacity-50 truncate",
+                                        isLuxury ? "text-[#ca8a04]" : (isCyber ? "text-cyan-600" : "text-gray-500")
+                                    )}>{item.role || item.position}</p>
+                                </div>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+                {/* Scroll Indicator */}
+                {enableScroll && (
+                    <div className="flex justify-center gap-2 mt-6">
+                        {items.map((_, i) => (
+                            <div key={i} className={clsx("w-2 h-2 rounded-full transition-all", i === 0 ? "bg-gray-400 w-4" : "bg-gray-200")} />
+                        ))}
+                    </div>
+                )}
+            </div>
+        </SectionWrapper>
+    );
+};

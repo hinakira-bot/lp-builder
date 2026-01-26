@@ -1,12 +1,12 @@
 export const unsplashService = {
-    // Get Access Key from local storage
+    // Get Access Key from session storage
     getAccessKey: () => {
-        return localStorage.getItem('lp_builder_unsplash_key');
+        return sessionStorage.getItem('lp_builder_unsplash_key');
     },
 
     // Set Access Key
     setAccessKey: (key) => {
-        localStorage.setItem('lp_builder_unsplash_key', key);
+        sessionStorage.setItem('lp_builder_unsplash_key', key);
     },
 
     // Search Images
