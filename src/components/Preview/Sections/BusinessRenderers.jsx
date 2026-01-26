@@ -86,7 +86,6 @@ export const ConversionPanel = ({ section, viewMode, accentColor: globalAccent }
                     {isSwell && (
                         <>
                             <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-gray-50 to-transparent -z-10 rounded-bl-full opacity-50"></div>
-                            <div className="absolute bottom-0 left-0 w-32 h-32 border-t border-r border-gray-100 -z-10"></div>
                         </>
                     )}
 
@@ -550,7 +549,7 @@ export const PricingRenderer = ({ section, viewMode, accentColor: globalAccent }
 
                 <div className={clsx(
                     "grid gap-4 md:gap-6 items-stretch",
-                    isMobile ? "grid-cols-1" : (items.length === 2 ? "grid-cols-2 max-w-2xl mx-auto" : "grid-cols-3")
+                    isMobile ? "grid-cols-1" : (section.layout === 'vertical' ? "grid-cols-1 max-w-2xl mx-auto" : (items.length === 2 ? "grid-cols-2 max-w-2xl mx-auto" : "grid-cols-3"))
                 )}>
                     {items.map((plan, i) => {
                         const isRecommended = plan.recommended || plan.featured || plan.isFeatured;
@@ -640,22 +639,25 @@ export const PricingRenderer = ({ section, viewMode, accentColor: globalAccent }
                                 {/* --- HEADER AREA --- */}
                                 <div className={clsx(
                                     "text-center relative",
-                                    isSango ? "p-8 bg-sky-100 rounded-t-[2.2rem]" : (hasManyItems ? "p-4" : "p-6"),
+                                    isSango ? "p-8 rounded-t-[2.2rem]" : (hasManyItems ? "p-4" : "p-6"),
                                     isSwell && (isRecommended ? "pt-12 pb-6" : "py-8"),
                                     isEarth && "pt-10"
-                                )}>
+                                )} style={{
+                                    backgroundColor: isSango ? `${planAccent}15` : undefined,
+                                    color: isSango ? planAccent : undefined
+                                }}>
 
                                     <h4 className={clsx(
                                         "font-bold mb-4 tracking-widest",
                                         hasManyItems ? "text-[10px]" : "text-xs",
-                                        isSango ? "text-sky-900" : (isLuxury ? "text-amber-400" : "text-gray-500"),
+                                        isSango ? "" : (isLuxury ? "text-amber-400" : "text-gray-500"),
                                         isSwell && "font-serif text-gray-800 uppercase tracking-[0.2em]",
                                         isEarth && "text-[#5d4037]"
                                     )}>
                                         {plan.name || plan.title}
                                     </h4>
 
-                                    <div className={clsx("flex justify-center items-center gap-1 mb-2", isSango && "text-sky-900")}>
+                                    <div className={clsx("flex justify-center items-center gap-1 mb-2")}>
                                         <div className={clsx(
                                             "font-black tracking-tighter shrink-0 flex items-baseline gap-1",
                                             isMobile ? "text-2xl" : (hasManyItems ? "text-2xl md:text-3xl" : "text-3xl md:text-4xl"),
@@ -664,7 +666,7 @@ export const PricingRenderer = ({ section, viewMode, accentColor: globalAccent }
                                             isCyber && "font-mono text-cyan-400",
                                             isEarth && "text-[#5d4037]"
                                         )} style={{
-                                            ...((!isSango && !isSwell && !isLuxury && !isCyber && !isEarth) ? { color: planAccent } : {}),
+                                            ...((!isSango && !isSwell && !isLuxury && !isCyber && !isEarth) ? { color: planAccent } : (isSango ? { color: '#1e293b' } : {})),
                                             fontSize: section.priceScale ? `${section.priceScale * 100}%` : undefined
                                         }}>
                                             <span className={clsx("font-black opacity-80", isSwell ? "text-3xl" : "text-xl md:text-2xl")}>¥</span>
@@ -678,9 +680,12 @@ export const PricingRenderer = ({ section, viewMode, accentColor: globalAccent }
                                     </div>
                                     <p className={clsx(
                                         "text-[10px] opacity-60 leading-relaxed min-h-[1.5em] mt-2 px-2",
-                                        isSango ? "text-sky-800/70" : "text-gray-400",
-                                        isEarth && "text-[#5d4037]/70"
-                                    )}>{plan.desc || plan.description}</p>
+                                        isSwell && "text-gray-400",
+                                        isEarth && "text-[#5d4037]/70",
+                                        !isSango && !isSwell && !isEarth && "text-gray-400"
+                                    )} style={{
+                                        color: isSango ? `${planAccent}cc` : undefined
+                                    }}>{plan.desc || plan.description}</p>
                                 </div>
 
                                 {/* --- CONTENT AREA --- */}
@@ -715,37 +720,61 @@ export const PricingRenderer = ({ section, viewMode, accentColor: globalAccent }
 
                                     {plan.showButton !== false && (
                                         <div className="text-center">
-                                            <a href={plan.url || section.url || '#'} className={clsx(
-                                                "inline-block w-full py-3 px-4 font-bold transition-all relative overflow-hidden group/btn text-xs tracking-widest",
+                                            {/* 1. SANGO (Puffy) */}
+                                            {isSango && (
+                                                <div
+                                                    className="rounded-full text-white shadow-[0_4px_0_rgba(0,0,0,0.15)] active:translate-y-1 active:shadow-none hover:opacity-90 transition-all w-full py-3"
+                                                    style={{
+                                                        backgroundColor: planAccent,
+                                                        boxShadow: `0 4px 0 ${planAccent}99`
+                                                    }}
+                                                >
+                                                    <span className="relative z-10 flex w-full justify-center items-center gap-2">
+                                                        {plan.buttonLabel || plan.buttonText || "SELECT PLAN"}
+                                                        <ArrowRight size={12} className="group-hover/btn:translate-x-1" />
+                                                    </span>
+                                                </div>
+                                            )}
 
-                                                // 1. SANGO (Puffy)
-                                                isSango && "rounded-full bg-sky-400 text-white shadow-[0_4px_0_#0ea5e9] active:translate-y-1 active:shadow-none hover:bg-sky-300",
+                                            {/* 2. EARTH (Natural) */}
+                                            {isEarth && (
+                                                <div className="rounded-[1rem] bg-[#8d6e63] text-white hover:opacity-90 shadow-md w-full py-3">
+                                                    <span className="relative z-10 flex w-full justify-center items-center gap-2">
+                                                        {plan.buttonLabel || plan.buttonText || "SELECT PLAN"}
+                                                        <ArrowRight size={12} />
+                                                    </span>
+                                                </div>
+                                            )}
 
-                                                // 2. EARTH (Natural)
-                                                isEarth && "rounded-[1rem] bg-[#8d6e63] text-white hover:opacity-90 shadow-md",
-
-                                                // 3. SWELL (Ghost vs Filled)
-                                                isSwell && clsx(
-                                                    "rounded border py-3 text-xs transition-all duration-500",
+                                            {/* 3. SWELL (Ghost vs Filled) */}
+                                            {isSwell && (
+                                                <div className={clsx(
+                                                    "rounded border py-3 text-xs transition-all duration-500 w-full",
                                                     isRecommended
                                                         ? "bg-[#1e293b] border-[#1e293b] text-white hover:opacity-90"
                                                         : "bg-white border-gray-800 text-gray-800 hover:bg-gray-800 hover:text-white"
-                                                ),
-
-                                                // 4. LUXURY (Gold)
-                                                isLuxury && "border border-[#ca8a04] text-[#ca8a04] hover:bg-[#ca8a04] hover:text-black rounded",
-
-                                                // 5. CYBER (Neon)
-                                                isCyber && "border border-cyan-400 text-cyan-400 hover:bg-cyan-400 hover:text-black shadow-[0_0_15px_rgba(34,211,238,0.3)] rounded"
-                                            )} style={(!isSango && !isEarth && !isSwell && !isLuxury && !isCyber) ? { backgroundColor: planAccent } : {}}>
-                                                {isSwell && (
+                                                )}>
                                                     <div className="absolute top-0 -left-full w-[200%] h-full bg-gradient-to-r from-transparent via-white/60 to-transparent -skew-x-12 group-hover/btn:animate-[shine_0.8s_infinite] pointer-events-none"></div>
-                                                )}
-                                                <span className="relative z-10 flex w-full justify-center items-center gap-2">
-                                                    {plan.buttonLabel || plan.buttonText || "SELECT PLAN"}
-                                                    <ArrowRight size={12} className={clsx("transition-transform", (isSwell || isSango) && "group-hover/btn:translate-x-1")} />
-                                                </span>
-                                            </a>
+                                                    <span className="relative z-10 flex w-full justify-center items-center gap-2">
+                                                        {plan.buttonLabel || plan.buttonText || "SELECT PLAN"}
+                                                        <ArrowRight size={12} className="group-hover/btn:translate-x-1" />
+                                                    </span>
+                                                </div>
+                                            )}
+
+                                            {/* Fallback for others if needed - keeping it as <a> for real links but UI mock here */}
+                                            {!isSango && !isEarth && !isSwell && (
+                                                <a href={plan.url || section.url || '#'} className={clsx(
+                                                    "inline-block w-full py-3 px-4 font-bold transition-all relative overflow-hidden group/btn text-xs tracking-widest",
+                                                    isLuxury && "border border-[#ca8a04] text-[#ca8a04] hover:bg-[#ca8a04] hover:text-black rounded",
+                                                    isCyber && "border border-cyan-400 text-cyan-400 hover:bg-cyan-400 hover:text-black shadow-[0_0_15px_rgba(34,211,238,0.3)] rounded"
+                                                )} style={(!isLuxury && !isCyber) ? { backgroundColor: planAccent } : {}}>
+                                                    <span className="relative z-10 flex w-full justify-center items-center gap-2">
+                                                        {plan.buttonLabel || plan.buttonText || "SELECT PLAN"}
+                                                        <ArrowRight size={12} />
+                                                    </span>
+                                                </a>
+                                            )}
                                         </div>
                                     )}
                                 </div>

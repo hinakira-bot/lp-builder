@@ -325,6 +325,9 @@ export const StylePanel = ({ data, setData }) => {
                 <h2 className="text-sm font-bold text-white mb-4 flex items-center gap-2">
                     <Palette size={16} className="text-blue-400" /> 基本スタイル
                 </h2>
+                <InputGroup label="テーマカラー (アクセント)">
+                    <ColorPicker value={data.accentColor || '#3b82f6'} onChange={(val) => setData({ ...data, accentColor: val })} />
+                </InputGroup>
                 <InputGroup label="テキストカラー">
                     <ColorPicker value={data.textColor} onChange={(val) => setData({ ...data, textColor: val })} />
                 </InputGroup>

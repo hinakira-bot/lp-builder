@@ -950,6 +950,13 @@ export const SectionEditor = ({ section, onChange }) => {
                         </div>
 
                         <div className="space-y-4 bg-gray-900/40 p-4 rounded-xl border border-gray-800">
+                            <div>
+                                <label className="text-[10px] text-gray-500 mb-1 block uppercase tracking-widest font-bold">レイアウト</label>
+                                <div className="flex bg-gray-900/50 p-0.5 rounded-lg border border-gray-800">
+                                    <button onClick={() => update('layout', 'grid')} className={`flex-1 py-1 text-[9px] rounded transition-all ${(section.layout || 'grid') === 'grid' ? 'bg-blue-600 text-white shadow-sm' : 'text-gray-500 hover:text-gray-300'}`}>横に並べる</button>
+                                    <button onClick={() => update('layout', 'vertical')} className={`flex-1 py-1 text-[9px] rounded transition-all ${section.layout === 'vertical' ? 'bg-blue-600 text-white shadow-sm' : 'text-gray-500 hover:text-gray-300'}`}>縦に並べる</button>
+                                </div>
+                            </div>
                             <div className="space-y-2">
                                 <div className="flex justify-between items-center px-1">
                                     <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">コンテンツ最大幅</label>
@@ -1081,7 +1088,7 @@ export const SectionEditor = ({ section, onChange }) => {
                                 <Plus size={14} /> プランを追加
                             </Button>
                         </div>
-                    </div>
+                    </div >
                 )
             }
 

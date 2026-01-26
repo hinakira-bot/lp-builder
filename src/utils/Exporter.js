@@ -70,22 +70,25 @@ const generateHTML = (data) => {
 
     const sectionsHtml = data.sections.map((section, index) => {
         const isMobile = false; // Export uses responsive classes
-        const delayStyle = `animation-delay: ${0.2 + (index * 0.1)}s;`;
+        // Padding & Spacing
+        const pTopVal = section.pTop !== undefined ? section.pTop : (section.pt === 'pt-0' ? 0 : (section.pt === 'pt-4' ? 48 : (section.pt === 'pt-8' ? 96 : (section.pt === 'pt-16' ? 200 : 120))));
+        const pBottomVal = section.pBottom !== undefined ? section.pBottom : (section.pb === 'pb-0' ? 0 : (section.pb === 'pb-4' ? 48 : (section.pb === 'pb-8' ? 96 : (section.pb === 'pb-16' ? 200 : 120))));
+
+        // Add compensation for Dividers (approx 100px-120px)
+        const dTopComp = (section.dividerTop && section.dividerTop !== 'none') ? 120 : 0;
+        const dBottomComp = (section.dividerBottom && section.dividerBottom !== 'none') ? 120 : 0;
+
         const commonClass = "animate-fadeInUp";
 
-        // Spacing
-        const pt = section.pt || 'pt-16';
-        const pb = section.pb || 'pb-16';
-
         // Section Background Logic
-        let sectionBgStyle = '';
+        let sectionBgStyle = `padding-top: ${pTopVal + dTopComp}px; padding-bottom: ${pBottomVal + dBottomComp}px; `;
         let sectionOverlay = '';
 
         if (section.bgType === 'image') {
-            sectionBgStyle = `background-image: url('${section.bgValue}'); background-size: cover; background-position: center; position: relative;`;
+            sectionBgStyle += `background-image: url('${section.bgValue}'); background-size: cover; background-position: center; position: relative; `;
             sectionOverlay = `<div class="absolute inset-0 bg-black" style="opacity: ${section.bgOverlay || 0}; z-index: 0;"></div>`;
         } else if (section.bgType === 'color') {
-            sectionBgStyle = `background-color: ${section.bgValue || 'transparent'};`;
+            sectionBgStyle += `background-color: ${section.bgValue || 'transparent'}; `;
         }
 
         // Dividers
@@ -107,10 +110,10 @@ const generateHTML = (data) => {
         const boxPadding = section.boxStyle && section.boxStyle !== 'none' ? 'p-8 md:p-12 rounded-xl' : '';
 
         const boxWrapperStart = section.boxStyle && section.boxStyle !== 'none'
-            ? `<div class="w-full max-w-5xl mx-auto px-6 relative z-10"><div class="${boxClasses} ${boxPadding}">`
+            ? `<div class="w-full max-w-5xl mx-auto px-6 md:px-12 relative z-10"><div class="${boxClasses} ${boxPadding}">`
             : `<div class="relative z-10">`;
-        const boxWrapperEnd = `</div></div>`;
-        const innerMaxWidth = section.boxStyle && section.boxStyle !== 'none' ? 'w-full' : 'w-full max-w-5xl mx-auto px-6';
+        const boxWrapperEnd = section.boxStyle && section.boxStyle !== 'none' ? `</div></div>` : `</div>`;
+        const innerMaxWidth = section.boxStyle && section.boxStyle !== 'none' ? 'w-full' : 'w-full max-w-5xl mx-auto px-6 md:px-12';
 
         // Content contentHtml
         let contentHtml = '';
@@ -151,17 +154,22 @@ const generateHTML = (data) => {
         }
         else if (section.type === 'image_text') {
             const isRight = section.imagePosition === 'right';
+            const design = section.design || 'standard';
+            const theme = getDesignTheme(design);
+            const accent = section.accentColor || data.accentColor || theme.primary;
+
             const inner = `
-                <h3 class="font-medium tracking-widest mb-6 leading-tight ${textClasses}" style="font-size: ${data.fontSize.sectionTitle}rem;">${section.title}</h3>
-                <p class="leading-loose whitespace-pre-wrap font-light ${textClasses}" style="font-size: ${data.fontSize.body}rem;">${section.content}</p>
+                <h3 class="font-bold tracking-tight mb-6 leading-tight ${textClasses}" style="font-size: ${data.fontSize.sectionTitle * 1.1}rem; color: ${section.bgType === 'image' ? '#fff' : 'inherit'};">${section.title}</h3>
+                <div class="w-12 h-1 mb-8 opacity-50" style="background-color: ${section.bgType === 'image' ? '#fff' : accent}"></div>
+                <p class="leading-loose whitespace-pre-wrap ${textClasses}" style="font-size: ${data.fontSize.body}rem; color: ${section.bgType === 'image' ? '#fff' : 'inherit'}; opacity: 0.8;">${section.content}</p>
             `;
 
             contentHtml = `
-              <div class="flex flex-col md:flex-row gap-10 items-center">
+              <div class="flex flex-col md:flex-row gap-12 lg:gap-20 items-center">
                  <div class="w-full md:w-1/2 ${isRight ? 'md:order-2' : ''}">
-                    <img src="${section.image}" alt="${section.title}" class="w-full h-auto rounded-lg shadow-lg object-cover aspect-[4/3]" />
+                    <img src="${section.image}" alt="${section.title}" class="w-full h-auto rounded-[2rem] shadow-2xl object-cover aspect-[4/3] transform transition-transform hover:scale-[1.02]" />
                  </div>
-                 <div class="w-full md:w-1/2 ${isRight ? 'md:order-1 md:pr-10' : 'md:pl-10'}">
+                 <div class="w-full md:w-1/2 ${isRight ? 'md:order-1' : ''}">
                     <div class="${containerClasses}">
                         ${inner}
                     </div>
@@ -170,7 +178,7 @@ const generateHTML = (data) => {
         }
         else if (section.type === 'heading') {
             const alignClass = section.style === 'center' ? 'text-center' : (section.style === 'right' ? 'text-right' : 'text-left');
-            const accent = section.accentColor || data.themeColor || '#3b82f6';
+            const accent = section.accentColor || data.accentColor || '#3b82f6';
             const textShadowStyle = (section.bgType === 'image') ? 'text-shadow: 2px 2px 0 #fff, -2px -2px 0 #fff, 2px -2px 0 #fff, -2px 2px 0 #fff, 0 2px 0 #fff, 0 -2px 0 #fff, 2px 0 0 #fff, -2px 0 0 #fff;' : '';
 
             contentHtml = `
@@ -210,7 +218,7 @@ const generateHTML = (data) => {
             const items = section.plans || section.items || [];
             const design = section.design || 'standard';
             const designTheme = section.theme || {}; // theme object if passed, else fallback
-            const baseAccent = section.accentColor || data.themeColor || '#3b82f6';
+            const baseAccent = section.accentColor || data.accentColor || '#3b82f6';
 
             // Design Flags
             const isSango = ['gentle', 'standard', 'modern'].includes(design);
@@ -280,31 +288,34 @@ const generateHTML = (data) => {
 
                 // 3. Header HTML
                 let headerClass = `text-center relative `;
-                if (isSango) headerClass += "p-8 bg-sky-100 rounded-t-[2.2rem] ";
+                if (isSango) headerClass += "p-8 rounded-t-[2.2rem] ";
                 else if (isSwell) headerClass += (isRecommended ? "pt-12 pb-6 " : "py-8 ");
                 else if (hasManyItems) headerClass += "p-4 ";
                 else headerClass += "p-6 ";
                 if (isEarth) headerClass += "pt-10 ";
 
+                // Dynamic background for Sango header
+                let headerStyle = isSango ? `background-color: ${planAccent}15; color: ${planAccent};` : '';
+
                 let titleClass = "font-bold mb-4 tracking-widest ";
-                titleClass += hasManyItems ? "text-[10px] " : "text-xs ";
-                if (isSango) titleClass += "text-sky-900 ";
+                titleClass += hasManyItems ? "text-xs " : "text-sm ";
+                if (isSango) titleClass += ""; // Done via style
                 else if (isLuxury) titleClass += "text-amber-400 ";
                 else if (isSwell) titleClass += "font-serif text-gray-800 uppercase tracking-[0.2em] ";
                 else if (isEarth) titleClass += "text-[#5d4037] ";
                 else titleClass += "text-gray-500 ";
 
                 let priceWrapperClass = "flex justify-center items-center gap-1 mb-2 ";
-                if (isSango) priceWrapperClass += "text-sky-900 ";
+                if (isSango) priceWrapperClass += ""; // Done via style
 
                 let priceClass = "font-black tracking-tighter shrink-0 flex items-baseline gap-1 ";
-                priceClass += hasManyItems ? "text-2xl md:text-3xl " : "text-3xl md:text-4xl ";
-                if (isSwell) priceClass += `font-serif text-gray-900 leading-none ${hasManyItems ? "text-3xl md:text-4xl" : "text-4xl md:text-5xl"} `;
+                priceClass += hasManyItems ? "text-3xl md:text-4xl " : "text-4xl md:text-5xl ";
+                if (isSwell) priceClass += `font-serif text-gray-900 leading-none ${hasManyItems ? "text-4xl md:text-5xl" : "text-5xl md:text-6xl"} `;
                 if (isLuxury) priceClass += "font-serif text-[#f59e0b] ";
                 if (isCyber) priceClass += "font-mono text-cyan-400 ";
                 if (isEarth) priceClass += "text-[#5d4037] ";
 
-                let priceStyle = (!isSango && !isSwell && !isLuxury && !isCyber && !isEarth) ? `color: ${planAccent};` : '';
+                let priceStyle = (!isSango && !isSwell && !isLuxury && !isCyber && !isEarth) ? `color: ${planAccent};` : (isSango ? `color: #1e293b;` : '');
                 if (section.priceScale) priceStyle += ` font-size: ${section.priceScale * 100}%;`;
 
                 // 4. Features HTML
@@ -324,7 +335,7 @@ const generateHTML = (data) => {
                     }
 
                     let textClassFeature = "font-medium tracking-wide ";
-                    textClassFeature += hasManyItems ? "text-xs pt-0.5 " : "text-sm pt-0.5 ";
+                    textClassFeature += hasManyItems ? "text-sm pt-0.5 " : "text-base pt-0.5 ";
                     if (isLuxury) textClassFeature += "text-gray-300 ";
                     else if (isEarth) textClassFeature += "text-[#5d4037]/80 ";
                     else textClassFeature += "text-gray-600 ";
@@ -341,7 +352,10 @@ const generateHTML = (data) => {
                     let btnClass = "inline-block w-full py-3 px-4 font-bold transition-all relative overflow-hidden group/btn text-xs tracking-widest ";
                     let btnStyle = "";
 
-                    if (isSango) btnClass += "rounded-full bg-sky-400 text-white shadow-[0_4px_0_#0ea5e9] active:translate-y-1 active:shadow-none hover:bg-sky-300 ";
+                    if (isSango) {
+                        btnClass += "rounded-full text-white shadow-[0_4px_0_rgba(0,0,0,0.15)] active:translate-y-1 active:shadow-none hover:opacity-90 py-3 ";
+                        btnStyle = `background-color: ${planAccent}; box-shadow: 0 4px 0 ${planAccent}99;`;
+                    }
                     else if (isEarth) btnClass += "rounded-[1rem] bg-[#8d6e63] text-white hover:opacity-90 shadow-md ";
                     else if (isSwell) {
                         btnClass += "rounded border py-3 text-xs transition-all duration-500 ";
@@ -371,16 +385,16 @@ const generateHTML = (data) => {
                 return `
                 <div class="${cardClass}" style="${cardStyle}">
                     ${badgeHtml}
-                    <div class="${headerClass}">
+                    <div class="${headerClass}" style="${headerStyle}">
                         <h4 class="${titleClass}">${plan.name || plan.title}</h4>
                         <div class="${priceWrapperClass}">
                             <div class="${priceClass}" style="${priceStyle}">
                                 <span class="font-black opacity-80 ${isSwell ? "text-3xl" : "text-xl md:text-2xl"}">¥</span>
                                 ${displayPrice}
                             </div>
-                            ${displayPeriod ? `<span class="text-xs opacity-40 font-bold self-end mb-1">/ ${displayPeriod}</span>` : ''}
+                            ${displayPeriod ? `<span class="text-sm opacity-40 font-bold self-end mb-1">/ ${displayPeriod}</span>` : ''}
                         </div>
-                        <p class="text-[10px] opacity-60 leading-relaxed min-h-[1.5em] mt-2 px-2 ${isSango ? "text-sky-800/70" : (isEarth ? "text-[#5d4037]/70" : "text-gray-400")}">${plan.desc || plan.description || ''}</p>
+                        <p class="text-xs opacity-60 leading-relaxed min-h-[1.5em] mt-2 px-2 ${isSango ? "" : (isEarth ? "text-[#5d4037]/70" : "text-gray-400")}">${plan.desc || plan.description || ''}</p>
                     </div>
                     <div class="p-6 pt-0 flex-1 flex flex-col ${isSango ? "bg-white pt-8 rounded-b-[2.2rem]" : ""} ${isSwell ? "px-6 pb-8 pt-4" : ""} ${hasManyItems ? "p-4" : ""}">
                         <ul class="space-y-3 mb-8 flex-1 ${(isSwell || isSango) ? "px-2" : "px-0"}">
@@ -398,7 +412,7 @@ const generateHTML = (data) => {
                     <h3 class="font-black mb-4 text-3xl ${isSwell ? 'text-gray-800 font-bold' : (isLuxury ? 'text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-amber-600 font-serif' : (isEarth ? 'text-[#5d4037] tracking-widest' : (isCyber ? 'text-cyan-400 font-mono' : '')))}">${section.title}</h3>
                     <div class="w-12 h-1 mx-auto rounded-full" style="background-color: ${baseAccent}"></div>
                 </div>` : ''}
-                <div class="grid gap-6 md:gap-8 items-stretch grid-cols-1 ${items.length === 2 ? 'md:grid-cols-2 max-w-3xl mx-auto' : 'md:grid-cols-3'} md:scale-[1.03] md:origin-top transition-transform">
+                <div class="grid gap-6 md:gap-10 items-stretch ${section.layout === 'vertical' ? 'grid-cols-1 max-w-2xl mx-auto' : `grid-cols-1 ${items.length === 2 ? 'md:grid-cols-2 max-w-4xl mx-auto' : 'md:grid-cols-3'}`} md:scale-[1.05] md:origin-top transition-transform">
                     ${plansHtml}
                 </div>
             </div>`;
@@ -406,7 +420,7 @@ const generateHTML = (data) => {
         else if (section.type === 'process') {
             const steps = section.steps || section.items || [];
             const design = section.design || 'standard';
-            const accent = section.accentColor || data.themeColor || '#3b82f6';
+            const accent = section.accentColor || data.accentColor || '#3b82f6';
             const textScale = section.textScale || 1.0;
             const itemSpacing = section.itemSpacing || 64;
 
@@ -507,7 +521,7 @@ const generateHTML = (data) => {
             }).join('');
 
             contentHtml = `
-            <div class="px-6 py-10 md:py-16 mx-auto" style="max-width: ${section.contentWidth || 1000}px;">
+            <div class="px-6 mx-auto" style="max-width: ${section.contentWidth || 1000}px;">
                 ${section.title ? `
                 <div class="text-center mb-10 md:mb-16">
                     <h3 class="font-black mb-4 text-3xl md:text-4xl ${isLuxury ? 'font-serif text-transparent bg-clip-text bg-gradient-to-b from-[#fcd34d] to-[#ca8a04]' : (isCyber ? 'font-mono text-cyan-400 tracking-tighter uppercase' : (isEarth ? 'font-serif text-[#5d4037]' : ''))}">${section.title}</h3>
@@ -520,7 +534,7 @@ const generateHTML = (data) => {
         else if (section.type === 'staff') {
             const members = section.members || section.items || [];
             const design = section.design || 'standard';
-            const accent = section.accentColor || data.themeColor || '#3b82f6';
+            const accent = section.accentColor || data.accentColor || '#3b82f6';
             const cols = section.cols || 3;
             const colsMobile = section.colsMobile || 1;
             const imgSize = section.imgSize || 128;
@@ -607,7 +621,7 @@ const generateHTML = (data) => {
             else if (isEarth) titleClass += "font-serif text-[#5d4037] ";
 
             contentHtml = `
-            <div class="mx-auto px-6 py-10 md:py-16" style="max-width: ${section.contentWidth || 1000}px;">
+            <div class="mx-auto px-6 md:px-12" style="max-width: ${section.contentWidth || 1000}px;">
                 ${section.title ? `
                 <div class="text-center mb-12 md:mb-20">
                     <h3 class="${titleClass}">${section.title}</h3>
@@ -626,7 +640,7 @@ const generateHTML = (data) => {
             const items = section.items || [];
             const design = section.design || 'standard';
             const theme = getDesignTheme(design);
-            const accent = section.accentColor || data.themeColor || theme.primary;
+            const accent = section.accentColor || data.accentColor || theme.primary;
             const disableAccordion = section.disableAccordion;
 
             // Toggle State (Static export = open all or script)
@@ -704,7 +718,7 @@ const generateHTML = (data) => {
             const headers = section.headers || ["項目", "自社サービス", "他社サービス"];
             const design = section.design || 'standard';
             const theme = getDesignTheme(design); // Added theme
-            const accent = section.accentColor || data.themeColor || theme.primary; // Updated accent
+            const accent = section.accentColor || data.accentColor || theme.primary; // Updated accent
 
             // Design Flags
             const isSango = ['gentle', 'standard', 'modern'].includes(design);
@@ -790,6 +804,9 @@ const generateHTML = (data) => {
             </div>`;
         }
         else if (section.type === 'access') {
+            const design = section.design || 'standard';
+            const theme = getDesignTheme(design);
+            const accent = section.accentColor || data.accentColor || theme.primary;
             const mapUrl = `https://maps.google.com/maps?q=${encodeURIComponent(section.address || '')}&t=&z=15&ie=UTF8&iwloc=&output=embed`;
             contentHtml = `
             <div class="max-w-5xl mx-auto flex flex-col md:flex-row gap-8">
@@ -797,7 +814,7 @@ const generateHTML = (data) => {
                     <iframe width="100%" height="100%" frameborder="0" src="${mapUrl}" class="absolute inset-0"></iframe>
                 </div>
                 <div class="w-full md:w-1/2 space-y-6 flex flex-col justify-center">
-                    <h3 class="text-2xl font-bold border-l-4 border-blue-600 pl-4">${section.title || "ACCESS"}</h3>
+                    <h3 class="text-2xl font-bold border-l-4 pl-4" style="border-color: ${accent};">${section.title || "ACCESS"}</h3>
                     <div class="space-y-4 text-sm text-gray-600">
                         <p><span class="font-bold mr-4">住所</span>${section.address || ""}</p>
                         ${section.access ? `<p><span class="font-bold mr-4">アクセス</span>${section.access}</p>` : ''}
@@ -811,7 +828,7 @@ const generateHTML = (data) => {
             const items = section.items || section.reviews || [];
             const design = section.design || 'standard';
             const theme = getDesignTheme(design);
-            const accent = section.accentColor || data.themeColor || theme.primary;
+            const accent = section.accentColor || data.accentColor || theme.primary;
             const imagePos = section.imagePos || 'top';
 
             // Design Flags
@@ -827,9 +844,13 @@ const generateHTML = (data) => {
 
             // Helper for Stars
             const renderStars = (rating) => {
+                // Stars should generally be Gold/Yellow unless Cyber (Cyan) or specifically overridden
+                // User feedback: "Stars became red (theme color), want yellow"
+                const starColor = isCyber ? '#22d3ee' : (isLuxury ? '#ca8a04' : '#fbbf24'); // Default #fbbf24 (Amber-400)
+
                 return Array(5).fill(0).map((_, i) => {
-                    const fill = i < (rating || 5) ? (isLuxury ? '#ca8a04' : (isCyber ? '#22d3ee' : accent)) : 'none';
-                    const stroke = i < (rating || 5) ? (isLuxury ? '#ca8a04' : (isCyber ? '#22d3ee' : accent)) : '#e5e7eb';
+                    const fill = i < (rating || 5) ? starColor : 'none';
+                    const stroke = i < (rating || 5) ? starColor : '#e5e7eb';
                     return `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="${fill}" stroke="${stroke}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`;
                 }).join('');
             };
@@ -987,7 +1008,7 @@ const generateHTML = (data) => {
             const items = section.plans || section.items || [];
             const design = section.design || 'standard';
             const theme = getDesignTheme(design);
-            const accent = section.accentColor || data.themeColor || theme.primary;
+            const accent = section.accentColor || data.accentColor || theme.primary;
 
             // Design Flags
             const isSango = ['gentle', 'standard', 'modern'].includes(design);
@@ -1020,7 +1041,7 @@ const generateHTML = (data) => {
             };
 
             // Container Classes
-            let containerClass = "mx-auto overflow-hidden relative isolate transition-all px-6 py-12 md:px-16 md:py-20 text-center ";
+            let containerClass = "mx-auto overflow-hidden relative isolate transition-all px-6 py-12 md:px-20 md:py-20 text-center ";
             if (isSango) containerClass += "rounded-[2rem] md:rounded-[3rem] shadow-[0_10px_40px_-10px_rgba(0,0,0,0.1)] border-white border-4 ring-1 ring-gray-100 ";
             else if (isEarth) containerClass += "rounded-[1.5rem] md:rounded-[2rem] shadow-lg border-2 border-dashed border-[#8d6e63] bg-[#fffcf5] ";
             else if (isSwell) containerClass += "rounded-sm border border-gray-100 shadow-xl bg-white ";
@@ -1079,7 +1100,7 @@ const generateHTML = (data) => {
 
             contentHtml = `
             <div class="${containerClass}" style="${containerStyle}">
-                ${isSwell ? `<div class="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-gray-50 to-transparent -z-10 rounded-bl-full opacity-50"></div><div class="absolute bottom-0 left-0 w-32 h-32 border-t border-r border-gray-100 -z-10"></div>` : ''}
+                ${isSwell ? `<div class="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-gray-50 to-transparent -z-10 rounded-bl-full opacity-50"></div>` : ''}
                 ${isEarth ? `<div class="absolute inset-0 opacity-[0.03] mix-blend-multiply pointer-events-none" style="background-image: url('https://www.transparenttextures.com/patterns/cream-paper.png')"></div>` : ''}
                 ${isLuxury ? `<div class="absolute inset-2 border border-[#ca8a04]/20 pointer-events-none"></div><div class="absolute top-0 left-1/2 -translate-x-1/2 w-1/2 h-1 bg-gradient-to-r from-transparent via-[#ca8a04] to-transparent opacity-50 shadow-[0_0_15px_#ca8a04]"></div>` : ''}
                 ${isCyber ? `<div class="absolute inset-0 pointer-events-none bg-gradient-to-b from-transparent via-cyan-500/5 to-transparent opacity-50"></div>` : ''}
@@ -1103,7 +1124,7 @@ const generateHTML = (data) => {
             const items = section.items || [];
             const design = section.design || 'standard';
             const theme = getDesignTheme(design);
-            const baseAccent = section.badgeColor || data.themeColor || theme.primary;
+            const baseAccent = section.badgeColor || data.accentColor || theme.primary;
 
             // Design Flags
             const isSango = ['gentle', 'standard', 'modern'].includes(design);
@@ -1232,7 +1253,7 @@ const generateHTML = (data) => {
             const items = section.items || [];
             const design = section.design || 'standard';
             const theme = getDesignTheme(design);
-            const accent = section.accentColor || data.themeColor || theme.primary;
+            const accent = section.accentColor || data.accentColor || theme.primary;
 
             // Design Flags
             const isSango = ['gentle', 'standard', 'modern'].includes(design);
@@ -1337,7 +1358,7 @@ const generateHTML = (data) => {
             if (section.bgType === 'image') titleStyle = "text-shadow: 2px 2px 0 #fff, -2px -2px 0 #fff, 2px -2px 0 #fff, -2px 2px 0 #fff, 0 2px 0 #fff, 0 -2px 0 #fff, 2px 0 0 #fff, -2px 0 0 #fff;";
 
             contentHtml = `
-            <div class="px-6 py-20 md:px-16 mx-auto" style="max-width: ${section.contentWidth || 768}px;">
+            <div class="px-6 md:px-16 mx-auto" style="max-width: ${section.contentWidth || 768}px;">
                 <div class="text-center mb-10">
                     <h2 class="${titleClass}" style="${titleStyle}">
                         ${section.title || "こんなお悩みありませんか？"}
@@ -1351,7 +1372,7 @@ const generateHTML = (data) => {
         }
 
         return `
-          <div id="section-${section.id}" class="relative ${pt} ${pb} ${commonClass}" style="${delayStyle} ${sectionBgStyle}">
+          <div id="section-${section.id}" class="relative ${commonClass}" style="animation-delay: ${0.2 + (index * 0.1)}s; ${sectionBgStyle}">
              ${dividerTopHtml}
              ${sectionOverlay}
              ${section.type === 'problem_checklist' ? `<div class="absolute inset-0 opacity-10" style="background-image: url('https://www.transparenttextures.com/patterns/stardust.png'); mix-blend-mode: overlay;"></div>` : ''}
@@ -1365,7 +1386,8 @@ const generateHTML = (data) => {
     }).join('\n');
 
 
-    return `<!DOCTYPE html> <html lang="ja"> <head> <meta charset="UTF-8"> <meta name="viewport" content="width=device-width, initial-scale=1.0"> <title>${data.siteTitle}</title> <script src="https://cdn.tailwindcss.com"></script> <script> tailwind.config = { theme: { extend: { keyframes: { fadeInUp: { '0%': { opacity: '0', transform: 'translateY(20px)' }, '100%': { opacity: '1', transform: 'translateY(0)' }, } }, animation: { fadeInUp: 'fadeInUp 0.5s ease-out forwards', } } } } </script> <link rel="preconnect" href="https://fonts.googleapis.com"> <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin> <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,400&family=Noto+Sans+JP:wght@300;400;500;700&display=swap" rel="stylesheet"> <style> .font-serif { font-family: 'Cormorant Garamond', 'Noto Sans JP', serif; } .font-sans { font-family: 'Noto Sans JP', sans-serif; } @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } } .animate-fadeInUp { animation: fadeInUp 1s cubic-bezier(0.16, 1, 0.3, 1) forwards; } .hero-media { transition: transform 20s linear; transform: scale(1); } .hero-container:hover .hero-media { transform: scale(1.1); } #mobile-menu { transition: transform 0.3s ease-in-out; } html { scroll-behavior: smooth; } html { font-size: clamp(14px, 1.1vw, 22px); } summary::-webkit-details-marker { display: none; } .scrollbar-hide::-webkit-scrollbar { display: none; } .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; } .bg-dots-pattern { background-image: radial-gradient(#333 1px, transparent 1px); background-size: 20px 20px; } @keyframes shimmer { 0% { transform: translateX(-150%) skewX(-15deg); } 20% { transform: translateX(150%) skewX(-15deg); } 100% { transform: translateX(150%) skewX(-15deg); } } .animate-shimmer { animation: shimmer 3s infinite; } @keyframes bounce-slow { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } } .animate-bounce-slow { animation: bounce-slow 3s infinite ease-in-out; } </style> <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script> <script async src="//www.instagram.com/embed.js"></script> </head> <body class="antialiased" style="${bgStyle} color: ${data.textColor};"> <div class="relative min-h-screen flex flex-col ${fontClass}"> <header class="absolute top-0 left-0 w-full z-30 px-6 py-4 text-white"> <div class="flex justify-between items-center max-w-7xl mx-auto"> <div class="font-bold text-lg tracking-widest uppercase opacity-90 mix-blend-difference relative z-50">${data.siteTitle}</div> <nav class="hidden md:block mix-blend-difference"> <ul class="flex space-x-6 text-sm tracking-widest font-medium"> ${menuItemsHtml} </ul> </nav> <button id="menu-btn" class="md:hidden z-50 relative w-8 h-8 flex flex-col justify-center items-end gap-1.5 group mix-blend-difference"> <span class="w-full h-0.5 bg-current transition-all duration-300 origin-right"></span> <span class="w-2/3 h-0.5 bg-current transition-all duration-300 origin-right"></span> <span class="w-full h-0.5 bg-current transition-all duration-300 origin-right"></span> </button> </div> </header> <div id="mobile-menu" class="fixed inset-0 bg-black/95 z-40 transform translate-x-full flex items-center justify-center md:hidden"> <ul class="text-center space-y-8 text-white"> ${menuItemsHtml} </ul> </div> <div class="hero-container relative mx-auto overflow-hidden shadow-2xl transition-all duration-700 ${data.heroWidth < 100 ? 'rounded-3xl' : ''}" style="${heroStyle}">
+    return `<!DOCTYPE html> <html lang="ja"> <head> <meta charset="UTF-8"> <meta name="viewport" content="width=device-width, initial-scale=1.0"> <title>${data.siteTitle}</title> <script src="https://cdn.tailwindcss.com"></script> <script> tailwind.config = { theme: { extend: { colors: { primary: '${data.accentColor || '#3b82f6'}', accent: '${data.accentColor || '#3b82f6'}' }, keyframes: { fadeInUp: { '0%': { opacity: '0', transform: 'translateY(20px)' }, '100%': { opacity: '1', transform: 'translateY(0)' }, } }, animation: { fadeInUp: 'fadeInUp 0.5s ease-out forwards', } } } } </script> <link rel="preconnect" href="https://fonts.googleapis.com"> <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin> <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,400&family=Noto+Sans+JP:wght@300;400;500;700&display=swap" rel="stylesheet"> <style> .font-serif { font-family: 'Cormorant Garamond', 'Noto Sans JP', serif; } .font-sans { font-family: 'Noto Sans JP', sans-serif; } @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } } .animate-fadeInUp { animation: fadeInUp 1s cubic-bezier(0.16, 1, 0.3, 1) forwards; } .hero-media { transition: transform 20s linear; transform: scale(1); } .hero-container:hover .hero-media { transform: scale(1.1); } #mobile-menu { transition: transform 0.3s ease-in-out; } html { scroll-behavior: smooth; } html { font-size: clamp(18px, 1.3vw, 24px); } 
+ summary::-webkit-details-marker { display: none; } .scrollbar-hide::-webkit-scrollbar { display: none; } .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; } .bg-dots-pattern { background-image: radial-gradient(#333 1px, transparent 1px); background-size: 20px 20px; } @keyframes shimmer { 0% { transform: translateX(-150%) skewX(-15deg); } 20% { transform: translateX(150%) skewX(-15deg); } 100% { transform: translateX(150%) skewX(-15deg); } } .animate-shimmer { animation: shimmer 3s infinite; } @keyframes bounce-slow { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } } .animate-bounce-slow { animation: bounce-slow 3s infinite ease-in-out; } @keyframes shine { 0% { left: -100%; } 100% { left: 100%; } } </style> <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script> <script async src="//www.instagram.com/embed.js"></script> </head> <body class="antialiased" style="${bgStyle} color: ${data.textColor};"> <div class="relative min-h-screen flex flex-col ${fontClass}"> <header class="absolute top-0 left-0 w-full z-30 px-6 py-8 text-white"> <div class="flex justify-between items-center max-w-7xl mx-auto"> <div class="font-bold text-2xl tracking-widest uppercase opacity-90 mix-blend-difference relative z-50">${data.siteTitle}</div> <nav class="hidden md:block mix-blend-difference"> <ul class="flex space-x-12 text-sm tracking-widest font-black"> ${menuItemsHtml} </ul> </nav> <button id="menu-btn" class="md:hidden z-50 relative w-8 h-8 flex flex-col justify-center items-end gap-1.5 group mix-blend-difference"> <span class="w-full h-0.5 bg-current transition-all duration-300 origin-right"></span> <span class="w-2/3 h-0.5 bg-current transition-all duration-300 origin-right"></span> <span class="w-full h-0.5 bg-current transition-all duration-300 origin-right"></span> </button> </div> </header> <div id="mobile-menu" class="fixed inset-0 bg-black/95 z-40 transform translate-x-full flex items-center justify-center md:hidden"> <ul class="text-center space-y-8 text-white"> ${menuItemsHtml} </ul> </div> <div class="hero-container relative mx-auto overflow-hidden shadow-2xl transition-all duration-700 ${data.heroWidth < 100 ? 'rounded-[3.5rem]' : ''}" style="${heroStyle}">
             <div class="absolute inset-0 w-full h-full bg-gray-900">
                 ${data.heroType === 'video' ? `<video class="w-full h-full object-cover" src="${data.heroUrl}" autoplay loop muted playsinline style="${mediaStyle}"></video>` : `<img src="${data.heroUrl || data.heroImageFallback}" class="hero-media w-full h-full object-cover" alt="Hero" style="${mediaStyle}">`}
             </div>

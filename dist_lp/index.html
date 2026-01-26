@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 <!doctype html>
 <html lang="ja">
 
@@ -100,3 +101,461 @@ Error generating stack: `+a.message+`
 </body>
 
 </html>
+=======
+<!DOCTYPE html> <html lang="ja"> <head> <meta charset="UTF-8"> <meta name="viewport" content="width=device-width, initial-scale=1.0"> <title>AOYAMA SALON</title> <script src="https://cdn.tailwindcss.com"></script> <script> tailwind.config = { theme: { extend: { keyframes: { fadeInUp: { '0%': { opacity: '0', transform: 'translateY(20px)' }, '100%': { opacity: '1', transform: 'translateY(0)' }, } }, animation: { fadeInUp: 'fadeInUp 0.5s ease-out forwards', } } } } </script> <link rel="preconnect" href="https://fonts.googleapis.com"> <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin> <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,400&family=Noto+Sans+JP:wght@300;400;500;700&display=swap" rel="stylesheet"> <style> .font-serif { font-family: 'Cormorant Garamond', 'Noto Sans JP', serif; } .font-sans { font-family: 'Noto Sans JP', sans-serif; } @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } } .animate-fadeInUp { animation: fadeInUp 1s cubic-bezier(0.16, 1, 0.3, 1) forwards; } .hero-media { transition: transform 20s linear; transform: scale(1); } .hero-container:hover .hero-media { transform: scale(1.1); } #mobile-menu { transition: transform 0.3s ease-in-out; } html { scroll-behavior: smooth; } html { font-size: clamp(14px, 1.1vw, 22px); } summary::-webkit-details-marker { display: none; } .scrollbar-hide::-webkit-scrollbar { display: none; } .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; } .bg-dots-pattern { background-image: radial-gradient(#333 1px, transparent 1px); background-size: 20px 20px; } @keyframes shimmer { 0% { transform: translateX(-150%) skewX(-15deg); } 20% { transform: translateX(150%) skewX(-15deg); } 100% { transform: translateX(150%) skewX(-15deg); } } .animate-shimmer { animation: shimmer 3s infinite; } @keyframes bounce-slow { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } } .animate-bounce-slow { animation: bounce-slow 3s infinite ease-in-out; } </style> <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script> <script async src="//www.instagram.com/embed.js"></script> </head> <body class="antialiased" style="background-color: #ffffff; color: #2d2d2d;"> <div class="relative min-h-screen flex flex-col font-serif"> <header class="absolute top-0 left-0 w-full z-30 px-6 py-4 text-white"> <div class="flex justify-between items-center max-w-7xl mx-auto"> <div class="font-bold text-lg tracking-widest uppercase opacity-90 mix-blend-difference relative z-50">AOYAMA SALON</div> <nav class="hidden md:block mix-blend-difference"> <ul class="flex space-x-6 text-sm tracking-widest font-medium"> <li><a href="#" class="block py-2 md:py-0 md:px-4 hover:opacity-70 transition-opacity">TOP</a></li><li><a href="#section-1" class="block py-2 md:py-0 md:px-4 hover:opacity-70 transition-opacity">CONCEPT</a></li><li><a href="#section-3" class="block py-2 md:py-0 md:px-4 hover:opacity-70 transition-opacity">SERVICE</a></li><li><a href="#section-5" class="block py-2 md:py-0 md:px-4 hover:opacity-70 transition-opacity">REVIEWS</a></li><li><a href="#section-6" class="block py-2 md:py-0 md:px-4 hover:opacity-70 transition-opacity">ACCESS</a></li> </ul> </nav> <button id="menu-btn" class="md:hidden z-50 relative w-8 h-8 flex flex-col justify-center items-end gap-1.5 group mix-blend-difference"> <span class="w-full h-0.5 bg-current transition-all duration-300 origin-right"></span> <span class="w-2/3 h-0.5 bg-current transition-all duration-300 origin-right"></span> <span class="w-full h-0.5 bg-current transition-all duration-300 origin-right"></span> </button> </div> </header> <div id="mobile-menu" class="fixed inset-0 bg-black/95 z-40 transform translate-x-full flex items-center justify-center md:hidden"> <ul class="text-center space-y-8 text-white"> <li><a href="#" class="block py-2 md:py-0 md:px-4 hover:opacity-70 transition-opacity">TOP</a></li><li><a href="#section-1" class="block py-2 md:py-0 md:px-4 hover:opacity-70 transition-opacity">CONCEPT</a></li><li><a href="#section-3" class="block py-2 md:py-0 md:px-4 hover:opacity-70 transition-opacity">SERVICE</a></li><li><a href="#section-5" class="block py-2 md:py-0 md:px-4 hover:opacity-70 transition-opacity">REVIEWS</a></li><li><a href="#section-6" class="block py-2 md:py-0 md:px-4 hover:opacity-70 transition-opacity">ACCESS</a></li> </ul> </div> <div class="hero-container relative mx-auto overflow-hidden shadow-2xl transition-all duration-700 " style="width: 100%; height: 90vh; margin-top: 0; border-radius: 0;">
+            <div class="absolute inset-0 w-full h-full bg-gray-900">
+                <img src="https://images.unsplash.com/photo-1560066984-138dadb4c035?q=80&w=2074&auto=format&fit=crop" class="hero-media w-full h-full object-cover" alt="Hero" style="filter: blur(0px); object-position: 50% 50%;">
+            </div>
+            
+            <div class="absolute inset-0 transition-opacity duration-300 bg-gradient-to-tr from-black/60 via-black/30 to-transparent" style="opacity: 0.4;"></div>
+            
+            <div class="absolute inset-0 flex flex-col items-center justify-center text-center p-8 text-white z-10">
+                <div class="max-w-4xl w-full translate-y-4 animate-fadeInUp">
+                    
+                    
+                    <h2 class="font-black leading-[1.1] mb-8 tracking-tighter opacity-0 animate-fadeInUp" style="animation-delay: 0.2s; font-size: 4.5rem; text-shadow: 0 4px 12px rgba(0,0,0,0.3);">Eternal Beauty</h2>
+                    
+                    <p class="max-w-2xl mx-auto font-medium opacity-90 leading-relaxed mb-10 opacity-0 animate-fadeInUp" style="animation-delay: 0.4s; font-size: 1rem; letter-spacing: 0.05em;">青山の一等地で、あなただけの「美」をデザインする。
+日常を忘れさせる極上のホスピタリティをご体感ください。</p>
+                    
+                    <div class="flex flex-col sm:flex-row items-center justify-center gap-4 opacity-0 animate-fadeInUp" style="animation-delay: 0.6s;">
+                        
+                    </div>
+                </div>
+                
+                
+            </div>
+        </div> <div class="relative z-10 flex-1 flex flex-col w-full"> 
+          <div id="section-1" class="relative pt-24 pb-12 animate-fadeInUp" style="animation-delay: 0.2s; background-color: transparent;">
+             
+             
+             
+             <div class="relative z-10">
+             <div class="w-full max-w-5xl mx-auto px-6">
+                
+             <div class="max-w-4xl mx-auto text-center">
+                <div class="inline-block relative px-4 ">
+                  <h2 class="font-black leading-tight tracking-tight mb-2 " style="font-size: 2.8600000000000003rem; ">Our Concept</h2>
+                  <p class="text-xs md:text-sm opacity-40 font-black tracking-[0.2em] mb-4 uppercase " style="">コンセプト</p>
+                  <div class="w-12 h-1 mx-auto rounded-full" style="background-color: #3b82f6"></div>
+                </div>
+             </div>
+             </div>
+             </div></div>
+             
+          </div>
+
+          <div id="section-2" class="relative pt-16 pb-24 animate-fadeInUp" style="animation-delay: 0.30000000000000004s; ">
+             
+             
+             
+             <div class="relative z-10">
+             <div class="w-full max-w-5xl mx-auto px-6">
+                
+              <div class="flex flex-col md:flex-row gap-10 items-center">
+                 <div class="w-full md:w-1/2 ">
+                    <img src="https://images.unsplash.com/photo-1562322140-8baeececf3df?q=80&w=2069&auto=format&fit=crop" alt="洗練された技術と空間" class="w-full h-auto rounded-lg shadow-lg object-cover aspect-[4/3]" />
+                 </div>
+                 <div class="w-full md:w-1/2 md:pl-10">
+                    <div class="">
+                        
+                <h3 class="font-medium tracking-widest mb-6 leading-tight " style="font-size: 2.2rem;">洗練された技術と空間</h3>
+                <p class="leading-loose whitespace-pre-wrap font-light " style="font-size: 0.95rem;">完全予約制のプライベート感覚で過ごせるサロンです。
+独自のカット技法と、厳選されたオーガニック薬剤を使用し、
+あなたの髪本来の美しさを最大限に引き出します。
+
+心からリラックスできる時間をお約束します。</p>
+            
+                    </div>
+                 </div>
+              </div>
+             </div>
+             </div></div>
+             <div class="absolute bottom-0 left-0 w-full overflow-hidden leading-[0] z-20 translate-y-[1px]"><svg viewBox="0 0 1440 120" fill="#f9f9f9" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none"><path d="M0,0 C480,120 960,120 1440,0 L1440,120 L0,120 Z"></path></svg></div>
+          </div>
+
+          <div id="section-3" class="relative pt-32 pb-32 animate-fadeInUp" style="animation-delay: 0.4s; background-color: #f9f9f9;">
+             
+             
+             
+             <div class="relative z-10">
+             <div class="w-full max-w-5xl mx-auto px-6">
+                
+            <div class="mx-auto" style="max-width: 1100px;">
+                
+                <div class="grid gap-6 md:gap-8 items-stretch grid-cols-1 md:grid-cols-3 md:scale-[1.03] md:origin-top transition-transform">
+                    
+                <div class="flex flex-col relative transition-all duration-300 bg-white group overflow-hidden rounded-[2.5rem] border-4 border-white shadow-xl overflow-visible hover:shadow-2xl hover:-translate-y-2 mt-0 md:mt-4 " style="">
+                    
+                    <div class="text-center relative p-8 bg-sky-100 rounded-t-[2.2rem] ">
+                        <h4 class="font-bold mb-4 tracking-widest text-[10px] text-sky-900 ">Regular</h4>
+                        <div class="flex justify-center items-center gap-1 mb-2 text-sky-900 ">
+                            <div class="font-black tracking-tighter shrink-0 flex items-baseline gap-1 text-2xl md:text-3xl " style="">
+                                <span class="font-black opacity-80 text-xl md:text-2xl">¥</span>
+                                12,000
+                            </div>
+                            
+                        </div>
+                        <p class="text-[10px] opacity-60 leading-relaxed min-h-[1.5em] mt-2 px-2 text-sky-800/70"></p>
+                    </div>
+                    <div class="p-6 pt-0 flex-1 flex flex-col bg-white pt-8 rounded-b-[2.2rem]  p-4">
+                        <ul class="space-y-3 mb-8 flex-1 px-2">
+                            <li class="flex items-start gap-2 text-sm leading-snug">
+                        <div class="flex-shrink-0 flex items-center justify-center mt-1 w-4 h-4 rounded-full bg-yellow-400 text-white shadow-sm " style=""><svg xmlns="http://www.w3.org/2000/svg" width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+                        <span class="font-medium tracking-wide text-xs pt-0.5 text-gray-600 ">デザインカット</span>
+                    </li><li class="flex items-start gap-2 text-sm leading-snug">
+                        <div class="flex-shrink-0 flex items-center justify-center mt-1 w-4 h-4 rounded-full bg-yellow-400 text-white shadow-sm " style=""><svg xmlns="http://www.w3.org/2000/svg" width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+                        <span class="font-medium tracking-wide text-xs pt-0.5 text-gray-600 ">炭酸泉シャンプー</span>
+                    </li><li class="flex items-start gap-2 text-sm leading-snug">
+                        <div class="flex-shrink-0 flex items-center justify-center mt-1 w-4 h-4 rounded-full bg-yellow-400 text-white shadow-sm " style=""><svg xmlns="http://www.w3.org/2000/svg" width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+                        <span class="font-medium tracking-wide text-xs pt-0.5 text-gray-600 ">似合わせアドバイス</span>
+                    </li>
+                        </ul>
+                        
+                    <div class="text-center">
+                        <a href="#" class="inline-block w-full py-3 px-4 font-bold transition-all relative overflow-hidden group/btn text-xs tracking-widest rounded-full bg-sky-400 text-white shadow-[0_4px_0_#0ea5e9] active:translate-y-1 active:shadow-none hover:bg-sky-300 " style="">
+                            
+                            <span class="relative z-10 flex w-full justify-center items-center gap-2">
+                                予約する
+                                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="transition-transform group-hover/btn:translate-x-1"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+                            </span>
+                        </a>
+                    </div>
+                    </div>
+                </div>
+                <div class="flex flex-col relative transition-all duration-300 bg-white group overflow-hidden rounded-[2.5rem] border-4 border-white shadow-xl overflow-visible ring-4 ring-sky-100 transform translate-y-[-8px] z-10 " style="">
+                    <div class="absolute top-0 right-0 z-30 pointer-events-none mt-2 mr-2 px-4 py-1 rounded-full bg-yellow-400 text-slate-800 text-[10px] font-black tracking-widest shadow-lg transform rotate-12 border-2 border-white translate-x-1 -translate-y-1">RECOMMENDED</div>
+                    <div class="text-center relative p-8 bg-sky-100 rounded-t-[2.2rem] ">
+                        <h4 class="font-bold mb-4 tracking-widest text-[10px] text-sky-900 ">Premium</h4>
+                        <div class="flex justify-center items-center gap-1 mb-2 text-sky-900 ">
+                            <div class="font-black tracking-tighter shrink-0 flex items-baseline gap-1 text-2xl md:text-3xl " style="">
+                                <span class="font-black opacity-80 text-xl md:text-2xl">¥</span>
+                                22,000
+                            </div>
+                            <span class="text-xs opacity-40 font-bold self-end mb-1">/ ~</span>
+                        </div>
+                        <p class="text-[10px] opacity-60 leading-relaxed min-h-[1.5em] mt-2 px-2 text-sky-800/70"></p>
+                    </div>
+                    <div class="p-6 pt-0 flex-1 flex flex-col bg-white pt-8 rounded-b-[2.2rem]  p-4">
+                        <ul class="space-y-3 mb-8 flex-1 px-2">
+                            <li class="flex items-start gap-2 text-sm leading-snug">
+                        <div class="flex-shrink-0 flex items-center justify-center mt-1 w-4 h-4 rounded-full bg-yellow-400 text-white shadow-sm " style=""><svg xmlns="http://www.w3.org/2000/svg" width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+                        <span class="font-medium tracking-wide text-xs pt-0.5 text-gray-600 ">カット + 美髪カラー</span>
+                    </li><li class="flex items-start gap-2 text-sm leading-snug">
+                        <div class="flex-shrink-0 flex items-center justify-center mt-1 w-4 h-4 rounded-full bg-yellow-400 text-white shadow-sm " style=""><svg xmlns="http://www.w3.org/2000/svg" width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+                        <span class="font-medium tracking-wide text-xs pt-0.5 text-gray-600 ">髪質改善トリートメント</span>
+                    </li><li class="flex items-start gap-2 text-sm leading-snug">
+                        <div class="flex-shrink-0 flex items-center justify-center mt-1 w-4 h-4 rounded-full bg-yellow-400 text-white shadow-sm " style=""><svg xmlns="http://www.w3.org/2000/svg" width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+                        <span class="font-medium tracking-wide text-xs pt-0.5 text-gray-600 ">ナノスチーム</span>
+                    </li><li class="flex items-start gap-2 text-sm leading-snug">
+                        <div class="flex-shrink-0 flex items-center justify-center mt-1 w-4 h-4 rounded-full bg-yellow-400 text-white shadow-sm " style=""><svg xmlns="http://www.w3.org/2000/svg" width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+                        <span class="font-medium tracking-wide text-xs pt-0.5 text-gray-600 ">ホームケア付</span>
+                    </li>
+                        </ul>
+                        
+                    <div class="text-center">
+                        <a href="#" class="inline-block w-full py-3 px-4 font-bold transition-all relative overflow-hidden group/btn text-xs tracking-widest rounded-full bg-sky-400 text-white shadow-[0_4px_0_#0ea5e9] active:translate-y-1 active:shadow-none hover:bg-sky-300 " style="">
+                            
+                            <span class="relative z-10 flex w-full justify-center items-center gap-2">
+                                一番人気
+                                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="transition-transform group-hover/btn:translate-x-1"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+                            </span>
+                        </a>
+                    </div>
+                    </div>
+                </div>
+                <div class="flex flex-col relative transition-all duration-300 bg-white group overflow-hidden rounded-[2.5rem] border-4 border-white shadow-xl overflow-visible hover:shadow-2xl hover:-translate-y-2 mt-0 md:mt-4 " style="">
+                    
+                    <div class="text-center relative p-8 bg-sky-100 rounded-t-[2.2rem] ">
+                        <h4 class="font-bold mb-4 tracking-widest text-[10px] text-sky-900 ">Special</h4>
+                        <div class="flex justify-center items-center gap-1 mb-2 text-sky-900 ">
+                            <div class="font-black tracking-tighter shrink-0 flex items-baseline gap-1 text-2xl md:text-3xl " style="">
+                                <span class="font-black opacity-80 text-xl md:text-2xl">¥</span>
+                                35,000
+                            </div>
+                            <span class="text-xs opacity-40 font-bold self-end mb-1">/ ~</span>
+                        </div>
+                        <p class="text-[10px] opacity-60 leading-relaxed min-h-[1.5em] mt-2 px-2 text-sky-800/70"></p>
+                    </div>
+                    <div class="p-6 pt-0 flex-1 flex flex-col bg-white pt-8 rounded-b-[2.2rem]  p-4">
+                        <ul class="space-y-3 mb-8 flex-1 px-2">
+                            <li class="flex items-start gap-2 text-sm leading-snug">
+                        <div class="flex-shrink-0 flex items-center justify-center mt-1 w-4 h-4 rounded-full bg-yellow-400 text-white shadow-sm " style=""><svg xmlns="http://www.w3.org/2000/svg" width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+                        <span class="font-medium tracking-wide text-xs pt-0.5 text-gray-600 ">フルコースメニュー</span>
+                    </li><li class="flex items-start gap-2 text-sm leading-snug">
+                        <div class="flex-shrink-0 flex items-center justify-center mt-1 w-4 h-4 rounded-full bg-yellow-400 text-white shadow-sm " style=""><svg xmlns="http://www.w3.org/2000/svg" width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+                        <span class="font-medium tracking-wide text-xs pt-0.5 text-gray-600 ">ヘッドスパ 45分</span>
+                    </li><li class="flex items-start gap-2 text-sm leading-snug">
+                        <div class="flex-shrink-0 flex items-center justify-center mt-1 w-4 h-4 rounded-full bg-yellow-400 text-white shadow-sm " style=""><svg xmlns="http://www.w3.org/2000/svg" width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+                        <span class="font-medium tracking-wide text-xs pt-0.5 text-gray-600 ">完全個室対応</span>
+                    </li><li class="flex items-start gap-2 text-sm leading-snug">
+                        <div class="flex-shrink-0 flex items-center justify-center mt-1 w-4 h-4 rounded-full bg-yellow-400 text-white shadow-sm " style=""><svg xmlns="http://www.w3.org/2000/svg" width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+                        <span class="font-medium tracking-wide text-xs pt-0.5 text-gray-600 ">ドリンクサービス</span>
+                    </li>
+                        </ul>
+                        
+                    <div class="text-center">
+                        <a href="#" class="inline-block w-full py-3 px-4 font-bold transition-all relative overflow-hidden group/btn text-xs tracking-widest rounded-full bg-sky-400 text-white shadow-[0_4px_0_#0ea5e9] active:translate-y-1 active:shadow-none hover:bg-sky-300 " style="">
+                            
+                            <span class="relative z-10 flex w-full justify-center items-center gap-2">
+                                お問い合わせ
+                                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="transition-transform group-hover/btn:translate-x-1"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+                            </span>
+                        </a>
+                    </div>
+                    </div>
+                </div>
+                </div>
+            </div>
+             </div>
+             </div></div>
+             
+          </div>
+
+          <div id="section-4" class="relative pt-24 pb-24 animate-fadeInUp" style="animation-delay: 0.5s; ">
+             
+             
+             
+             <div class="relative z-10">
+             <div class="w-full max-w-5xl mx-auto px-6">
+                
+            <div class="px-6 py-10 md:py-16 mx-auto" style="max-width: 1000px;">
+                
+                <div class="flex flex-col" style="gap: 64px;">
+                    
+                <div class="relative group">
+                    <div class="flex items-center gap-6 md:gap-10 lg:gap-12 flex-col md:flex-row">
+                        <div class="flex-1 w-full space-y-4">
+                            <div class="flex items-center gap-4">
+                                <div class="w-10 h-10 md:w-14 md:h-14 flex-shrink-0 flex items-center justify-center text-white font-black rounded-lg " style="background-color: #D4AF37; font-size: 1.5rem;">
+                                    1
+                                </div>
+                                <div class="flex flex-col">
+                                    <span class="text-[10px] font-black tracking-widest uppercase opacity-40 ">Step 01</span>
+                                    <div class="h-0.5 w-8 rounded-full opacity-30" style="background-color: #D4AF37"></div>
+                                </div>
+                            </div>
+                            <h4 class="font-black leading-tight text-xl md:text-2xl lg:text-3xl " style="font-size: 2.25rem;">
+                                Counseling
+                            </h4>
+                            <p class="opacity-80 leading-loose text-sm md:text-base text-gray-600 " style="font-size: 1.125rem;">
+                                現在のお悩みや理想のスタイルを、プロの視点から丁寧に伺います。
+                            </p>
+                        </div>
+                        <div class="flex-1 w-full relative">
+                            <div class="overflow-hidden shadow-2xl transition-all duration-500 group-hover:scale-[1.02] bg-gray-50 flex-1 w-full rounded-3xl " style="aspect-ratio: 16/10;">
+                                <div class="w-full h-full flex items-center justify-center text-[10px] text-gray-400 font-black bg-gray-100/50">STEP IMAGE</div>
+                                
+                            </div>
+                            <div class="absolute font-black opacity-[0.03] leading-none select-none pointer-events-none -top-12 transition-all duration-700 group-hover:opacity-[0.07] -left-12 " style="font-size: 15rem; color: #D4AF37;">1</div>
+                            
+                            
+                        </div>
+                    </div>
+                </div>
+                <div class="relative group">
+                    <div class="flex items-center gap-6 md:gap-10 lg:gap-12 flex-col md:flex-row-reverse">
+                        <div class="flex-1 w-full space-y-4">
+                            <div class="flex items-center gap-4">
+                                <div class="w-10 h-10 md:w-14 md:h-14 flex-shrink-0 flex items-center justify-center text-white font-black rounded-lg " style="background-color: #D4AF37; font-size: 1.5rem;">
+                                    2
+                                </div>
+                                <div class="flex flex-col">
+                                    <span class="text-[10px] font-black tracking-widest uppercase opacity-40 ">Step 02</span>
+                                    <div class="h-0.5 w-8 rounded-full opacity-30" style="background-color: #D4AF37"></div>
+                                </div>
+                            </div>
+                            <h4 class="font-black leading-tight text-xl md:text-2xl lg:text-3xl " style="font-size: 2.25rem;">
+                                Treatment
+                            </h4>
+                            <p class="opacity-80 leading-loose text-sm md:text-base text-gray-600 " style="font-size: 1.125rem;">
+                                髪質に合わせた最適なシャンプーと、リラックス効果の高い施術を行います。
+                            </p>
+                        </div>
+                        <div class="flex-1 w-full relative">
+                            <div class="overflow-hidden shadow-2xl transition-all duration-500 group-hover:scale-[1.02] bg-gray-50 flex-1 w-full rounded-3xl " style="aspect-ratio: 16/10;">
+                                <div class="w-full h-full flex items-center justify-center text-[10px] text-gray-400 font-black bg-gray-100/50">STEP IMAGE</div>
+                                
+                            </div>
+                            <div class="absolute font-black opacity-[0.03] leading-none select-none pointer-events-none -top-12 transition-all duration-700 group-hover:opacity-[0.07] -right-12 " style="font-size: 15rem; color: #D4AF37;">2</div>
+                            
+                            
+                        </div>
+                    </div>
+                </div>
+                <div class="relative group">
+                    <div class="flex items-center gap-6 md:gap-10 lg:gap-12 flex-col md:flex-row">
+                        <div class="flex-1 w-full space-y-4">
+                            <div class="flex items-center gap-4">
+                                <div class="w-10 h-10 md:w-14 md:h-14 flex-shrink-0 flex items-center justify-center text-white font-black rounded-lg " style="background-color: #D4AF37; font-size: 1.5rem;">
+                                    3
+                                </div>
+                                <div class="flex flex-col">
+                                    <span class="text-[10px] font-black tracking-widest uppercase opacity-40 ">Step 03</span>
+                                    <div class="h-0.5 w-8 rounded-full opacity-30" style="background-color: #D4AF37"></div>
+                                </div>
+                            </div>
+                            <h4 class="font-black leading-tight text-xl md:text-2xl lg:text-3xl " style="font-size: 2.25rem;">
+                                Design
+                            </h4>
+                            <p class="opacity-80 leading-loose text-sm md:text-base text-gray-600 " style="font-size: 1.125rem;">
+                                ライフスタイルに合わせた再現性の高いスタイルをご提案・仕上げます。
+                            </p>
+                        </div>
+                        <div class="flex-1 w-full relative">
+                            <div class="overflow-hidden shadow-2xl transition-all duration-500 group-hover:scale-[1.02] bg-gray-50 flex-1 w-full rounded-3xl " style="aspect-ratio: 16/10;">
+                                <div class="w-full h-full flex items-center justify-center text-[10px] text-gray-400 font-black bg-gray-100/50">STEP IMAGE</div>
+                                
+                            </div>
+                            <div class="absolute font-black opacity-[0.03] leading-none select-none pointer-events-none -top-12 transition-all duration-700 group-hover:opacity-[0.07] -left-12 " style="font-size: 15rem; color: #D4AF37;">3</div>
+                            
+                            
+                        </div>
+                    </div>
+                </div>
+                </div>
+            </div>
+             </div>
+             </div></div>
+             
+          </div>
+
+          <div id="section-5" class="relative pt-24 pb-24 animate-fadeInUp" style="animation-delay: 0.6000000000000001s; background-color: #f9f9f9;">
+             <div class="absolute top-0 left-0 w-full overflow-hidden leading-[0] z-20 translate-y-[-1px] rotate-180"><svg viewBox="0 0 1440 120" fill="#ffffff" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none"><path d="M0,64L48,69.3C96,75,192,85,288,80C384,75,480,53,576,48C672,43,768,53,864,64C960,75,1056,85,1152,80C1248,75,1344,53,1392,42.7L1440,32L1440,120L1392,120C1344,120,1248,120,1152,120C1056,120,960,120,864,120C768,120,672,120,576,120C480,120,384,120,288,120C192,120,96,120,48,120L0,120Z"></path></svg></div>
+             
+             
+             <div class="relative z-10">
+             <div class="w-full max-w-5xl mx-auto px-6">
+                
+            <div class="mx-auto" style="max-width: 1100px;">
+                
+                <div class="grid gap-6 md:gap-8 grid-cols-1 md:grid-cols-3" style="">
+                    
+                <div class="flex transition-all duration-300 relative group w-full flex-col bg-white p-6 rounded-lg shadow-sm border border-gray-100 ">
+                    
+                    <div class="flex-shrink-0 relative mb-4 mx-auto ">
+                        <div class="overflow-hidden object-cover flex items-center justify-center w-20 h-20 rounded-full bg-gray-100 ">
+                            <img src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=1976&auto=format&fit=crop" alt="田中 幸子 様" class="w-full h-full object-cover" />
+                        </div>
+                        
+                    </div>
+                    <div class="flex-1 min-w-0 text-center ">
+                        <div class="flex gap-1 mb-3 justify-center"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="#3b82f6" stroke="#3b82f6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="#3b82f6" stroke="#3b82f6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="#3b82f6" stroke="#3b82f6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="#3b82f6" stroke="#3b82f6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="#3b82f6" stroke="#3b82f6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></div>
+                        <div class="text-sm mb-4 leading-relaxed whitespace-pre-wrap text-gray-600 ">"今までで一番気に入ったスタイルになりました！丁寧な説明で安心してお任せできました。"</div>
+                        <div class="border-t pt-3 border-gray-100 ">
+                            <h4 class="font-bold text-sm truncate ">田中 幸子 様</h4>
+                            <p class="text-[10px] uppercase tracking-widest opacity-50 truncate ">会社員</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex transition-all duration-300 relative group w-full flex-col bg-white p-6 rounded-lg shadow-sm border border-gray-100 ">
+                    
+                    <div class="flex-shrink-0 relative mb-4 mx-auto ">
+                        <div class="overflow-hidden object-cover flex items-center justify-center w-20 h-20 rounded-full bg-gray-100 ">
+                            <img src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?q=80&w=2070&auto=format&fit=crop" alt="佐藤 真衣 様" class="w-full h-full object-cover" />
+                        </div>
+                        
+                    </div>
+                    <div class="flex-1 min-w-0 text-center ">
+                        <div class="flex gap-1 mb-3 justify-center"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="#3b82f6" stroke="#3b82f6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="#3b82f6" stroke="#3b82f6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="#3b82f6" stroke="#3b82f6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="#3b82f6" stroke="#3b82f6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="#3b82f6" stroke="#3b82f6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></div>
+                        <div class="text-sm mb-4 leading-relaxed whitespace-pre-wrap text-gray-600 ">"お店の雰囲気がとても素敵で、育児の合間に最高のリフレッシュができました。また来ます。"</div>
+                        <div class="border-t pt-3 border-gray-100 ">
+                            <h4 class="font-bold text-sm truncate ">佐藤 真衣 様</h4>
+                            <p class="text-[10px] uppercase tracking-widest opacity-50 truncate ">主婦</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex transition-all duration-300 relative group w-full flex-col bg-white p-6 rounded-lg shadow-sm border border-gray-100 ">
+                    
+                    <div class="flex-shrink-0 relative mb-4 mx-auto ">
+                        <div class="overflow-hidden object-cover flex items-center justify-center w-20 h-20 rounded-full bg-gray-100 ">
+                            <img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?q=80&w=2070&auto=format&fit=crop" alt="伊藤 健一 様" class="w-full h-full object-cover" />
+                        </div>
+                        
+                    </div>
+                    <div class="flex-1 min-w-0 text-center ">
+                        <div class="flex gap-1 mb-3 justify-center"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="#3b82f6" stroke="#3b82f6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="#3b82f6" stroke="#3b82f6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="#3b82f6" stroke="#3b82f6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="#3b82f6" stroke="#3b82f6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="#3b82f6" stroke="#3b82f6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></div>
+                        <div class="text-sm mb-4 leading-relaxed whitespace-pre-wrap text-gray-600 ">"仕事帰りに寄れるのがありがたい。カットの技術はもちろん、ヘッドスパが最高に気持ちいい。"</div>
+                        <div class="border-t pt-3 border-gray-100 ">
+                            <h4 class="font-bold text-sm truncate ">伊藤 健一 様</h4>
+                            <p class="text-[10px] uppercase tracking-widest opacity-50 truncate ">経営者</p>
+                        </div>
+                    </div>
+                </div>
+                </div>
+            </div>
+             </div>
+             </div></div>
+             
+          </div>
+
+          <div id="section-6" class="relative pt-24 pb-24 animate-fadeInUp" style="animation-delay: 0.7s; ">
+             
+             
+             
+             <div class="relative z-10">
+             <div class="w-full max-w-5xl mx-auto px-6">
+                
+            <div class="max-w-5xl mx-auto flex flex-col md:flex-row gap-8">
+                <div class="w-full md:w-1/2 min-h-[300px] bg-gray-200 rounded-2xl overflow-hidden shadow-lg relative">
+                    <iframe width="100%" height="100%" frameborder="0" src="https://maps.google.com/maps?q=%E6%9D%B1%E4%BA%AC%E9%83%BD%E6%B8%AF%E5%8C%BA%E5%8D%97%E9%9D%92%E5%B1%B11-1-1&t=&z=15&ie=UTF8&iwloc=&output=embed" class="absolute inset-0"></iframe>
+                </div>
+                <div class="w-full md:w-1/2 space-y-6 flex flex-col justify-center">
+                    <h3 class="text-2xl font-bold border-l-4 border-blue-600 pl-4">ACCESS</h3>
+                    <div class="space-y-4 text-sm text-gray-600">
+                        <p><span class="font-bold mr-4">住所</span>東京都港区南青山1-1-1</p>
+                        <p><span class="font-bold mr-4">アクセス</span>表参道駅 A1出口より徒歩3分</p>
+                        <p><span class="font-bold mr-4">営業時間</span>10:00 - 20:00 (火曜定休)</p>
+                        <p><span class="font-bold mr-4">電話番号</span>03-1234-5678</p>
+                    </div>
+                </div>
+            </div>
+             </div>
+             </div></div>
+             
+          </div>
+
+          <div id="section-99" class="relative pt-16 pb-16 animate-fadeInUp" style="animation-delay: 0.8s; ">
+             
+             
+             
+             <div class="relative z-10">
+             <div class="w-full max-w-5xl mx-auto px-6">
+                
+            <div class="mx-auto overflow-hidden relative isolate transition-all px-6 py-12 md:px-16 md:py-20 text-center rounded-[2rem] md:rounded-[3rem] shadow-[0_10px_40px_-10px_rgba(0,0,0,0.1)] border-white border-4 ring-1 ring-gray-100 " style="max-width: 896px; background-color: #ffffff; background-image: radial-gradient(#3b82f615 2px, transparent 2px), radial-gradient(#3b82f610 1px, transparent 1px); background-size: 32px 32px, 16px 16px; background-position: 0 0, 16px 16px;">
+                
+                
+                
+                
+
+                <h3 class="font-black mb-6 leading-tight relative inline-block text-2xl md:text-4xl text-gray-800 " style="">
+                    SPECIAL OFFER
+                    <span class="absolute -bottom-2 left-0 w-full h-3 opacity-30 -rotate-1 rounded-full" style="background-color: #3b82f6"></span>
+                </h3>
+                
+                <p class="mb-8 leading-relaxed mx-auto max-w-xl text-base text-gray-600">
+                    今すぐ無料体験にお申し込みいただき、ビジネスを加速させましょう。
+                </p>
+
+                <div class="flex flex-wrap justify-center gap-4">
+                    <a href="#" class="inline-flex items-center justify-center gap-2 font-black tracking-widest transition-all duration-300 group relative whitespace-nowrap px-8 py-5 text-lg w-full md:w-auto md:min-w-[280px] rounded-full text-white transform active:translate-y-1 active:shadow-none " style="box-shadow: 0 6px 0 #1f2937cc, 0 12px 12px -2px rgba(0,0,0,0.15); background-color: #1f2937;">
+                    
+                    <span class="relative z-10 flex items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+                        オンライン予約
+                    </span>
+                </a><a href="#" class="inline-flex items-center justify-center gap-2 font-black tracking-widest transition-all duration-300 group relative whitespace-nowrap px-8 py-5 text-lg w-full md:w-auto md:min-w-[280px] rounded-full text-white transform active:translate-y-1 active:shadow-none " style="box-shadow: 0 6px 0 #06c755cc, 0 12px 12px -2px rgba(0,0,0,0.15); background-color: #06c755;">
+                    
+                    <span class="relative z-10 flex items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+                        LINEで相談
+                    </span>
+                </a>
+                </div>
+                <p class="mt-6 text-xs font-bold opacity-50 ">※Web予約限定価格です。お早めにご予約ください。</p>
+            </div>
+             </div>
+             </div></div>
+             
+          </div> </div> <footer id="footer" class="py-8 text-center border-t border-current/10 opacity-60 mt-auto" style="background-color: #ffffff;"> <p class="text-[10px] uppercase tracking-widest">&copy; 2026 AOYAMA SALON. All Rights Reserved.</p> </footer> </div> <script> const menuBtn = document.getElementById('menu-btn'); const mobileMenu = document.getElementById('mobile-menu'); const spans = menuBtn.querySelectorAll('span'); let isOpen = false; menuBtn.addEventListener('click', () => { isOpen = !isOpen; if (isOpen) { mobileMenu.classList.remove('translate-x-full'); spans[0].style.transform = 'rotate(45deg) translate(5px, 6px)'; spans[1].style.opacity = '0'; spans[2].style.transform = 'rotate(-45deg) translate(5px, -6px)'; } else { mobileMenu.classList.add('translate-x-full'); spans[0].style.transform = 'none'; spans[1].style.opacity = '1'; spans[2].style.transform = 'none'; } }); mobileMenu.querySelectorAll('a').forEach(link => { link.addEventListener('click', () => { isOpen = false; mobileMenu.classList.add('translate-x-full'); spans[0].style.transform = 'none'; spans[1].style.opacity = '1'; spans[2].style.transform = 'none'; }); }); </script> </body> </html>
+>>>>>>> 3cb15e3d357a4b693de78ccb50399eb08e690322
